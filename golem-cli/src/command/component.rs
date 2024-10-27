@@ -410,24 +410,3 @@ impl<
         }
     }
 }
-
-// fn load_app(file: PathBuf) -> Result<ApplicationManifest, GolemError> {
-//     let oam_app = ValidatedResult::from_result(oam::ApplicationWithSource::from_yaml_file(file))
-//         .and_then(oam::ApplicationWithSource::validate);
-
-//     let app = oam_app.and_then(|a| ApplicationManifest::from_oam_apps(vec![a]));
-
-//     match app {
-//         ValidatedResult::Ok(app) => Ok(app),
-//         ValidatedResult::OkWithWarns(app, warns) => {
-//             let warns = warns.join("\n");
-//             warn!("Encountered issues during app manifest loading: {}", warns);
-//             Ok(app)
-//         }
-//         ValidatedResult::WarnsAndErrors(warns, errors) => {
-//             let warns = warns.join(",");
-//             let errors = errors.join(",");
-//             Err(GolemError(format!("Failed loading app manifest. warns: {warns}, errors: {errors}")))
-//         }
-//     }
-// }
