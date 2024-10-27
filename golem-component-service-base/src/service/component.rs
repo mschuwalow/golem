@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std::fmt::{Debug, Display, Formatter};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::Read;
 use std::path::PathBuf;
 use std::vec;
@@ -975,8 +975,11 @@ impl ComponentServiceDefault {
             uploaded.push(properties);
         }
 
-        if uploaded.len() != expected_paths.len() {
-            return Err(ComponentError::malformed_component_archive_from_message(format!("Expected {} files in the archive, but only found {}", expected_paths.len(), uploaded.len())));
+        let uploaded_paths = uploaded.iter().map(|f| f.path.relative_path_buf()).collect::<HashSet<_>>();
+        for path in expected_paths.keys() {
+            if !uploaded_paths.contains(path) {
+                return Err(ComponentError::malformed_component_archive_from_message(format!("Didn't find expected file in the archive: {}", path.display().to_string())));
+            }
         }
 
         Ok(uploaded)
