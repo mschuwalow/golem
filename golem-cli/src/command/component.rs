@@ -25,7 +25,6 @@ use golem_client::model::ComponentType;
 use golem_wasm_rpc_stubgen::commands::declarative::ApplicationResolveMode;
 use std::path::PathBuf;
 use std::sync::Arc;
-use golem_common::uri::oss::uri::ComponentUri;
 
 #[derive(Subcommand, Debug)]
 #[command()]

@@ -1,4 +1,4 @@
-use golem_worker_executor_base::services::initial_component_files::{self, InitialComponentFilesServiceDefault};
+use golem_worker_executor_base::services::initial_component_files::{InitialComponentFilesServiceDefault};
 use golem_worker_executor_base::storage::blob::fs::FileSystemBlobStorage;
 use golem_worker_executor_base::storage::blob::BlobStorage;
 use test_r::test;
@@ -25,7 +25,7 @@ use golem_wasm_ast::analysis::analysed_type::{str, u64};
 use rib::RegistryKey;
 use tokio::fs::File;
 use std::collections::HashSet;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{ContainerAsync, ImageExt};

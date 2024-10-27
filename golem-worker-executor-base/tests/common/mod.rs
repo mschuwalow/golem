@@ -3,7 +3,7 @@ use async_trait::async_trait;
 
 use golem_wasm_rpc::wasmtime::ResourceStore;
 use golem_wasm_rpc::{Uri, Value};
-use golem_worker_executor_base::services::file_loader::{self, FileLoader};
+use golem_worker_executor_base::services::file_loader::{FileLoader};
 use prometheus::Registry;
 
 use crate::{LastUniqueId, WorkerExecutorPerTestDependencies, WorkerExecutorTestDependencies};
