@@ -25,7 +25,7 @@ use golem_client::model::ComponentType;
 use golem_wasm_rpc_stubgen::commands::declarative::ApplicationResolveMode;
 use std::path::PathBuf;
 use std::sync::Arc;
-// use crate::model::application_manifest::load_app;
+use golem_common::uri::oss::uri::ComponentUri;
 
 #[derive(Subcommand, Debug)]
 #[command()]
@@ -107,11 +107,7 @@ pub enum ComponentSubCommand<ProjectRef: clap::Args, ComponentRef: clap::Args> {
     UpdateWithManifest {
         /// The component to update
         #[command(flatten)]
-        component_ref: ComponentRef,
-
-        /// The name of the component. Will be used to look up the component in the app manifest.
-        #[arg(short, long)]
-        component_name: ComponentName,
+        component_name_or_uri: ComponentRef,
 
         /// Try to automatically update all existing workers to the new version
         #[arg(long, default_value_t = false)]
@@ -324,14 +320,16 @@ impl<
                 Ok(result)
             }
             ComponentSubCommand::UpdateWithManifest {
-                component_name,
-                component_ref,
+                component_name_or_uri,
                 non_interactive,
                 app,
                 try_update_workers,
                 update_mode,
             } => {
-                let (component_uri, project_ref) = component_ref.split();
+                let (component_name_or_uri, project_ref) = component_name_or_uri.split();
+
+                let component_name = service.resolve_component_name(&component_name_or_uri).await?;
+
                 let project_id = projects.resolve_id_or_default_opt(project_ref).await?;
 
                 let app_resolve_mode = if app.is_empty() {
@@ -342,17 +340,17 @@ impl<
 
                 let app = load_app(&app_resolve_mode)?;
 
-                let component = if let Some(component) = app.wasm_components_by_name.get(&component_name.0) {
+                let component = if let Some(component) = app.wasm_components_by_name.get(&component_name) {
                     component
                 } else {
                     return Err(GolemError(format!("Component {} not found in the app manifest", component_name)));
                 };
 
-                let component_file = PathBufOrStdin::Path(app.component_output_wasm(&component_name.0));
+                let component_file = PathBufOrStdin::Path(app.component_output_wasm(&component_name));
 
                 let mut result = service
                     .update(
-                        component_uri.clone(),
+                        component_name_or_uri.clone(),
                         component_file,
                         Some(component.component_type),
                         project_id.clone(),
@@ -364,7 +362,7 @@ impl<
 
                 if try_update_workers {
                     let deploy_result = deploy_service
-                        .try_update_all_workers(component_uri, project_id, update_mode)
+                        .try_update_all_workers(component_name_or_uri, project_id, update_mode)
                         .await?;
                     result = result.merge(deploy_result);
                 }

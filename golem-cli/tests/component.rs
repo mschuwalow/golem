@@ -18,6 +18,7 @@ use assert2::assert;
 use golem_cli::model::component::ComponentView;
 use golem_common::uri::oss::url::ComponentUrl;
 use golem_test_framework::config::{EnvBasedTestDependencies, TestDependencies};
+use itertools::Itertools;
 use std::sync::Arc;
 use test_r::core::{DynamicTestRegistration, TestType};
 use test_r::{add_test, inherit_test_dep, test_dep, test_gen};
@@ -109,6 +110,14 @@ fn make(r: &mut DynamicTestRegistration, suffix: &'static str, name: &'static st
             component_update_url((deps, name.to_string(), cli.with_args(short)))
         }
     );
+    add_test!(
+        r,
+        format!("component_update_from_project_file{suffix}"),
+        TestType::IntegrationTest,
+        move |deps: &EnvBasedTestDependencies, cli: &CliLive, _tracing: &Tracing| {
+            component_update_from_project_file((deps, name.to_string(), cli.with_args(short)))
+        }
+    );
 }
 
 fn component_add_and_find_all(
@@ -164,14 +173,16 @@ fn component_add_and_find_by_name(
 fn component_add_from_project_file(
     (deps, name, cli): (&EnvBasedTestDependencies, String, CliLive),
 ) -> Result<(), anyhow::Error> {
-    let component_name = format!("{name} component add and find by name");
+    let component_name = format!("component_add_from_project_file_{name}");
     let golem_yaml = deps.component_directory().join("cli-project-yaml/golem.yaml");
     let cfg = &cli.config;
     let component: ComponentView = cli.run_trimmed(&[
         "component",
-        "add",
-        &cfg.arg('a', golem_yaml.to_str().unwrap()),
-        &cfg.arg('c', "component-name")
+        "add-with-manifest",
+        &cfg.arg('a', "app"),
+        golem_yaml.to_str().unwrap(),
+        &cfg.arg('c', "component-name"),
+        &component_name,
     ])?;
     let res: Vec<ComponentView> = cli.run_trimmed(&[
         "component",
@@ -181,6 +192,40 @@ fn component_add_from_project_file(
     ])?;
     assert!(res.contains(&component), "{res:?}.contains({component:?})");
     assert_eq!(res.len(), 1, "{res:?}.len() == 1");
+    Ok(())
+}
+
+fn component_update_from_project_file(
+    (deps, name, cli): (&EnvBasedTestDependencies, String, CliLive),
+) -> Result<(), anyhow::Error> {
+    let component_name = format!("component_update_from_project_file_{name}");
+    let golem_yaml = deps.component_directory().join("cli-project-yaml/golem.yaml");
+    let cfg = &cli.config;
+    let component: ComponentView = cli.run_trimmed(&[
+        "component",
+        "add-with-manifest",
+        &cfg.arg('a', "app"),
+        golem_yaml.to_str().unwrap(),
+        &cfg.arg('c', "component-name"),
+        &component_name,
+    ])?;
+    let _: ComponentView = cli.run_trimmed(&[
+        "component",
+        "update-with-manifest",
+        &cfg.arg('a', "app"),
+        golem_yaml.to_str().unwrap(),
+        &cfg.arg('c', "component-name"),
+        &component_name,
+    ])?;
+    let res: Vec<ComponentView> = cli.run_trimmed(&[
+        "component",
+        "list",
+        &cfg.arg('c', "component-name"),
+        &component_name,
+    ])?;
+    assert!(res.contains(&component), "{res:?}.contains({component:?})");
+    assert!(res.iter().map(|x| x.component_version).contains(&1), "{res:?}.contains({component:?})");
+    assert_eq!(res.len(), 2, "{res:?}.len() == 2");
     Ok(())
 }
 

@@ -4,11 +4,53 @@ metadata:
   name: App
 spec:
   components:
-    - name: component-1
+    - name: component_add_from_project_file_CLI_short
       type: wasm
       properties:
-        inputWasm: ../environment.wasm
-        outputWasm: ../environment.wasm
+        inputWasm: ../environment-service.wasm
+        outputWasm: ../environment-service.wasm
+        wit: ./wit
+        componentType: durable
+        files:
+        - sourcePath: ./foo.txt
+          targetPath: /foo.txt
+          permissions: read-only
+        - sourcePath: ./bar
+          targetPath: /bar
+          permissions: read-write
+    - name: component_add_from_project_file_CLI_long
+      type: wasm
+      properties:
+        inputWasm: ../environment-service.wasm
+        outputWasm: ../environment-service.wasm
+        wit: ./wit
+        componentType: durable
+        files:
+        - sourcePath: ./foo.txt
+          targetPath: /foo.txt
+          permissions: read-only
+        - sourcePath: ./bar
+          targetPath: /bar
+          permissions: read-write
+    - name: component_update_from_project_file_CLI_short
+      type: wasm
+      properties:
+        inputWasm: ../environment-service.wasm
+        outputWasm: ../environment-service.wasm
+        wit: ./wit
+        componentType: durable
+        files:
+        - sourcePath: ./foo.txt
+          targetPath: /foo.txt
+          permissions: read-only
+        - sourcePath: ./bar
+          targetPath: /bar
+          permissions: read-write
+    - name: component_update_from_project_file_CLI_long
+      type: wasm
+      properties:
+        inputWasm: ../environment-service.wasm
+        outputWasm: ../environment-service.wasm
         wit: ./wit
         componentType: durable
         files:
