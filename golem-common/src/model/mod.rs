@@ -2631,21 +2631,21 @@ impl InitialComponentFilePermissions {
     }
 }
 
-impl From<golem_api_grpc::proto::golem::component::FilePermissions> for InitialComponentFilePermissions {
+impl From<golem_api_grpc::proto::golem::component::InitialComponentFilePermissions> for InitialComponentFilePermissions {
 
-    fn from(value: golem_api_grpc::proto::golem::component::FilePermissions) -> Self {
+    fn from(value: golem_api_grpc::proto::golem::component::InitialComponentFilePermissions) -> Self {
         match value {
-            golem_api_grpc::proto::golem::component::FilePermissions::ReadOnly => InitialComponentFilePermissions::ReadOnly,
-            golem_api_grpc::proto::golem::component::FilePermissions::ReadWrite => InitialComponentFilePermissions::ReadWrite,
+            golem_api_grpc::proto::golem::component::InitialComponentFilePermissions::ReadOnly => InitialComponentFilePermissions::ReadOnly,
+            golem_api_grpc::proto::golem::component::InitialComponentFilePermissions::ReadWrite => InitialComponentFilePermissions::ReadWrite,
         }
     }
 }
 
-impl From<InitialComponentFilePermissions> for golem_api_grpc::proto::golem::component::FilePermissions {
+impl From<InitialComponentFilePermissions> for golem_api_grpc::proto::golem::component::InitialComponentFilePermissions {
     fn from(value: InitialComponentFilePermissions) -> Self {
         match value {
-            InitialComponentFilePermissions::ReadOnly => golem_api_grpc::proto::golem::component::FilePermissions::ReadOnly,
-            InitialComponentFilePermissions::ReadWrite => golem_api_grpc::proto::golem::component::FilePermissions::ReadWrite,
+            InitialComponentFilePermissions::ReadOnly => golem_api_grpc::proto::golem::component::InitialComponentFilePermissions::ReadOnly,
+            InitialComponentFilePermissions::ReadWrite => golem_api_grpc::proto::golem::component::InitialComponentFilePermissions::ReadWrite,
         }
     }
 }
@@ -2655,6 +2655,17 @@ pub struct InitialComponentFile {
     pub key: InitialComponentFileKey,
     pub path: InitialComponentFilePath,
     pub permissions: InitialComponentFilePermissions,
+}
+
+impl From<InitialComponentFile> for golem_api_grpc::proto::golem::component::InitialComponentFile {
+    fn from(value: InitialComponentFile) -> Self {
+        let permissions: golem_api_grpc::proto::golem::component::InitialComponentFilePermissions = value.permissions.into();
+        Self {
+            key: value.key.0,
+            path: value.path.as_str().to_string(),
+            permissions: permissions.into(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Object)]

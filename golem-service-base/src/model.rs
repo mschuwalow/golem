@@ -1770,9 +1770,9 @@ impl TryFrom<golem_api_grpc::proto::golem::component::Component> for Component {
             .iter()
             .map(|f| {
                 let permissions = match f.permissions.try_into() {
-                    Ok(golem_api_grpc::proto::golem::component::FilePermissions::ReadOnly) =>
+                    Ok(golem_api_grpc::proto::golem::component::InitialComponentFilePermissions::ReadOnly) =>
                         InitialComponentFilePermissions::ReadOnly,
-                    Ok(golem_api_grpc::proto::golem::component::FilePermissions::ReadWrite) =>
+                    Ok(golem_api_grpc::proto::golem::component::InitialComponentFilePermissions::ReadWrite) =>
                         InitialComponentFilePermissions::ReadWrite,
                     Err(_) => Err("Invalid file permissions".to_string())?
                 };
@@ -1813,25 +1813,6 @@ impl TryFrom<golem_api_grpc::proto::golem::component::Component> for Component {
 
 impl From<Component> for golem_api_grpc::proto::golem::component::Component {
     fn from(value: Component) -> Self {
-        let files = value.files
-            .into_iter()
-            .map(|f| {
-                let permissions = match f.permissions {
-                    InitialComponentFilePermissions::ReadOnly =>
-                        golem_api_grpc::proto::golem::component::FilePermissions::ReadOnly,
-                    InitialComponentFilePermissions::ReadWrite =>
-                        golem_api_grpc::proto::golem::component::FilePermissions::ReadWrite,
-                };
-
-                golem_api_grpc::proto::golem::component::ComponentFile {
-                    key: f.key.0,
-                    path: f.path.as_str().to_string(),
-                    permissions: permissions.into(),
-                }
-            })
-            .collect();
-
-
         Self {
             versioned_component_id: Some(value.versioned_component_id.into()),
             component_name: value.component_name.0,
@@ -1845,7 +1826,7 @@ impl From<Component> for golem_api_grpc::proto::golem::component::Component {
                 let c: golem_api_grpc::proto::golem::component::ComponentType = c.into();
                 c.into()
             }),
-            files
+            files: value.files.into_iter().map(|f| f.into()).collect()
         }
     }
 }

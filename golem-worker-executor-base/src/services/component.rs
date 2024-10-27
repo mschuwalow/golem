@@ -468,10 +468,10 @@ async fn get_metadata_via_grpc(
                         .into_iter()
                         .map::<Result<InitialComponentFile, GrpcError<ComponentError>>, _>(|file| {
                             let permissions = match file.permissions.try_into() {
-                                Ok(golem_api_grpc::proto::golem::component::FilePermissions::ReadOnly) => {
+                                Ok(golem_api_grpc::proto::golem::component::InitialComponentFilePermissions::ReadOnly) => {
                                     golem_common::model::InitialComponentFilePermissions::ReadOnly
                                 }
-                                Ok(golem_api_grpc::proto::golem::component::FilePermissions::ReadWrite) => {
+                                Ok(golem_api_grpc::proto::golem::component::InitialComponentFilePermissions::ReadWrite) => {
                                     golem_common::model::InitialComponentFilePermissions::ReadWrite
                                 }
                                 Err(_) => {

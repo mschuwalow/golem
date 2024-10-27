@@ -13,9 +13,6 @@
 // limitations under the License.
 
 use golem_common::model::{ComponentType, InitialComponentFilePath, InitialComponentFilePathAndPermissions, InitialComponentFilePermissions};
-use golem_wasm_rpc_stubgen::commands::log::{
-    log_action, log_validated_action_result,
-};
 use golem_wasm_rpc_stubgen::model::oam;
 use golem_wasm_rpc_stubgen::model::unknown_properties::{HasUnknownProperties, UnknownProperties};
 use golem_wasm_rpc_stubgen::model::validation::{ValidatedResult, ValidationBuilder};

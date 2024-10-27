@@ -83,15 +83,6 @@ impl<Namespace> From<Component<Namespace>> for golem_api_grpc::proto::golem::com
         let component_type: golem_api_grpc::proto::golem::component::ComponentType =
             value.component_type.into();
 
-        let files = value.files.into_iter().map(|file| {
-            let permissions = golem_api_grpc::proto::golem::component::FilePermissions::from(file.permissions);
-
-            golem_api_grpc::proto::golem::component::ComponentFile {
-                key: file.key.0,
-                path: file.path.as_str().to_string(),
-                permissions: permissions.into()
-            }
-        }).collect();
         Self {
             versioned_component_id: Some(value.versioned_component_id.into()),
             component_name: value.component_name.0,
@@ -102,7 +93,7 @@ impl<Namespace> From<Component<Namespace>> for golem_api_grpc::proto::golem::com
                 value.created_at,
             ))),
             component_type: Some(component_type.into()),
-            files
+            files: value.files.into_iter().map(|file| file.into()).collect()
         }
     }
 }
