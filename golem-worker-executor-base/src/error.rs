@@ -58,6 +58,18 @@ pub enum GolemError {
         component_id: ComponentId,
         reason: String,
     },
+    InitialComponentFileDownloadFailed {
+        component_id: ComponentId,
+        component_version: u64,
+        path: String,
+        reason: String,
+    },
+    InitialComponentFileUploadFailed {
+        component_id: ComponentId,
+        component_version: u64,
+        path: String,
+        reason: String,
+    },
     PromiseNotFound {
         promise_id: PromiseId,
     },
@@ -131,6 +143,34 @@ impl GolemError {
             component_id,
             component_version,
             reason: reason.into(),
+        }
+    }
+
+    pub fn initial_file_download_failed(
+        component_id: ComponentId,
+        component_version: u64,
+        path: String,
+        reason: String,
+    ) -> Self {
+        GolemError::InitialComponentFileDownloadFailed {
+            component_id,
+            component_version,
+            path,
+            reason,
+        }
+    }
+
+    pub fn initial_file_upload_failed(
+        component_id: ComponentId,
+        component_version: u64,
+        path: String,
+        reason: String,
+    ) -> Self {
+        GolemError::InitialComponentFileUploadFailed {
+            component_id,
+            component_version,
+            path,
+            reason,
         }
     }
 
@@ -214,6 +254,28 @@ impl Display for GolemError {
                     "Failed to get latest version of component {component_id}: {reason}"
                 )
             }
+            GolemError::InitialComponentFileDownloadFailed {
+                component_id,
+                component_version,
+                path,
+                reason,
+            } => {
+                write!(
+                    f,
+                    "Failed to download initial file for component {component_id}#{component_version} to {path}: {reason}"
+                )
+            }
+            GolemError::InitialComponentFileUploadFailed {
+                component_id,
+                component_version,
+                path,
+                reason,
+            } => {
+                write!(
+                    f,
+                    "Failed to upload initial file for component {component_id}#{component_version} to {path}: {reason}"
+                )
+            }
             GolemError::PromiseNotFound { promise_id } => {
                 write!(f, "Promise not found: {promise_id}")
             }
@@ -276,13 +338,13 @@ impl Error for GolemError {
             GolemError::FailedToResumeWorker { .. } => "Failed to resume worker",
             GolemError::ComponentDownloadFailed { .. } => "Failed to download component",
             GolemError::ComponentParseFailed { .. } => "Failed to parse downloaded component",
-            GolemError::GetLatestVersionOfComponentFailed { .. } => {
-                "Failed to get latest version of component"
-            }
+            GolemError::GetLatestVersionOfComponentFailed { .. } => "Failed to get latest version of component",
             GolemError::PromiseNotFound { .. } => "Promise not found",
             GolemError::PromiseDropped { .. } => "Promise dropped",
             GolemError::PromiseAlreadyCompleted { .. } => "Promise already completed",
             GolemError::Interrupted { .. } => "Interrupted",
+            GolemError::InitialComponentFileDownloadFailed { .. } => "Failed to download initial file",
+            GolemError::InitialComponentFileUploadFailed { .. } => "Failed to upload initial file",
             GolemError::ParamTypeMismatch { .. } => "Parameter type mismatch",
             GolemError::NoValueInMessage => "No value in message",
             GolemError::ValueMismatch { .. } => "Value mismatch",
@@ -308,9 +370,9 @@ impl TraceErrorKind for GolemError {
             GolemError::FailedToResumeWorker { .. } => "FailedToResumeWorker",
             GolemError::ComponentDownloadFailed { .. } => "ComponentDownloadFailed",
             GolemError::ComponentParseFailed { .. } => "ComponentParseFailed",
-            GolemError::GetLatestVersionOfComponentFailed { .. } => {
-                "GetLatestVersionOfComponentFailed"
-            }
+            GolemError::GetLatestVersionOfComponentFailed { .. } => "GetLatestVersionOfComponentFailed",
+            GolemError::InitialComponentFileDownloadFailed { .. } => "InitialComponentFileDownloadFailed",
+            GolemError::InitialComponentFileUploadFailed { .. } => "InitialComponentFileUploadFailed",
             GolemError::PromiseNotFound { .. } => "PromiseNotFound",
             GolemError::PromiseDropped { .. } => "PromiseDropped",
             GolemError::PromiseAlreadyCompleted { .. } => "PromiseAlreadyCompleted",
@@ -467,6 +529,24 @@ impl From<GolemError> for golem::worker::v1::WorkerExecutionError {
                     ),
                 ),
             },
+            GolemError::InitialComponentFileDownloadFailed { component_id, component_version, path, reason } => {
+                golem::worker::v1::WorkerExecutionError {
+                    error: Some(
+                        golem::worker::v1::worker_execution_error::Error::InitialComponentFileDownloadFailed(
+                            golem::worker::v1::InitialComponentFileDownloadFailed { component_id: Some(component_id.into()), component_version, path, reason },
+                        ),
+                    ),
+                }
+            }
+            GolemError::InitialComponentFileUploadFailed { component_id, component_version, path, reason } => {
+                golem::worker::v1::WorkerExecutionError {
+                    error: Some(
+                        golem::worker::v1::worker_execution_error::Error::InitialComponentFileUploadFailed(
+                            golem::worker::v1::InitialComponentFileUploadFailed { component_id: Some(component_id.into()), component_version, path, reason },
+                        ),
+                    ),
+                }
+            }
             GolemError::PromiseNotFound { promise_id } => golem::worker::v1::WorkerExecutionError {
                 error: Some(
                     golem::worker::v1::worker_execution_error::Error::PromiseNotFound(
@@ -755,6 +835,28 @@ impl TryFrom<golem::worker::v1::WorkerExecutionError> for GolemError {
             Some(golem::worker::v1::worker_execution_error::Error::ShardingNotReady(_)) => {
                 Ok(GolemError::ShardingNotReady)
             }
+            Some(golem::worker::v1::worker_execution_error::Error::InitialComponentFileDownloadFailed(
+                initial_file_download_failed,
+            )) => Ok(GolemError::InitialComponentFileDownloadFailed {
+                component_id: initial_file_download_failed
+                    .component_id
+                    .ok_or("Missing component_id")?
+                    .try_into()?,
+                component_version: initial_file_download_failed.component_version,
+                path: initial_file_download_failed.path,
+                reason: initial_file_download_failed.reason,
+            }),
+            Some(golem::worker::v1::worker_execution_error::Error::InitialComponentFileUploadFailed(
+                initial_file_upload_failed,
+            )) => Ok(GolemError::InitialComponentFileUploadFailed {
+                component_id: initial_file_upload_failed
+                    .component_id
+                    .ok_or("Missing component_id")?
+                    .try_into()?,
+                component_version: initial_file_upload_failed.component_version,
+                path: initial_file_upload_failed.path,
+                reason: initial_file_upload_failed.reason,
+            }),
         }
     }
 }

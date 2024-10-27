@@ -1,0 +1,20 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: App
+spec:
+  components:
+    - name: component-1
+      type: wasm
+      properties:
+        inputWasm: ../environment.wasm
+        outputWasm: ../environment.wasm
+        wit: ./wit
+        componentType: durable
+        files:
+        - sourcePath: ./foo.txt
+          targetPath: /foo.txt
+          permissions: read-only
+        - sourcePath: ./bar
+          targetPath: /bar
+          permissions: read-write
