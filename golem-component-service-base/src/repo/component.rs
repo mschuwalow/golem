@@ -221,8 +221,6 @@ pub trait ComponentRepo {
 
     async fn get_namespace(&self, component_id: &Uuid) -> Result<Option<String>, RepoError>;
 
-    async fn get_files(&self, component_id: &Uuid, version: u64) -> Result<Vec<FileRecord>, RepoError>;
-
     async fn delete(&self, namespace: &str, component_id: &Uuid) -> Result<(), RepoError>;
 
     async fn create_or_update_constraint(
@@ -365,11 +363,6 @@ impl<Repo: ComponentRepo + Send + Sync> ComponentRepo for LoggedComponentRepo<Re
     async fn get_namespace(&self, component_id: &Uuid) -> Result<Option<String>, RepoError> {
         let result = self.repo.get_namespace(component_id).await;
         Self::logged_with_id("get_namespace", component_id, result)
-    }
-
-    async fn get_files(&self, component_id: &Uuid, version: u64) -> Result<Vec<FileRecord>, RepoError> {
-        let result = self.repo.get_files(component_id, version).await;
-        Self::logged_with_id("get_files", component_id, result)
     }
 
     async fn delete(&self, namespace: &str, component_id: &Uuid) -> Result<(), RepoError> {
@@ -778,26 +771,6 @@ impl ComponentRepo for DbComponentRepo<sqlx::Postgres> {
             .await?;
 
         Ok(result.map(|x| x.get("namespace")))
-    }
-
-    async fn get_files(&self, component_id: &Uuid, version: u64) -> Result<Vec<FileRecord>, RepoError> {
-        sqlx::query_as::<_, FileRecord>(
-            r#"
-                SELECT
-                    component_id,
-                    version,
-                    file_path,
-                    file_key,
-                    file_permissions
-                FROM component_files
-                WHERE component_id = $1 AND version = $2
-                "#,
-        )
-        .bind(component_id)
-        .bind(version as i64)
-        .fetch_all(self.db_pool.deref())
-        .await
-        .map_err(|e| e.into())
     }
 
     async fn delete(&self, namespace: &str, component_id: &Uuid) -> Result<(), RepoError> {
