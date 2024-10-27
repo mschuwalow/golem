@@ -79,6 +79,14 @@ fn make(r: &mut DynamicTestRegistration, suffix: &'static str, name: &'static st
     );
     add_test!(
         r,
+        format!("component_add_from_project_file{suffix}"),
+        TestType::IntegrationTest,
+        move |deps: &EnvBasedTestDependencies, cli: &CliLive, _tracing: &Tracing| {
+            component_add_from_project_file((deps, name.to_string(), cli.with_args(short)))
+        }
+    );
+    add_test!(
+        r,
         format!("component_update{suffix}"),
         TestType::IntegrationTest,
         move |deps: &EnvBasedTestDependencies, cli: &CliLive, _tracing: &Tracing| {
@@ -141,6 +149,29 @@ fn component_add_and_find_by_name(
         &cfg.arg('c', "component-name"),
         &component_name,
         env_service.to_str().unwrap(),
+    ])?;
+    let res: Vec<ComponentView> = cli.run_trimmed(&[
+        "component",
+        "list",
+        &cfg.arg('c', "component-name"),
+        &component_name,
+    ])?;
+    assert!(res.contains(&component), "{res:?}.contains({component:?})");
+    assert_eq!(res.len(), 1, "{res:?}.len() == 1");
+    Ok(())
+}
+
+fn component_add_from_project_file(
+    (deps, name, cli): (&EnvBasedTestDependencies, String, CliLive),
+) -> Result<(), anyhow::Error> {
+    let component_name = format!("{name} component add and find by name");
+    let golem_yaml = deps.component_directory().join("cli-project-yaml/golem.yaml");
+    let cfg = &cli.config;
+    let component: ComponentView = cli.run_trimmed(&[
+        "component",
+        "add",
+        &cfg.arg('a', golem_yaml.to_str().unwrap()),
+        &cfg.arg('c', "component-name")
     ])?;
     let res: Vec<ComponentView> = cli.run_trimmed(&[
         "component",

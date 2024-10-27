@@ -1,3 +1,5 @@
+use golem_worker_executor_base::services::initial_component_files::BlobStorageInitialComponentFilesService;
+use golem_worker_executor_base::storage::blob::fs::FileSystemBlobStorage;
 use test_r::test;
 
 use golem_common::config::{DbPostgresConfig, DbSqliteConfig};
@@ -20,6 +22,7 @@ use golem_service_base::model::ComponentName;
 use golem_service_base::service::component_object_store;
 use golem_wasm_ast::analysis::analysed_type::{str, u64};
 use rib::RegistryKey;
+use std::path::PathBuf;
 use std::sync::Arc;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{ContainerAsync, ImageExt};
@@ -216,11 +219,20 @@ async fn test_services(component_repo: Arc<dyn ComponentRepo + Sync + Send>) {
     let compilation_service: Arc<dyn ComponentCompilationService + Sync + Send> =
         Arc::new(ComponentCompilationServiceDisabled);
 
+    let blop_store = Arc::new(
+        FileSystemBlobStorage::new(&PathBuf::from(format!("/tmp/blob-{}", Uuid::new_v4())))
+            .await
+            .expect("Failed to create blob storage"),
+    );
+
+    let initial_component_files_service = Arc::new(BlobStorageInitialComponentFilesService::new(blop_store.clone()));
+
     let component_service: Arc<dyn ComponentService<DefaultNamespace> + Sync + Send> =
         Arc::new(ComponentServiceDefault::new(
             component_repo.clone(),
             object_store.clone(),
             compilation_service.clone(),
+            initial_component_files_service.clone(),
         ));
 
     let component_name1 = ComponentName("shopping-cart".to_string());
@@ -232,6 +244,7 @@ async fn test_services(component_repo: Arc<dyn ComponentRepo + Sync + Send>) {
             &component_name1,
             ComponentType::Durable,
             get_component_data("shopping-cart"),
+            None,
             &DefaultNamespace::default(),
         )
         .await
@@ -243,6 +256,7 @@ async fn test_services(component_repo: Arc<dyn ComponentRepo + Sync + Send>) {
             &component_name2,
             ComponentType::Durable,
             get_component_data("rust-echo"),
+            None,
             &DefaultNamespace::default(),
         )
         .await

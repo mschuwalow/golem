@@ -1820,6 +1820,8 @@ impl IntoValue for GolemError {
                     case_idx: 22,
                     case_value: None,
                 },
+                GolemError::InitialComponentFileDownloadFailed { .. } => panic!("InitialComponentFileDownloadFailed"), // TODO
+                GolemError::InitialComponentFileUploadFailed { .. } => panic!("InitialComponentFileParseFailed"), // TODO
             }
         }
         into_value(self, true)

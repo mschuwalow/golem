@@ -13,18 +13,24 @@
 // limitations under the License.
 
 use crate::clients::component::ComponentClient;
+use crate::clients::file_download::FileDownloadClient;
+use crate::model::application_manifest::{InitialComponentFile};
 use crate::model::component::{Component, ComponentView};
 use crate::model::text::component::{ComponentAddView, ComponentGetView, ComponentUpdateView};
-use crate::model::{ComponentName, Format, GolemError, GolemResult, PathBufOrStdin};
+use crate::model::{ComponentFilesArchiveAndProperties, ComponentName, Format, GolemError, GolemResult, PathBufOrStdin};
 use async_trait::async_trait;
-use golem_client::model::ComponentType;
-use golem_common::model::ComponentId;
+use golem_client::model::{ComponentType, InitialComponentFilePathAndPermissionsList};
+use golem_common::model::{ComponentId, InitialComponentFilePathAndPermissions};
 use golem_common::uri::oss::uri::ComponentUri;
 use golem_common::uri::oss::url::ComponentUrl;
 use golem_common::uri::oss::urn::ComponentUrn;
 use indoc::formatdoc;
 use itertools::Itertools;
+use zip::write::SimpleFileOptions;
+use std::collections::VecDeque;
 use std::fmt::Display;
+use std::path::PathBuf;
+use std::io::Write;
 
 #[async_trait]
 pub trait ComponentService {
@@ -38,6 +44,7 @@ pub trait ComponentService {
         project: Option<Self::ProjectContext>,
         non_interactive: bool,
         format: Format,
+        files: Vec<InitialComponentFile>
     ) -> Result<GolemResult, GolemError>;
     async fn update(
         &self,
@@ -47,6 +54,7 @@ pub trait ComponentService {
         project: Option<Self::ProjectContext>,
         non_interactive: bool,
         format: Format,
+        files: Vec<InitialComponentFile>
     ) -> Result<GolemResult, GolemError>;
     async fn list(
         &self,
@@ -77,6 +85,91 @@ pub trait ComponentService {
 
 pub struct ComponentServiceLive<ProjectContext> {
     pub client: Box<dyn ComponentClient<ProjectContext = ProjectContext> + Send + Sync>,
+    pub file_download_client: Box<dyn FileDownloadClient + Send + Sync>,
+}
+
+impl <ProjectContext> ComponentServiceLive<ProjectContext> {
+
+    async fn load_file(&self, component_file: InitialComponentFile) -> Result<Vec<LoadedFile>, GolemError> {
+        let scheme = component_file.source_path.as_url().scheme();
+        match scheme {
+            "file" | ""  => self.load_local_file(component_file),
+            "http" | "https" => self.download_remote_file(component_file).await.map(|f| vec![f]),
+            _ => Err(GolemError(format!("Unsupported scheme: {}", scheme))),
+        }
+    }
+
+    fn load_local_file(&self, component_file: InitialComponentFile) -> Result<Vec<LoadedFile>, GolemError> {
+        // if it's a directory, we need to recursively load all files and combine them with their target paths and permissions.
+        let source_path = PathBuf::from(component_file.source_path.as_url().path());
+
+        let mut results: Vec<LoadedFile> = vec![];
+        let mut queue: VecDeque<(PathBuf, InitialComponentFilePathAndPermissions)> = vec![(source_path, component_file.target)].into();
+
+        while let Some((path, target)) = queue.pop_front() {
+            if path.is_dir() {
+                let dir = std::fs::read_dir(&path).map_err(|err| GolemError(format!("Error reading directory {}: {}", path.display().to_string(), err)))?;
+                for entry in dir {
+                    let entry = entry.map_err(|err| GolemError(format!("Error reading directory entry: {}", err)))?;
+                    let next_path = entry.path();
+
+                    let new_target = target.push_path(entry.file_name()).map_err(|err| GolemError(format!("Error combining paths: {}", err)))?;
+
+                    queue.push_back((next_path, new_target));
+                }
+            } else {
+                let content = std::fs::read(&path).map_err(|err| GolemError(format!("Error reading component file {}: {}", path.display().to_string(), err)))?;
+                results.push(LoadedFile {
+                    content,
+                    target,
+                });
+            }
+        };
+        Ok(results)
+    }
+
+
+    async fn download_remote_file(&self, component_file: InitialComponentFile) -> Result<LoadedFile, GolemError> {
+        let content = self.file_download_client.download_file(component_file.source_path.into_url()).await.expect("request failed");
+        Ok(LoadedFile {
+            content,
+            target: component_file.target,
+        })
+    }
+
+    async fn build_files_archive(&self, component_files: Vec<InitialComponentFile>) -> Result<ComponentFilesArchiveAndProperties, GolemError> {
+        let zip_file = tempfile::NamedTempFile::new().map_err(|err| GolemError(format!("Error creating temporary file: {}", err)))?;
+        let mut zip_writer = zip::ZipWriter::new(&zip_file);
+
+        let mut properties_files: Vec<InitialComponentFilePathAndPermissions> = vec![];
+
+        for component_file in component_files {
+            for LoadedFile { content, target } in self.load_file(component_file).await? {
+                // zip files do not like absolute paths. Convert the absolute component path to relative path from the root of the zip file
+                let zip_path = target.path.relative_path_buf().display().to_string();
+                zip_writer.start_file(zip_path, SimpleFileOptions::default()).map_err(|err| GolemError(format!("Error creating file in archive: {}", err)))?;
+                zip_writer.write_all(&content).map_err(|err| GolemError(format!("Error writing to archive: {}", err)))?;
+
+                properties_files.push(target);
+            }
+        }
+        zip_writer.finish().map_err(|err| GolemError(format!("Error finishing archive: {}", err)))?;
+
+        // there should not be any conflicting paths in the properties file
+        if properties_files.iter().unique_by(|f| f.path.clone()).count() != properties_files.len() {
+            return Err(GolemError("Conflicting paths in component files".to_string()));
+        };
+
+        let properties = InitialComponentFilePathAndPermissionsList {
+            values: properties_files,
+        };
+
+        Ok(ComponentFilesArchiveAndProperties {
+            archive: zip_file,
+            properties,
+        })
+    }
+
 }
 
 #[async_trait]
@@ -93,7 +186,18 @@ impl<ProjectContext: Display + Send + Sync> ComponentService
         project: Option<Self::ProjectContext>,
         non_interactive: bool,
         format: Format,
+        files: Vec<InitialComponentFile>
     ) -> Result<GolemResult, GolemError> {
+
+        let files_archive = if files.len() > 0 {
+            Some(self.build_files_archive(files).await?)
+        } else {
+            None
+        };
+
+        let files_archive_path = files_archive.as_ref().map(|fa| fa.archive.path());
+        let files_archive_properties = files_archive.as_ref().map(|fa| &fa.properties);
+
         let result = self
             .client
             .add(
@@ -101,6 +205,8 @@ impl<ProjectContext: Display + Send + Sync> ComponentService
                 component_file.clone(),
                 &project,
                 component_type,
+                files_archive_path,
+                files_archive_properties
             )
             .await;
 
@@ -126,7 +232,7 @@ impl<ProjectContext: Display + Send + Sync> ComponentService
                             name: component_name.0.clone(),
                         });
                         let urn = self.resolve_uri(component_uri, &project).await?;
-                        self.client.update(urn, component_file, Some(component_type)).await.map(|component| GolemResult::Ok(Box::new(ComponentUpdateView(component.into()))))
+                        self.client.update(urn, component_file, Some(component_type), files_archive_path, files_archive_properties).await.map(|component| GolemResult::Ok(Box::new(ComponentUpdateView(component.into()))))
 
                     }
                     Ok(false) => Err(GolemError(message)),
@@ -139,6 +245,9 @@ impl<ProjectContext: Display + Send + Sync> ComponentService
             )))),
         }?;
 
+        // We need to keep the files archive open until the client is done uploading it
+        drop(files_archive);
+
         Ok(result)
     }
 
@@ -150,8 +259,18 @@ impl<ProjectContext: Display + Send + Sync> ComponentService
         project: Option<Self::ProjectContext>,
         non_interactive: bool,
         format: Format,
+        files: Vec<InitialComponentFile>
     ) -> Result<GolemResult, GolemError> {
         let result = self.resolve_uri(component_uri.clone(), &project).await;
+
+        let files_archive = if files.len() > 0 {
+            Some(self.build_files_archive(files).await?)
+        } else {
+            None
+        };
+
+        let files_archive_path = files_archive.as_ref().map(|fa| fa.archive.path());
+        let files_archive_properties = files_archive.as_ref().map(|fa| &fa.properties);
 
         let can_fallback =
             format == Format::Text && matches!(component_uri, ComponentUri::URL { .. });
@@ -176,7 +295,7 @@ impl<ProjectContext: Display + Send + Sync> ComponentService
                                 ComponentUri::URL(ComponentUrl { name }) => ComponentName(name.clone()),
                                 _ => unreachable!(),
                             };
-                            self.client.add(component_name, component_file, &project, component_type.unwrap_or(ComponentType::Durable)).await.map(|component| {
+                            self.client.add(component_name, component_file, &project, component_type.unwrap_or(ComponentType::Durable), files_archive_path, files_archive_properties).await.map(|component| {
                                 GolemResult::Ok(Box::new(ComponentAddView(component.into())))
                             })
 
@@ -188,10 +307,13 @@ impl<ProjectContext: Display + Send + Sync> ComponentService
             Err(other) => Err(other),
             Ok(urn) => self
                 .client
-                .update(urn, component_file.clone(), component_type)
+                .update(urn, component_file.clone(), component_type, files_archive_path, files_archive_properties)
                 .await
                 .map(|component| GolemResult::Ok(Box::new(ComponentUpdateView(component.into())))),
         }?;
+
+        // We need to keep the files archive open until the client is done uploading it
+        drop(files_archive);
 
         Ok(result)
     }
@@ -285,4 +407,10 @@ impl<ProjectContext: Display + Send + Sync> ComponentService
     async fn get_latest_metadata(&self, urn: &ComponentUrn) -> Result<Component, GolemError> {
         self.client.get_latest_metadata(urn).await
     }
+}
+
+#[derive(Debug, Clone)]
+struct LoadedFile {
+    content: Vec<u8>,
+    target: InitialComponentFilePathAndPermissions
 }

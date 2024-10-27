@@ -17,13 +17,7 @@ use golem_client::api::{
     ApiDefinitionError, ApiDeploymentError, ComponentError, HealthCheckError, WorkerError,
 };
 use golem_client::model::{
-    GolemError, GolemErrorComponentDownloadFailed, GolemErrorComponentParseFailed,
-    GolemErrorFailedToResumeWorker, GolemErrorGetLatestVersionOfComponentFailed,
-    GolemErrorInterrupted, GolemErrorInvalidRequest, GolemErrorInvalidShardId,
-    GolemErrorPromiseAlreadyCompleted, GolemErrorPromiseDropped, GolemErrorPromiseNotFound,
-    GolemErrorRuntimeError, GolemErrorUnexpectedOplogEntry, GolemErrorUnknown,
-    GolemErrorValueMismatch, GolemErrorWorkerAlreadyExists, GolemErrorWorkerCreationFailed,
-    GolemErrorWorkerNotFound, PromiseId, WorkerId, WorkerServiceErrorsBody,
+    GolemError, GolemErrorComponentDownloadFailed, GolemErrorComponentParseFailed, GolemErrorFailedToResumeWorker, GolemErrorGetLatestVersionOfComponentFailed, GolemErrorInitialComponentFileDownloadFailed, GolemErrorInitialComponentFileUploadFailed, GolemErrorInterrupted, GolemErrorInvalidRequest, GolemErrorInvalidShardId, GolemErrorPromiseAlreadyCompleted, GolemErrorPromiseDropped, GolemErrorPromiseNotFound, GolemErrorRuntimeError, GolemErrorUnexpectedOplogEntry, GolemErrorUnknown, GolemErrorValueMismatch, GolemErrorWorkerAlreadyExists, GolemErrorWorkerCreationFailed, GolemErrorWorkerNotFound, PromiseId, WorkerId, WorkerServiceErrorsBody
 };
 use itertools::Itertools;
 
@@ -193,6 +187,26 @@ fn display_golem_error(error: GolemError) -> String {
         }
         GolemError::InvalidAccount(_) => "Invalid account".to_string(),
         GolemError::ShardingNotReady(_) => "Sharding not ready".to_string(),
+        GolemError::InitialComponentFileDownloadFailed(GolemErrorInitialComponentFileDownloadFailed{
+            component_id,
+            path,
+            reason
+        }) => {
+            format!(
+                "Failed to download initial file {} for component {}: {}",
+                path, component_id.component_id, reason
+            )
+        }
+        GolemError::InitialComponentFileUploadFailed(GolemErrorInitialComponentFileUploadFailed{
+            component_id,
+            path,
+            reason
+        }) => {
+            format!(
+                "Failed to upload initial file {} for component {}: {}",
+                path, component_id.component_id, reason
+            )
+        }
     }
 }
 

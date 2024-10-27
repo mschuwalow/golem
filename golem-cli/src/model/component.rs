@@ -50,6 +50,7 @@ impl From<golem_client::model::Component> for Component {
             component_type,
             metadata,
             created_at,
+            ..
         } = value;
 
         Component {

@@ -13,12 +13,20 @@
 // limitations under the License.
 
 use std::fmt::{Debug, Display, Formatter};
+use std::collections::HashMap;
+use std::io::Read;
+use std::path::PathBuf;
+use std::vec;
+use bytes::Bytes;
+use sha2::{Sha256, Digest};
 use std::num::TryFromIntError;
 use std::pin::Pin;
 use std::sync::Arc;
+// use hex::hex;
 
 use crate::model::{Component, ComponentConstraints};
 use crate::repo::component::{ComponentConstraintsRecord, ComponentRepo};
+use crate::model::{InitialComponentFilesArchiveAndPermissions};
 use crate::service::component_compilation::ComponentCompilationService;
 use async_trait::async_trait;
 use chrono::Utc;
@@ -27,6 +35,7 @@ use golem_api_grpc::proto::golem::component::v1::component_error;
 use golem_common::model::component_constraint::FunctionConstraintCollection;
 use golem_common::model::component_metadata::{ComponentMetadata, ComponentProcessingError};
 use golem_common::model::{ComponentId, ComponentType};
+use golem_common::model::{InitialComponentFile, InitialComponentFileKey, InitialComponentFilePath, InitialComponentFilePathAndPermissions, InitialComponentFilePermissions};
 use golem_common::SafeDisplay;
 use golem_service_base::model::{ComponentName, VersionedComponentId};
 use golem_service_base::repo::RepoError;
@@ -36,6 +45,7 @@ use rib::{FunctionTypeRegistry, RegistryKey, RegistryValue};
 use tap::TapFallible;
 use tokio_stream::Stream;
 use tracing::{error, info};
+use golem_worker_executor_base::services::initial_component_files::{InitialComponentFilesService};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ComponentError {
@@ -57,6 +67,10 @@ pub enum ComponentError {
     ComponentConstraintConflictError(ConflictReport),
     #[error("Component Constraint Create Error: {0}")]
     ComponentConstraintCreateError(String),
+    #[error("Malformed component archive error: {message}: {error:?}")]
+    MalformedComponentArchiveError { message: String, error: Option<String> },
+    #[error("Failed uploading initial component files: {message}: {error}")]
+    UploadInitialComponentFilesError { message: String, error: String },
 }
 
 impl ComponentError {
@@ -73,6 +87,27 @@ impl ComponentError {
             error: format!("{error}"),
         }
     }
+
+    pub fn malformed_component_archive_from_message(message: impl AsRef<str>) -> Self {
+        Self::MalformedComponentArchiveError {
+            message: message.as_ref().to_string(),
+            error: None,
+        }
+    }
+
+    pub fn malformed_component_archive_from_error(message: impl AsRef<str>, error: anyhow::Error) -> Self {
+        Self::MalformedComponentArchiveError {
+            message: message.as_ref().to_string(),
+            error: Some(format!("{error}")),
+        }
+    }
+
+    pub fn upload_initial_component_files_error(message: impl AsRef<str>, error: impl AsRef<str>) -> Self {
+        Self::UploadInitialComponentFilesError {
+            message: message.as_ref().to_string(),
+            error: error.as_ref().to_string(),
+        }
+    }
 }
 
 impl SafeDisplay for ComponentError {
@@ -87,6 +122,8 @@ impl SafeDisplay for ComponentError {
             ComponentError::ComponentStoreError { .. } => self.to_string(),
             ComponentError::ComponentConstraintConflictError(_) => self.to_string(),
             ComponentError::ComponentConstraintCreateError(_) => self.to_string(),
+            ComponentError::MalformedComponentArchiveError { .. } => self.to_string(),
+            ComponentError::UploadInitialComponentFilesError { .. } => self.to_string(),
         }
     }
 }
@@ -139,8 +176,27 @@ impl From<ComponentError> for golem_api_grpc::proto::golem::component::v1::Compo
                     errors: vec![value.to_safe_string()],
                 })
             }
+            ComponentError::UploadInitialComponentFilesError { .. } => {
+                component_error::Error::InternalError(ErrorBody {
+                    error: value.to_safe_string(),
+                })
+            }
+            ComponentError::MalformedComponentArchiveError { .. } => {
+                component_error::Error::BadRequest(ErrorsBody {
+                    errors: vec![value.to_safe_string()],
+                })
+            }
         };
         Self { error: Some(error) }
+    }
+}
+
+pub fn create_new_versioned_component_id(
+    component_id: &ComponentId,
+) -> VersionedComponentId {
+    VersionedComponentId {
+        component_id: component_id.clone(),
+        version: 0,
     }
 }
 
@@ -152,6 +208,7 @@ pub trait ComponentService<Namespace> {
         component_name: &ComponentName,
         component_type: ComponentType,
         data: Vec<u8>,
+        files: Option<InitialComponentFilesArchiveAndPermissions>,
         namespace: &Namespace,
     ) -> Result<Component<Namespace>, ComponentError>;
 
@@ -160,6 +217,7 @@ pub trait ComponentService<Namespace> {
         component_id: &ComponentId,
         data: Vec<u8>,
         component_type: Option<ComponentType>,
+        files: Option<InitialComponentFilesArchiveAndPermissions>,
         namespace: &Namespace,
     ) -> Result<Component<Namespace>, ComponentError>;
 
@@ -243,6 +301,7 @@ pub struct ComponentServiceDefault {
     component_repo: Arc<dyn ComponentRepo + Sync + Send>,
     object_store: Arc<dyn ComponentObjectStore + Sync + Send>,
     component_compilation: Arc<dyn ComponentCompilationService + Sync + Send>,
+    initial_component_files_service: Arc<dyn InitialComponentFilesService + Sync + Send>,
 }
 
 impl ComponentServiceDefault {
@@ -250,11 +309,13 @@ impl ComponentServiceDefault {
         component_repo: Arc<dyn ComponentRepo + Sync + Send>,
         object_store: Arc<dyn ComponentObjectStore + Sync + Send>,
         component_compilation: Arc<dyn ComponentCompilationService + Sync + Send>,
+        initial_component_files_service: Arc<dyn InitialComponentFilesService + Sync + Send>,
     ) -> Self {
         ComponentServiceDefault {
             component_repo,
             object_store,
             component_compilation,
+            initial_component_files_service,
         }
     }
 
@@ -396,6 +457,7 @@ where
         component_name: &ComponentName,
         component_type: ComponentType,
         data: Vec<u8>,
+        files: Option<InitialComponentFilesArchiveAndPermissions>,
         namespace: &Namespace,
     ) -> Result<Component<Namespace>, ComponentError> {
         info!(namespace = %namespace, "Create component");
@@ -404,20 +466,39 @@ where
             .await?
             .map_or(Ok(()), |id| Err(ComponentError::AlreadyExists(id)))?;
 
-        let component = Component::new(
-            component_id,
-            component_name,
-            component_type,
-            &data,
-            namespace,
+        let versioned_component_id = create_new_versioned_component_id(component_id);
+
+        // analyze component before uploading anything so we fail early
+        let component_metadata = ComponentMetadata::analyse_component(&data)
+            .map_err(ComponentError::ComponentProcessingError)?;
+
+        let component_size = data.len() as u64;
+
+        info!(namespace = %namespace,"Uploaded component - exports {:?}", component_metadata.exports);
+
+        let upload_files = async {
+            match files {
+                Some(files) => self.upload_component_files(files).await,
+                None => Ok(vec![]),
+            }
+        };
+
+        let (_, _, uploaded_files) = tokio::try_join!(
+            self.upload_user_component(&versioned_component_id, data.clone()),
+            self.upload_protected_component(&versioned_component_id, data),
+            upload_files
         )?;
 
-        info!(namespace = %namespace,"Uploaded component - exports {:?}",component.metadata.exports
-        );
-        tokio::try_join!(
-            self.upload_user_component(&component.versioned_component_id, data.clone()),
-            self.upload_protected_component(&component.versioned_component_id, data)
-        )?;
+        let component = Component {
+            component_size,
+            metadata: component_metadata,
+            created_at: Utc::now(),
+            component_type,
+            component_name: component_name.clone(),
+            versioned_component_id: versioned_component_id.clone(),
+            namespace: namespace.clone(),
+            files: uploaded_files.clone(),
+        };
 
         let record = component
             .clone()
@@ -425,6 +506,7 @@ where
             .map_err(|e| ComponentError::conversion_error("record", e))?;
 
         let result = self.component_repo.create(&record).await;
+
         if let Err(RepoError::UniqueViolation(_)) = result {
             Err(ComponentError::AlreadyExists(component_id.clone()))?;
         }
@@ -441,6 +523,7 @@ where
         component_id: &ComponentId,
         data: Vec<u8>,
         component_type: Option<ComponentType>,
+        files: Option<InitialComponentFilesArchiveAndPermissions>,
         namespace: &Namespace,
     ) -> Result<Component<Namespace>, ComponentError> {
         info!(namespace = %namespace, "Update component");
@@ -480,9 +563,19 @@ where
             ComponentError::conversion_error("data length", e.to_string())
         })?;
 
-        tokio::try_join!(
+        let upload_files = async {
+            match files {
+                Some(files) => self.upload_component_files(files).await,
+                None =>
+                    // reuse files from the previous version
+                    Ok(next_component.files.clone()),
+            }
+        };
+
+        let (_, _, uploaded_files) = tokio::try_join!(
             self.upload_user_component(&next_component.versioned_component_id, data.clone()),
-            self.upload_protected_component(&next_component.versioned_component_id, data)
+            self.upload_protected_component(&next_component.versioned_component_id, data),
+            upload_files
         )?;
 
         let component = Component {
@@ -490,6 +583,7 @@ where
             metadata,
             created_at,
             component_type: component_type.unwrap_or(next_component.component_type),
+            files: uploaded_files,
             ..next_component
         };
         let record = component
@@ -819,6 +913,73 @@ impl ComponentServiceDefault {
             .map_err(|e| {
                 ComponentError::component_store_error("Failed to upload protected component", e)
             })
+    }
+
+    async fn upload_component_files(
+        &self,
+        files_properties: InitialComponentFilesArchiveAndPermissions,
+    ) -> Result<Vec<InitialComponentFile>, ComponentError> {
+        let files_file = files_properties.archive;
+        let expected_paths: HashMap<PathBuf, InitialComponentFilePathAndPermissions> = HashMap::from_iter(
+            files_properties.permissions.values.iter().map(|f| (f.path.relative_path_buf(), f.clone())),
+        );
+
+        let mut zip_archive = zip::ZipArchive::new(files_file.into_std().await).map_err(|e| {
+            ComponentError::malformed_component_archive_from_error("Failed to unpack provided component files", e.into())
+        })?;
+
+        let mut uploaded: Vec<InitialComponentFile> = vec![];
+        let mut hasher = Sha256::new();
+
+        for i in 0..zip_archive.len() {
+            let (properties, content) = {
+                let mut file = zip_archive.by_index(i).unwrap();
+
+                if file.is_dir() {
+                    continue;
+                }
+
+                let path = file.enclosed_name().ok_or(ComponentError::malformed_component_archive_from_message("Failed to extract file path".to_string()))?;
+
+                let mut buffer = vec![0; file.size() as usize];
+                file.read(&mut buffer).expect("buffer overflow");
+
+                hasher.update(&buffer);
+                let hash = hex::encode(hasher.finalize_reset());
+
+                // if permissions are not provided, default to read-only
+                let initial_component_file = if let Some(path_and_permissions) = expected_paths.get(&path) {
+                    InitialComponentFile {
+                        key: InitialComponentFileKey(hash),
+                        path: path_and_permissions.path.clone(),
+                        permissions: path_and_permissions.permissions.clone(),
+                    }
+                } else {
+                    InitialComponentFile {
+                        key: InitialComponentFileKey(hash),
+                        path: InitialComponentFilePath::make_from_relative(path).expect("invalid path"),
+                        permissions: InitialComponentFilePermissions::ReadOnly,
+                    }
+                };
+
+                (initial_component_file, Bytes::from(buffer))
+            };
+
+            self.initial_component_files_service
+                .put_if_not_exists(&properties.key, content)
+                .await
+                .map_err(|e| {
+                    ComponentError::upload_initial_component_files_error("Failed to upload component files", e)
+                })?;
+
+            uploaded.push(properties);
+        }
+
+        if uploaded.len() != expected_paths.len() {
+            return Err(ComponentError::malformed_component_archive_from_message(format!("Expected {} files in the archive, but only found {}", expected_paths.len(), uploaded.len())));
+        }
+
+        Ok(uploaded)
     }
 
     async fn get_versioned_component_id<Namespace: Display + Clone>(
