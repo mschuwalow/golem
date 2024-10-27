@@ -558,7 +558,7 @@ async fn test_initial_component_file_upload(component_service: Arc<dyn Component
     assert!(result.is_some());
 
     let result = result.unwrap().files.into_iter().map(|f| (f.path, f.permissions)).collect::<Vec<_>>();
-    assert!(result.len() == 2);
+    assert_eq!(result.len(), 2);
     assert!(result.contains(&(InitialComponentFilePath::from_string("/foo.txt".to_string()).unwrap(), InitialComponentFilePermissions::ReadWrite)));
     assert!(result.contains(&(InitialComponentFilePath::from_string("/bar/baz.txt".to_string()).unwrap(), InitialComponentFilePermissions::ReadOnly)));
 }
@@ -606,8 +606,8 @@ async fn test_initial_component_file_data_sharing(component_service: Arc<dyn Com
         .await
         .unwrap();
 
-    assert!(component1.files.len() == 2);
-    assert!(component2.files.len() == 2);
+    assert_eq!(component1.files.len(), 2);
+    assert_eq!(component2.files.len(), 2);
 
     // the uploads contain the same files, so their keys should be the same
     let component1_keys = component1.files.into_iter().map(|f| f.key.0).collect::<HashSet<_>>();
