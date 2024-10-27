@@ -1,5 +1,6 @@
-use golem_worker_executor_base::services::initial_component_files::BlobStorageInitialComponentFilesService;
+use golem_worker_executor_base::services::initial_component_files::{self, InitialComponentFilesServiceDefault};
 use golem_worker_executor_base::storage::blob::fs::FileSystemBlobStorage;
+use golem_worker_executor_base::storage::blob::BlobStorage;
 use test_r::test;
 
 use golem_common::config::{DbPostgresConfig, DbSqliteConfig};
@@ -132,6 +133,14 @@ async fn test_component_constraint_incompatible_updates(
             .unwrap(),
         );
 
+    let blob_storage: Arc<dyn BlobStorage + Sync + Send> = Arc::new(
+        FileSystemBlobStorage::new(&PathBuf::from(format!("/tmp/blob-{}", Uuid::new_v4())))
+            .await
+            .expect("Failed to create blob storage"),
+    );
+
+    let initial_component_files_service = Arc::new(InitialComponentFilesServiceDefault::new(blob_storage.clone()));
+
     let compilation_service: Arc<dyn ComponentCompilationService + Sync + Send> =
         Arc::new(ComponentCompilationServiceDisabled);
 
@@ -140,6 +149,7 @@ async fn test_component_constraint_incompatible_updates(
             component_repo.clone(),
             object_store.clone(),
             compilation_service.clone(),
+            initial_component_files_service.clone(),
         ));
 
     let component_name = ComponentName("shopping-cart".to_string());
@@ -151,6 +161,7 @@ async fn test_component_constraint_incompatible_updates(
             &component_name,
             ComponentType::Durable,
             get_component_data("shopping-cart"),
+            None,
             &DefaultNamespace::default(),
         )
         .await
@@ -181,6 +192,7 @@ async fn test_component_constraint_incompatible_updates(
         .update(
             &component_id,
             get_component_data("shopping-cart"),
+            None,
             None,
             &DefaultNamespace::default(),
         )
@@ -225,7 +237,7 @@ async fn test_services(component_repo: Arc<dyn ComponentRepo + Sync + Send>) {
             .expect("Failed to create blob storage"),
     );
 
-    let initial_component_files_service = Arc::new(BlobStorageInitialComponentFilesService::new(blop_store.clone()));
+    let initial_component_files_service = Arc::new(InitialComponentFilesServiceDefault::new(blop_store.clone()));
 
     let component_service: Arc<dyn ComponentService<DefaultNamespace> + Sync + Send> =
         Arc::new(ComponentServiceDefault::new(
@@ -343,6 +355,7 @@ async fn test_services(component_repo: Arc<dyn ComponentRepo + Sync + Send>) {
         .update(
             &component1.versioned_component_id.component_id,
             get_component_data("shopping-cart"),
+            None,
             None,
             &DefaultNamespace::default(),
         )
@@ -525,6 +538,7 @@ async fn test_repo_component_id_unique(component_repo: Arc<dyn ComponentRepo + S
         ComponentType::Durable,
         &data,
         &namespace1,
+        vec![],
     )
     .unwrap();
 
@@ -565,6 +579,7 @@ async fn test_repo_component_name_unique_in_namespace(
         ComponentType::Durable,
         &data,
         &namespace1,
+        vec![],
     )
     .unwrap();
     let component2 = Component::new(
@@ -573,6 +588,7 @@ async fn test_repo_component_name_unique_in_namespace(
         ComponentType::Durable,
         &data,
         &namespace2,
+        vec![],
     )
     .unwrap();
 
@@ -610,6 +626,7 @@ async fn test_repo_component_delete(component_repo: Arc<dyn ComponentRepo + Sync
         ComponentType::Durable,
         &data,
         &namespace1,
+        vec![],
     )
     .unwrap();
 
@@ -654,6 +671,7 @@ async fn test_repo_component_constraints(component_repo: Arc<dyn ComponentRepo +
         ComponentType::Durable,
         &data,
         &namespace1,
+        vec![],
     )
     .unwrap();
 

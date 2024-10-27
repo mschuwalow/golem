@@ -251,15 +251,15 @@ impl DbComponentRepo<sqlx::Postgres> {
     async fn get_files(&self, component_id: &Uuid, version: u64) -> Result<Vec<FileRecord>, RepoError> {
         sqlx::query_as::<_, FileRecord>(
             r#"
-                SELECT
-                    component_id,
-                    version,
-                    file_path,
-                    file_key,
-                    file_permissions
-                FROM component_files
-                WHERE component_id = $1 AND version = $2
-                "#,
+            SELECT
+                component_id,
+                version,
+                file_path,
+                file_key,
+                file_permissions
+            FROM component_files
+            WHERE component_id = $1 AND version = $2
+            "#,
         )
         .bind(component_id)
         .bind(version as i64)
@@ -469,11 +469,11 @@ impl ComponentRepo for DbComponentRepo<sqlx::Postgres> {
         };
 
         transaction.commit().await?;
-
         Ok(())
     }
 
-    async fn get(&self, component_id: &Uuid) -> Result<Vec<ComponentRecord>, RepoError> {
+    #[when(sqlx::Postgres -> get)]
+    async fn get_postgres(&self, component_id: &Uuid) -> Result<Vec<ComponentRecord>, RepoError> {
         let component = sqlx::query_as::<_, ComponentRecord>(
             r#"
                 SELECT
@@ -484,6 +484,32 @@ impl ComponentRepo for DbComponentRepo<sqlx::Postgres> {
                     cv.size AS size,
                     cv.metadata AS metadata,
                     cv.created_at::timestamptz AS created_at,
+                    cv.component_type AS component_type
+                FROM components c
+                    JOIN component_versions cv ON c.component_id = cv.component_id
+                WHERE c.component_id = $1
+                "#,
+        )
+        .bind(component_id)
+        .fetch_all(self.db_pool.deref())
+        .await
+        .map_err::<RepoError, _>(|e| e.into())?;
+
+        self.add_files(component).await
+    }
+
+    #[when(sqlx::Sqlite -> get)]
+    async fn get(&self, component_id: &Uuid) -> Result<Vec<ComponentRecord>, RepoError> {
+        let component = sqlx::query_as::<_, ComponentRecord>(
+            r#"
+                SELECT
+                    c.namespace AS namespace,
+                    c.name AS name,
+                    c.component_id AS component_id,
+                    cv.version AS version,
+                    cv.size AS size,
+                    cv.metadata AS metadata,
+                    cv.created_at AS created_at,
                     cv.component_type AS component_type
                 FROM components c
                     JOIN component_versions cv ON c.component_id = cv.component_id

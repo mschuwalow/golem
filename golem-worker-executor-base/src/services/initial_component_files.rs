@@ -36,18 +36,18 @@ pub trait InitialComponentFilesService {
     ) -> Result<(), String>;
 }
 
-pub struct BlobStorageInitialComponentFilesService {
+pub struct InitialComponentFilesServiceDefault {
     blob_storage: Arc<dyn BlobStorage + Send + Sync>,
 }
 
-impl BlobStorageInitialComponentFilesService {
+impl InitialComponentFilesServiceDefault {
     pub fn new(blob_storage: Arc<dyn BlobStorage + Send + Sync>) -> Self {
         Self { blob_storage }
     }
 }
 
 #[async_trait]
-impl InitialComponentFilesService for BlobStorageInitialComponentFilesService {
+impl InitialComponentFilesService for InitialComponentFilesServiceDefault {
     async fn get(
         &self,
         key: &InitialComponentFileKey,

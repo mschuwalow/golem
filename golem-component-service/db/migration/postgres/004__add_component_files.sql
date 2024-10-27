@@ -1,4 +1,5 @@
-CREATE TABLE component_files (
+CREATE TABLE component_files
+(
     component_id uuid NOT NULL,
     version bigint NOT NULL,
     file_key VARCHAR(255) NOT NULL,

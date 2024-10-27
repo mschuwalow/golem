@@ -94,7 +94,7 @@ impl Services {
         };
 
         let initial_component_files_service: Arc<dyn initial_component_files::InitialComponentFilesService + Sync + Send> =
-            Arc::new(initial_component_files::BlobStorageInitialComponentFilesService::new(blob_storage.clone()));
+            Arc::new(initial_component_files::InitialComponentFilesServiceDefault::new(blob_storage.clone()));
 
         let object_store: Arc<dyn ComponentObjectStore + Sync + Send> =
             match &config.component_store {

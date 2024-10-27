@@ -77,7 +77,7 @@ use humansize::{ISizeFormatter, BINARY};
 use nonempty_collections::NEVec;
 use prometheus::Registry;
 use services::file_loader::FileLoader;
-use services::initial_component_files::BlobStorageInitialComponentFilesService;
+use services::initial_component_files::InitialComponentFilesServiceDefault;
 use std::sync::Arc;
 use storage::keyvalue::sqlite::SqliteKeyValueStorage;
 use storage::sqlite::SqlitePool;
@@ -295,7 +295,7 @@ pub trait Bootstrap<Ctx: WorkerCtx> {
             }
         };
 
-        let initial_files_service = Arc::new(BlobStorageInitialComponentFilesService::new(blob_storage.clone()));
+        let initial_files_service = Arc::new(InitialComponentFilesServiceDefault::new(blob_storage.clone()));
 
         let file_loader = Arc::new(FileLoader::new(initial_files_service.clone())?);
 
