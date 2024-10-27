@@ -72,6 +72,10 @@ pub trait ComponentService {
         uri: ComponentUri,
         project: &Option<Self::ProjectContext>,
     ) -> Result<ComponentUrn, GolemError>;
+    async fn resolve_component_name(
+        &self,
+        uri: &ComponentUri,
+    ) -> Result<String, GolemError>;
     async fn get_metadata(
         &self,
         component_urn: &ComponentUrn,
@@ -393,6 +397,19 @@ impl<ProjectContext: Display + Send + Sync> ComponentService
                     }
                 }
             }
+        }
+    }
+
+    async fn resolve_component_name(
+        &self,
+        uri: &ComponentUri,
+    ) -> Result<String, GolemError> {
+        match uri {
+            ComponentUri::URN(urn) => {
+                let component = self.get_metadata(&urn, 0).await?;
+                Ok(component.component_name)
+            }
+            ComponentUri::URL(ComponentUrl { name }) => Ok(name.clone()),
         }
     }
 

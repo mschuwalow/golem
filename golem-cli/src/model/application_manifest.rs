@@ -62,27 +62,10 @@ fn load_app_validated(app_resolve_mode: &ApplicationResolveMode) -> ValidatedRes
             .collect::<ValidatedResult<Vec<_>>>()
     });
 
-    log_action("Collecting", "components");
-
-    let app = oam_apps.and_then(ApplicationManifest::from_oam_apps);
-
-    log_validated_action_result("Found", &app, |app| {
-        if app.wasm_components_by_name.is_empty() {
-            "no components".to_string()
-        } else {
-            format!(
-                "components: {}",
-                app.wasm_components_by_name.keys().join(", ")
-            )
-        }
-    });
-
-    app
+    oam_apps.and_then(ApplicationManifest::from_oam_apps)
 }
 
 fn collect_sources(mode: &ApplicationResolveMode) -> ValidatedResult<Vec<PathBuf>> {
-    log_action("Collecting", "sources");
-
     let sources = match mode {
         ApplicationResolveMode::Automatic => match find_main_source() {
             Some(source) => {
@@ -138,21 +121,6 @@ fn collect_sources(mode: &ApplicationResolveMode) -> ValidatedResult<Vec<PathBuf
             ValidatedResult::from_value_and_warns(sources.clone(), non_unique_source_warns)
         }
     };
-
-    log_validated_action_result("Found", &sources, |sources| {
-        if sources.is_empty() {
-            "no sources".to_string()
-        } else {
-            format!(
-                "sources: {}",
-                sources
-                    .iter()
-                    .map(|source| source.to_string_lossy())
-                    .join(", ")
-            )
-        }
-    });
-
     sources
 }
 
