@@ -158,19 +158,7 @@ impl<Ctx: WorkerCtx> DurableWorkerCtx<Ctx> {
             owned_worker_id.worker_id, worker_config.deleted_regions
         );
 
-        prepare_filesystem(file_loader, temp_dir.path(), &component_metadata.files).await?;
-
-        let read_only_paths = component_metadata
-            .files
-            .iter()
-            .filter_map(|file| {
-                match file.permissions {
-                    InitialComponentFilePermissions::ReadOnly => Some(file.path.clone()),
-                    _ => None,
-                }
-            })
-            .flat_map(|path| vec![path.relative_path_buf(), path.into_path_buf()])
-            .collect::<HashSet<PathBuf>>();
+        let read_only_paths = prepare_filesystem(file_loader, temp_dir.path(), &component_metadata.files).await?;
 
         let stdin = ManagedStdIn::disabled();
         let stdout = ManagedStdOut::from_stdout(Stdout);
@@ -2048,7 +2036,8 @@ async fn prepare_filesystem(
     file_loader: Arc<FileLoader>,
     root: &Path,
     files: &Vec<InitialComponentFile>,
-) -> Result<(), GolemError> {
+) -> Result<HashSet<PathBuf>, GolemError> {
+    let mut read_only_files = HashSet::with_capacity(files.len());
     for file in files {
         let path = root.join(file.path.relative_path_buf());
 
@@ -2056,6 +2045,7 @@ async fn prepare_filesystem(
             InitialComponentFilePermissions::ReadOnly => {
                 debug!("Loading read-only file {}", path.display());
                 file_loader.get_read_only_to(&file.key, &path).await?;
+                read_only_files.insert(path);
             }
             InitialComponentFilePermissions::ReadWrite => {
 
@@ -2064,7 +2054,7 @@ async fn prepare_filesystem(
             }
         }
     }
-    Ok(())
+    Ok(read_only_files)
 }
 
 /// Helper macro for expecting a given type of OplogEntry as the next entry in the oplog during

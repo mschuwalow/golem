@@ -2717,12 +2717,13 @@ mod tests {
     use std::str::FromStr;
     use std::time::SystemTime;
     use std::vec;
+    use std::path::PathBuf;
 
     use crate::model::oplog::OplogIndex;
     use crate::model::{
         AccountId, ComponentId, FilterComparator, IdempotencyKey, ShardId, StringFilterComparator,
         TargetWorkerId, Timestamp, WorkerFilter, WorkerId, WorkerMetadata, WorkerStatus,
-        WorkerStatusRecord,
+        WorkerStatusRecord, InitialComponentFilePath
     };
     use bincode::{Decode, Encode};
     use poem_openapi::types::ToJSON;
@@ -3059,5 +3060,17 @@ mod tests {
         let serialized = key.to_json_string();
         let deserialized: IdempotencyKey = serde_json::from_str(&serialized).unwrap();
         assert_eq!(key, deserialized);
+    }
+
+    #[test]
+    fn initial_component_file_path_from_absolute() {
+        let path = InitialComponentFilePath::make(PathBuf::from("/a/b/c")).unwrap();
+        assert_eq!(path.as_str(), "/a/b/c");
+    }
+
+    #[test]
+    fn initial_component_file_path_from_relative() {
+        let path = InitialComponentFilePath::make(PathBuf::from("a/b/c"));
+        assert!(path.is_err());
     }
 }
