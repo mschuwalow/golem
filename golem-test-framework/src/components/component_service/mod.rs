@@ -15,18 +15,14 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
 use create_component_request::Data;
 use golem_api_grpc::proto::golem::component::v1::{
-    component_error, create_component_request, create_component_response,
-    get_component_metadata_response, get_components_response, update_component_request,
-    update_component_response, CreateComponentRequest, CreateComponentRequestChunk,
-    CreateComponentRequestHeader, GetComponentsRequest, GetLatestComponentRequest,
-    UpdateComponentRequest, UpdateComponentRequestChunk, UpdateComponentRequestHeader,
+    component_error, create_component_request, create_component_response, get_component_metadata_response, get_components_response, update_component_request, update_component_response, CreateComponentRequest, CreateComponentRequestChunk, CreateComponentRequestHeader, GetComponentsRequest, GetLatestComponentRequest, UpdateComponentRequest, UpdateComponentRequestChunk, UpdateComponentRequestHeader
 };
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
@@ -36,7 +32,7 @@ use tonic::transport::Channel;
 use tracing::{debug, info, Level};
 
 use golem_api_grpc::proto::golem::component::v1::component_service_client::ComponentServiceClient;
-use golem_common::model::{ComponentId, ComponentType};
+use golem_common::model::{ComponentId, ComponentType, InitialComponentFile};
 
 use crate::components::rdb::Rdb;
 use crate::components::{wait_for_startup_grpc, EnvVarBuilder, GolemEnvVars};
@@ -149,28 +145,40 @@ pub trait ComponentService {
         component_type: ComponentType,
     ) -> Result<ComponentId, AddComponentError> {
         let file_name = local_path.file_name().unwrap().to_string_lossy();
-        self.add_component_with_name(local_path, &file_name, component_type)
-            .await
+        self.add_component_with_name(local_path, &file_name, component_type).await
     }
 
     async fn add_component_with_name(
         &self,
         local_path: &Path,
         name: &str,
+        component_type: ComponentType
+    ) -> Result<ComponentId, AddComponentError> {
+        self.add_component_with_files(local_path, name, component_type, vec![]).await
+    }
+
+    async fn add_component_with_files(
+        &self,
+        local_path: &Path,
+        name: &str,
         component_type: ComponentType,
+        files: Vec<InitialComponentFile>
     ) -> Result<ComponentId, AddComponentError> {
         let mut client = self.client().await;
         let mut file = File::open(local_path).await.map_err(|_| {
             AddComponentError::Other(format!("Failed to read component from {local_path:?}"))
         })?;
 
-        let component_type: golem_api_grpc::proto::golem::component::ComponentType =
-            component_type.into();
+        let component_type: golem_api_grpc::proto::golem::component::ComponentType = component_type.into();
+
+        let files = files.into_iter().map(|f| f.into()).collect();
+
         let mut chunks: Vec<CreateComponentRequest> = vec![CreateComponentRequest {
             data: Some(Data::Header(CreateComponentRequestHeader {
                 project_id: None,
                 component_name: name.to_string(),
                 component_type: Some(component_type as i32),
+                files,
             })),
         }];
 

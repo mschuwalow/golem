@@ -14,8 +14,9 @@
 
 use crate::components::component_service::{AddComponentError, ComponentService};
 use async_trait::async_trait;
-use golem_api_grpc::proto::golem::component::v1::component_service_client::ComponentServiceClient;
-use golem_common::model::{ComponentId, ComponentType};
+use golem_api_grpc::proto::golem::component::{v1::component_service_client::ComponentServiceClient};
+use golem_common::model::{ComponentId, ComponentType, InitialComponentFile};
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tonic::transport::Channel;
 use tracing::{debug, info};
@@ -31,6 +32,51 @@ impl FileSystemComponentService {
         Self {
             root: root.to_path_buf(),
         }
+    }
+
+    pub async fn write_component_to_filesystem(
+        &self,
+        local_path: &Path,
+        component_id: &ComponentId,
+        component_version: u64,
+        component_type: ComponentType,
+        files: Vec<InitialComponentFile>
+    ) -> Result<ComponentId, AddComponentError> {
+        let target_dir = &self.root;
+        debug!("Local component store: {target_dir:?}");
+        if !target_dir.exists() {
+            tokio::fs::create_dir_all(target_dir).await.map_err(|err| {
+                AddComponentError::Other(format!(
+                    "Failed to create component store directory: {err}"
+                ))
+            })?;
+        }
+
+        if !local_path.exists() {
+            return Err(AddComponentError::Other(format!(
+                "Source file does not exist: {local_path:?}"
+            )));
+        }
+
+        let _ = tokio::fs::copy(
+            local_path,
+            target_dir.join(format!("{component_id}-{component_version}.wasm")),
+        )
+        .await
+        .map_err(|err| {
+            AddComponentError::Other(format!(
+                "Failed to copy WASM to the local component store: {err}"
+            ))
+        });
+
+        let properties = ComponentFileProperties {
+            component_type,
+            files,
+        };
+
+        properties.write_to_file(&target_dir.join(format!("{component_id}-{component_version}.json"))).await?;
+
+        Ok(component_id.clone())
     }
 }
 
@@ -56,36 +102,7 @@ impl ComponentService for FileSystemComponentService {
         component_id: &ComponentId,
         component_type: ComponentType,
     ) -> Result<(), AddComponentError> {
-        let target_dir = &self.root;
-        debug!("Local component store: {target_dir:?}");
-        if !target_dir.exists() {
-            std::fs::create_dir_all(target_dir).map_err(|err| {
-                AddComponentError::Other(format!(
-                    "Failed to create component store directory: {err}"
-                ))
-            })?;
-        }
-
-        if !local_path.exists() {
-            return Err(AddComponentError::Other(format!(
-                "Source file does not exist: {local_path:?}"
-            )));
-        }
-
-        let postfix = match component_type {
-            ComponentType::Ephemeral => "-ephemeral",
-            ComponentType::Durable => "",
-        };
-        let _ = std::fs::copy(
-            local_path,
-            target_dir.join(format!("{component_id}-0{postfix}.wasm")),
-        )
-        .map_err(|err| {
-            AddComponentError::Other(format!(
-                "Failed to copy WASM to the local component store: {err}"
-            ))
-        });
-
+        self.write_component_to_filesystem(local_path, component_id, 0, component_type, vec![]).await?;
         Ok(())
     }
 
@@ -94,13 +111,7 @@ impl ComponentService for FileSystemComponentService {
         local_path: &Path,
         component_type: ComponentType,
     ) -> Result<ComponentId, AddComponentError> {
-        let uuid = Uuid::new_v4();
-        let component_id = ComponentId(uuid);
-
-        self.add_component_with_id(local_path, &component_id, component_type)
-            .await?;
-
-        Ok(component_id)
+        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, vec![]).await
     }
 
     async fn add_component_with_name(
@@ -109,7 +120,17 @@ impl ComponentService for FileSystemComponentService {
         _name: &str,
         component_type: ComponentType,
     ) -> Result<ComponentId, AddComponentError> {
-        self.add_component(local_path, component_type).await
+        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, vec![]).await
+    }
+
+    async fn add_component_with_files(
+        &self,
+        local_path: &Path,
+        _name: &str,
+        component_type: ComponentType,
+        files: Vec<InitialComponentFile>
+    ) -> Result<ComponentId, AddComponentError> {
+        self.write_component_to_filesystem(local_path, &&ComponentId(Uuid::new_v4()), 0, component_type, files).await
     }
 
     async fn update_component(
@@ -130,17 +151,10 @@ impl ComponentService for FileSystemComponentService {
             std::panic!("Source file does not exist: {local_path:?}");
         }
 
-        let postfix = match component_type {
-            ComponentType::Ephemeral => "-ephemeral",
-            ComponentType::Durable => "",
-        };
         let last_version = self.get_latest_version(component_id).await;
         let new_version = last_version + 1;
-        let target = target_dir.join(format!("{component_id}-{new_version}{postfix}.wasm"));
 
-        let _ = std::fs::copy(local_path, target)
-            .expect("Failed to copy WASM to the local component store");
-
+        self.write_component_to_filesystem(local_path, component_id, new_version, component_type, vec![]).await.expect("Failed to write component to filesystem");
         new_version
     }
 
@@ -181,4 +195,22 @@ impl ComponentService for FileSystemComponentService {
     }
 
     async fn kill(&self) {}
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ComponentFileProperties {
+    pub component_type: ComponentType,
+    pub files: Vec<InitialComponentFile>,
+}
+
+impl ComponentFileProperties {
+    async fn write_to_file(&self, path: &Path) -> Result<(), AddComponentError> {
+        let json = serde_json::to_string(self).map_err(|_| AddComponentError::Other("Failed to serialize component file properties".to_string()))?;
+        tokio::fs::write(path, json).await.map_err(|_| AddComponentError::Other("Failed to write component file properties".to_string()))
+    }
+    async fn read_from_file(path: &Path) -> Result<Self, AddComponentError> {
+        let json = tokio::fs::read_to_string(path).await.map_err(|_| AddComponentError::Other("Failed to deserialize component file properties".to_string()))?;
+        serde_json::from_str(&json).map_err(|_| AddComponentError::Other("Failed to read component file properties".to_string()))
+    }
 }
