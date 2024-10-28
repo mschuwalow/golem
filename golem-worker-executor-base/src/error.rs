@@ -58,10 +58,6 @@ pub enum GolemError {
         component_id: ComponentId,
         reason: String,
     },
-    InitialComponentFileDownloadFailed {
-        path: String,
-        reason: String,
-    },
     PromiseNotFound {
         promise_id: PromiseId,
     },
@@ -101,6 +97,10 @@ pub enum GolemError {
         details: String,
     },
     ShardingNotReady,
+    InitialComponentFileDownloadFailed {
+        path: String,
+        reason: String,
+    },
 }
 
 impl GolemError {
