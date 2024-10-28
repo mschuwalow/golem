@@ -99,8 +99,8 @@ impl<Ctx: WorkerCtx> HostDescriptor for DurableWorkerCtx<Ctx> {
             .map_err(FsError::trap)?;
         record_host_function_call("filesystem::types::descriptor", "get_flags");
 
+        let read_only = self.is_read_only(&fd)?;
         let wasi_view = &mut self.as_wasi_view();
-        let read_only = wasi_view.is_read_only(&fd)?;
         let mut descriptor_flags = HostDescriptor::get_flags(wasi_view, fd).await?;
 
         if read_only {

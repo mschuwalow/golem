@@ -222,7 +222,7 @@ impl<Ctx: WorkerCtx> DurableWorkerCtx<Ctx> {
             .expect("ResourceTable mutex must never fail")
     }
 
-    fn fail_if_read_only(&mut self, fd: &Resource<Descriptor>) -> FsResult<()> {
+    fn is_read_only(&mut self, fd: &Resource<Descriptor>) -> Result<bool, ResourceTableError> {
         let table = Arc::get_mut(&mut self.table)
             .expect("ResourceTable is shared and cannot be borrowed mutably")
             .get_mut()
@@ -234,14 +234,17 @@ impl<Ctx: WorkerCtx> DurableWorkerCtx<Ctx> {
                     .read()
                     .expect("There should be no writers to read_only_paths")
                     .contains(&f.path);
-
-                if read_only {
-                    return Err(wasmtime_wasi::bindings::filesystem::types::ErrorCode::NotPermitted.into());
-                } else {
-                    Ok(())
-                }
+                Ok(read_only)
             },
-            Descriptor::Dir(_) => Ok(()),
+            Descriptor::Dir(_) => Ok(false),
+        }
+    }
+
+    fn fail_if_read_only(&mut self, fd: &Resource<Descriptor>) -> FsResult<()> {
+        if self.is_read_only(fd)? {
+            return Err(wasmtime_wasi::bindings::filesystem::types::ErrorCode::NotPermitted.into());
+        } else {
+            Ok(())
         }
     }
 
@@ -1953,28 +1956,6 @@ impl<Ctx: WorkerCtx> HasOplog for PublicDurableWorkerState<Ctx> {
 }
 
 pub struct DurableWorkerCtxWasiView<'a, Ctx: WorkerCtx>(&'a mut DurableWorkerCtx<Ctx>);
-
-impl<'a, Ctx: WorkerCtx> DurableWorkerCtxWasiView<'a, Ctx> {
-    fn is_read_only(&mut self, fd: &Resource<Descriptor>) -> Result<bool, ResourceTableError> {
-        let table = Arc::get_mut(&mut self.0.table)
-            .expect("ResourceTable is shared and cannot be borrowed mutably")
-            .get_mut()
-            .expect("ResourceTable mutex must never fail");
-
-        match table.get(fd)? {
-            Descriptor::File(f) => {
-                let result = self
-                    .0
-                    .read_only_paths
-                    .read()
-                    .expect("There should be no writers to read_only_paths")
-                    .contains(&f.path);
-                Ok(result)
-            },
-            Descriptor::Dir(_) => Ok(false),
-        }
-    }
-}
 
 pub struct DurableWorkerCtxWasiHttpView<'a, Ctx: WorkerCtx>(&'a mut DurableWorkerCtx<Ctx>);
 
