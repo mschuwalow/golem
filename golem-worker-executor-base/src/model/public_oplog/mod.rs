@@ -1820,8 +1820,13 @@ impl IntoValue for GolemError {
                     case_idx: 22,
                     case_value: None,
                 },
-                GolemError::InitialComponentFileDownloadFailed { .. } => panic!("InitialComponentFileDownloadFailed"), // TODO
-                GolemError::InitialComponentFileUploadFailed { .. } => panic!("InitialComponentFileParseFailed"), // TODO
+                GolemError::InitialComponentFileDownloadFailed { path, reason } => Value::Variant {
+                    case_idx: 23,
+                    case_value: Some(Box::new(Value::Record(vec![
+                        path.into_value(),
+                        reason.into_value(),
+                    ]))),
+                },
             }
         }
         into_value(self, true)

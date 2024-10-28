@@ -21,6 +21,8 @@ use tokio::io::AsyncWriteExt;
 use tokio::fs::{hard_link, copy, create_dir_all};
 use tempfile::TempDir;
 
+use crate::error::GolemError;
+
 use super::initial_component_files::InitialComponentFilesService;
 
 /// Interface for loading files and making them available to workers.
@@ -45,7 +47,22 @@ impl FileLoader {
     }
 
     /// Read-only files can be safely shared between workers. Download once to cache and hardlink to target.
-    pub async fn get_read_only_to(&self, key: &InitialComponentFileKey, target: &PathBuf) -> anyhow::Result<()> {
+    pub async fn get_read_only_to(&self, key: &InitialComponentFileKey, target: &PathBuf) -> Result<(), GolemError> {
+       self
+        .get_read_only_to_impl(key, target)
+        .await
+        .map_err(|e| GolemError::initial_file_download_failed(target.display().to_string(), e.to_string()))
+    }
+
+    /// Read-write files are copied to target.
+    pub async fn get_read_write_to(&self, key: &InitialComponentFileKey, target: &PathBuf) -> Result<(), GolemError> {
+        self
+            .get_read_write_to_impl(key, target)
+            .await
+            .map_err(|e| GolemError::initial_file_download_failed(target.display().to_string(), e.to_string()))
+    }
+
+    async fn get_read_only_to_impl(&self, key: &InitialComponentFileKey, target: &PathBuf) -> Result<(), anyhow::Error> {
         if let Some(parent) = target.parent() {
             create_dir_all(parent).await?;
         };
@@ -67,8 +84,7 @@ impl FileLoader {
         Ok(())
     }
 
-    /// Read-write files are copied to target.
-    pub async fn get_read_write_to(&self, key: &InitialComponentFileKey, target: &PathBuf) -> anyhow::Result<()> {
+    pub async fn get_read_write_to_impl(&self, key: &InitialComponentFileKey, target: &PathBuf) -> Result<(), anyhow::Error> {
         if let Some(parent) = target.parent() {
             create_dir_all(parent).await?;
         };

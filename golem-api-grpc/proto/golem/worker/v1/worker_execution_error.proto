@@ -34,7 +34,6 @@ message WorkerExecutionError {
     WorkerNotFound worker_not_found = 22;
     ShardingNotReady sharding_not_ready = 23;
     InitialComponentFileDownloadFailed initial_component_file_download_failed = 24;
-    InitialComponentFileUploadFailed initial_component_file_upload_failed = 25;
   }
 }
 
@@ -132,15 +131,6 @@ message WorkerNotFound {
 message ShardingNotReady {}
 
 message InitialComponentFileDownloadFailed {
-  golem.component.ComponentId component_id = 1;
-  uint64 component_version = 2;
-  string path = 3;
-  string reason = 4;
-}
-
-message InitialComponentFileUploadFailed {
-  golem.component.ComponentId component_id = 1;
-  uint64 component_version = 2;
-  string path = 3;
-  string reason = 4;
+  string path = 1;
+  string reason = 2;
 }

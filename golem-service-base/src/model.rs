@@ -951,47 +951,9 @@ impl SafeDisplay for GolemErrorInitialComponentFileUploadFailed {
     }
 }
 
-impl TryFrom<golem_api_grpc::proto::golem::worker::v1::InitialComponentFileUploadFailed>
-    for crate::model::GolemErrorInitialComponentFileUploadFailed
-{
-    type Error = String;
-
-    fn try_from(value: golem_api_grpc::proto::golem::worker::v1::InitialComponentFileUploadFailed) -> Result<Self, Self::Error> {
-        Ok(Self {
-            component_id: VersionedComponentId {
-                component_id: value
-                    .component_id
-                    .ok_or("Missing field: component_id")?
-                    .try_into()?,
-                version: value.component_version,
-            },
-            path: value.path,
-            reason: value.reason,
-         })
-    }
-}
-
-impl From<crate::model::GolemErrorInitialComponentFileUploadFailed>
-    for golem_api_grpc::proto::golem::worker::v1::InitialComponentFileUploadFailed
-{
-    fn from(value: crate::model::GolemErrorInitialComponentFileUploadFailed) -> Self {
-        let component_version = value.component_id.version;
-        let component_id = golem_api_grpc::proto::golem::component::ComponentId {
-            value: Some(value.component_id.component_id.0.into()),
-        };
-        Self {
-            component_id: Some(component_id),
-            component_version,
-            path: value.path,
-            reason: value.reason,
-         }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Object, thiserror::Error)]
 #[error("Initial file download failed")]
 pub struct GolemErrorInitialComponentFileDownloadFailed {
-    pub component_id: VersionedComponentId,
     pub path: String,
     pub reason: String,
 }
@@ -1002,37 +964,23 @@ impl SafeDisplay for GolemErrorInitialComponentFileDownloadFailed {
     }
 }
 
-impl TryFrom<golem_api_grpc::proto::golem::worker::v1::InitialComponentFileDownloadFailed>
-    for crate::model::GolemErrorInitialComponentFileDownloadFailed
+impl From<golem_api_grpc::proto::golem::worker::v1::InitialComponentFileDownloadFailed>
+    for GolemErrorInitialComponentFileDownloadFailed
 {
-    type Error = String;
 
-    fn try_from(value: golem_api_grpc::proto::golem::worker::v1::InitialComponentFileDownloadFailed) -> Result<Self, Self::Error> {
-        Ok(Self {
-            component_id: VersionedComponentId {
-                component_id: value
-                    .component_id
-                    .ok_or("Missing field: component_id")?
-                    .try_into()?,
-                version: value.component_version,
-            },
+    fn from(value: golem_api_grpc::proto::golem::worker::v1::InitialComponentFileDownloadFailed) -> Self {
+        Self {
             path: value.path,
             reason: value.reason,
-            })
+        }
     }
 }
 
-impl From<crate::model::GolemErrorInitialComponentFileDownloadFailed>
+impl From<GolemErrorInitialComponentFileDownloadFailed>
     for golem_api_grpc::proto::golem::worker::v1::InitialComponentFileDownloadFailed
 {
-    fn from(value: crate::model::GolemErrorInitialComponentFileDownloadFailed) -> Self {
-        let component_version = value.component_id.version;
-        let component_id = golem_api_grpc::proto::golem::component::ComponentId {
-            value: Some(value.component_id.component_id.0.into()),
-        };
+    fn from(value: GolemErrorInitialComponentFileDownloadFailed) -> Self {
         Self {
-            component_id: Some(component_id),
-            component_version,
             path: value.path,
             reason: value.reason,
          }
@@ -1596,10 +1544,7 @@ impl TryFrom<golem_api_grpc::proto::golem::worker::v1::WorkerExecutionError> for
                 Ok(GolemError::ShardingNotReady(err.into()))
             }
             Some(golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::InitialComponentFileDownloadFailed(err)) => {
-                Ok(GolemError::InitialComponentFileDownloadFailed(err.try_into()?))
-            }
-            Some(golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::InitialComponentFileUploadFailed(err)) => {
-                Ok(GolemError::InitialComponentFileUploadFailed(err.try_into()?))
+                Ok(GolemError::InitialComponentFileDownloadFailed(err.into()))
             }
             None => Err("Missing field: error".to_string()),
         }
@@ -1689,8 +1634,12 @@ impl From<GolemError> for golem_api_grpc::proto::golem::worker::v1::worker_execu
             GolemError::InitialComponentFileDownloadFailed(err) => {
                 golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::InitialComponentFileDownloadFailed(err.into())
             }
-            GolemError::InitialComponentFileUploadFailed(err) => {
-                golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::InitialComponentFileUploadFailed(err.into())
+            GolemError::InitialComponentFileUploadFailed(_) => {
+                golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::Unknown(
+                    golem_api_grpc::proto::golem::worker::v1::UnknownError {
+                        details: "InitialComponentFileUploadFailed".to_string()
+                    }
+                )
             }
         }
     }
