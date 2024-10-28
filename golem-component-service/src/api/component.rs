@@ -134,7 +134,7 @@ impl From<ComponentServiceError> for ComponentError {
                     errors: vec![error.to_safe_string()],
                 }))
             }
-            ComponentServiceError::UploadInitialComponentFilesError { .. } => {
+            ComponentServiceError::InitialComponentFileUploadError { .. } => {
                 ComponentError::InternalError(Json(ErrorBody {
                     error: error.to_safe_string(),
                 }))

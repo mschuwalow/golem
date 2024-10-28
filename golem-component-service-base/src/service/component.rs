@@ -70,7 +70,7 @@ pub enum ComponentError {
     #[error("Malformed component archive error: {message}: {error:?}")]
     MalformedComponentArchiveError { message: String, error: Option<String> },
     #[error("Failed uploading initial component files: {message}: {error}")]
-    UploadInitialComponentFilesError { message: String, error: String },
+    InitialComponentFileUploadError { message: String, error: String },
 }
 
 impl ComponentError {
@@ -102,8 +102,8 @@ impl ComponentError {
         }
     }
 
-    pub fn upload_initial_component_files_error(message: impl AsRef<str>, error: impl AsRef<str>) -> Self {
-        Self::UploadInitialComponentFilesError {
+    pub fn initial_component_files_upload_error(message: impl AsRef<str>, error: impl AsRef<str>) -> Self {
+        Self::InitialComponentFileUploadError {
             message: message.as_ref().to_string(),
             error: error.as_ref().to_string(),
         }
@@ -123,7 +123,7 @@ impl SafeDisplay for ComponentError {
             ComponentError::ComponentConstraintConflictError(_) => self.to_string(),
             ComponentError::ComponentConstraintCreateError(_) => self.to_string(),
             ComponentError::MalformedComponentArchiveError { .. } => self.to_string(),
-            ComponentError::UploadInitialComponentFilesError { .. } => self.to_string(),
+            ComponentError::InitialComponentFileUploadError { .. } => self.to_string(),
         }
     }
 }
@@ -176,7 +176,7 @@ impl From<ComponentError> for golem_api_grpc::proto::golem::component::v1::Compo
                     errors: vec![value.to_safe_string()],
                 })
             }
-            ComponentError::UploadInitialComponentFilesError { .. } => {
+            ComponentError::InitialComponentFileUploadError { .. } => {
                 component_error::Error::InternalError(ErrorBody {
                     error: value.to_safe_string(),
                 })
@@ -969,7 +969,7 @@ impl ComponentServiceDefault {
                 .put_if_not_exists(&properties.key, content)
                 .await
                 .map_err(|e| {
-                    ComponentError::upload_initial_component_files_error("Failed to upload component files", e)
+                    ComponentError::initial_component_files_upload_error("Failed to upload component files", e)
                 })?;
 
             uploaded.push(properties);

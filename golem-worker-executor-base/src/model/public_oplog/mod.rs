@@ -1920,6 +1920,13 @@ impl IntoValue for GolemError {
                 unit_case("PreviousInvocationExited"),
                 case("Unknown", record(vec![field("details", str())])),
                 unit_case("ShardingNotReady"),
+                case(
+                    "InitialComponentFileDownloadFailed",
+                    record(vec![
+                        field("path", str()),
+                        field("reason", str())
+                    ])
+                ),
             ])
         }
         get_type(true)

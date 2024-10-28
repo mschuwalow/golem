@@ -1427,8 +1427,6 @@ pub enum GolemError {
     ShardingNotReady(GolemErrorShardingNotReady),
     #[error(transparent)]
     InitialComponentFileDownloadFailed(GolemErrorInitialComponentFileDownloadFailed),
-    #[error(transparent)]
-    InitialComponentFileUploadFailed(GolemErrorInitialComponentFileUploadFailed),
 }
 
 impl SafeDisplay for GolemError {
@@ -1458,7 +1456,6 @@ impl SafeDisplay for GolemError {
             GolemError::InvalidAccount(inner) => inner.to_safe_string(),
             GolemError::ShardingNotReady(inner) => inner.to_safe_string(),
             GolemError::InitialComponentFileDownloadFailed(inner) => inner.to_safe_string(),
-            GolemError::InitialComponentFileUploadFailed(inner) => inner.to_safe_string(),
         }
     }
 }
@@ -1633,13 +1630,6 @@ impl From<GolemError> for golem_api_grpc::proto::golem::worker::v1::worker_execu
             }
             GolemError::InitialComponentFileDownloadFailed(err) => {
                 golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::InitialComponentFileDownloadFailed(err.into())
-            }
-            GolemError::InitialComponentFileUploadFailed(_) => {
-                golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::Unknown(
-                    golem_api_grpc::proto::golem::worker::v1::UnknownError {
-                        details: "InitialComponentFileUploadFailed".to_string()
-                    }
-                )
             }
         }
     }
