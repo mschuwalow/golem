@@ -2978,7 +2978,6 @@ components:
           InvalidAccount: '#/components/schemas/GolemError_GolemErrorInvalidAccount'
           ShardingNotReady: '#/components/schemas/GolemError_GolemErrorShardingNotReady'
           InitialComponentFileDownloadFailed: '#/components/schemas/GolemError_GolemErrorInitialComponentFileDownloadFailed'
-          InitialComponentFileUploadFailed: '#/components/schemas/GolemError_GolemErrorInitialComponentFileUploadFailed'
       type: object
       oneOf:
       - $ref: '#/components/schemas/GolemError_GolemErrorInvalidRequest'
@@ -3005,7 +3004,6 @@ components:
       - $ref: '#/components/schemas/GolemError_GolemErrorInvalidAccount'
       - $ref: '#/components/schemas/GolemError_GolemErrorShardingNotReady'
       - $ref: '#/components/schemas/GolemError_GolemErrorInitialComponentFileDownloadFailed'
-      - $ref: '#/components/schemas/GolemError_GolemErrorInitialComponentFileUploadFailed'
     GolemErrorBody:
       type: object
       properties:
@@ -3057,27 +3055,11 @@ components:
     GolemErrorInitialComponentFileDownloadFailed:
       type: object
       properties:
-        component_id:
-          $ref: '#/components/schemas/VersionedComponentId'
         path:
           type: string
         reason:
           type: string
       required:
-      - component_id
-      - path
-      - reason
-    GolemErrorInitialComponentFileUploadFailed:
-      type: object
-      properties:
-        componentId:
-          $ref: '#/components/schemas/VersionedComponentId'
-        path:
-          type: string
-        reason:
-          type: string
-      required:
-      - componentId
       - path
       - reason
     GolemErrorInterrupted:
@@ -3264,18 +3246,6 @@ components:
         required:
         - type
       - $ref: '#/components/schemas/GolemErrorInitialComponentFileDownloadFailed'
-    GolemError_GolemErrorInitialComponentFileUploadFailed:
-      allOf:
-      - type: object
-        properties:
-          type:
-            example: InitialComponentFileUploadFailed
-            type: string
-            enum:
-            - InitialComponentFileUploadFailed
-        required:
-        - type
-      - $ref: '#/components/schemas/GolemErrorInitialComponentFileUploadFailed'
     GolemError_GolemErrorInterrupted:
       allOf:
       - type: object
