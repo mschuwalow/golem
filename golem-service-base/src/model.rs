@@ -1716,7 +1716,7 @@ impl TryFrom<golem_api_grpc::proto::golem::component::Component> for Component {
                     Err(_) => Err("Invalid file permissions".to_string())?
                 };
 
-                let path = InitialComponentFilePath::from_string(f.path.clone())?;
+                let path = InitialComponentFilePath::from_str(f.path.as_str())?;
 
                 Ok::<InitialComponentFile, String>(InitialComponentFile {
                     key: InitialComponentFileKey(f.key.clone()),

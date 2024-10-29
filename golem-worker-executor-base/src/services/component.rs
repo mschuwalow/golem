@@ -479,7 +479,7 @@ async fn get_metadata_via_grpc(
                                 }
                             };
 
-                            let path = InitialComponentFilePath::from_string(file.path)
+                            let path = InitialComponentFilePath::from_str(file.path.as_str())
                                 .map_err(|_| GrpcError::Unexpected("Failed to get the file path".to_string()))?;
 
                             Ok(InitialComponentFile {

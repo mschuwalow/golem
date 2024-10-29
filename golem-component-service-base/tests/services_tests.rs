@@ -543,7 +543,7 @@ async fn test_initial_component_file_upload(component_service: Arc<dyn Component
                 archive: File::open(COMPONENT_ARCHIVE).await.unwrap(),
                 permissions: InitialComponentFilePathAndPermissionsList {
                     values: vec![ InitialComponentFilePathAndPermissions {
-                        path: InitialComponentFilePath::from_string("/foo.txt".to_string()).unwrap(),
+                        path: InitialComponentFilePath::from_str("/foo.txt").unwrap(),
                         permissions: InitialComponentFilePermissions::ReadWrite,
                     }],
                 },
@@ -559,8 +559,8 @@ async fn test_initial_component_file_upload(component_service: Arc<dyn Component
 
     let result = result.unwrap().files.into_iter().map(|f| (f.path, f.permissions)).collect::<Vec<_>>();
     assert_eq!(result.len(), 2);
-    assert!(result.contains(&(InitialComponentFilePath::from_string("/foo.txt".to_string()).unwrap(), InitialComponentFilePermissions::ReadWrite)));
-    assert!(result.contains(&(InitialComponentFilePath::from_string("/bar/baz.txt".to_string()).unwrap(), InitialComponentFilePermissions::ReadOnly)));
+    assert!(result.contains(&(InitialComponentFilePath::from_str("/foo.txt").unwrap(), InitialComponentFilePermissions::ReadWrite)));
+    assert!(result.contains(&(InitialComponentFilePath::from_str("/bar/baz.txt").unwrap(), InitialComponentFilePermissions::ReadOnly)));
 }
 
 async fn test_initial_component_file_data_sharing(component_service: Arc<dyn ComponentService<DefaultNamespace> + Sync + Send>) {
@@ -595,7 +595,7 @@ async fn test_initial_component_file_data_sharing(component_service: Arc<dyn Com
                 permissions: InitialComponentFilePathAndPermissionsList {
                     values: vec![
                         InitialComponentFilePathAndPermissions {
-                            path: InitialComponentFilePath::from_string("/foo.txt".to_string()).unwrap(),
+                            path: InitialComponentFilePath::from_str("/foo.txt").unwrap(),
                             permissions: InitialComponentFilePermissions::ReadWrite,
                         }
                     ],

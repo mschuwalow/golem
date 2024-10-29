@@ -24,7 +24,6 @@ use golem_service_base::repo::RepoError;
 use sqlx::{Database, Pool, Row};
 use std::fmt::Display;
 use std::ops::Deref;
-use std::path::PathBuf;
 use std::result::Result;
 use std::sync::Arc;
 use tracing::{debug, error};
@@ -58,13 +57,7 @@ where
             version: value.version as u64,
         };
         let namespace = Namespace::try_from(value.namespace).map_err(|e| e.to_string())?;
-        let files = value.files.into_iter().map::<Result<_, Self::Error>, _>(|file|
-            Ok(InitialComponentFile {
-                path: InitialComponentFilePath::make(PathBuf::from(file.file_path))?,
-                key: InitialComponentFileKey(file.file_key),
-                permissions: InitialComponentFilePermissions::from_compact_str(&file.file_permissions)?,
-            })
-        ).collect::<Result<Vec<_>, _>>()?;
+        let files = value.files.into_iter().map(|file| file.try_into()).collect::<Result<Vec<_>, _>>()?;
         Ok(Component {
             namespace,
             component_name: ComponentName(value.name),
@@ -108,7 +101,7 @@ where
                 FileRecord {
                     component_id: value.versioned_component_id.component_id.0,
                     version: value.versioned_component_id.version as i64,
-                    file_path: file.path.as_str().to_string(),
+                    file_path: file.path.to_string(),
                     file_key: file.key.0.clone(),
                     file_permissions: file.permissions.as_compact_str().to_string(),
                 }
@@ -172,7 +165,7 @@ impl FileRecord {
         Self {
             component_id: component.versioned_component_id.component_id.0,
             version: component.versioned_component_id.version as i64,
-            file_path: file.path.as_str().to_string(),
+            file_path: file.path.to_string(),
             file_key: file.key.0.clone(),
             file_permissions: file.permissions.as_compact_str().to_string(),
         }
@@ -184,7 +177,7 @@ impl TryFrom<FileRecord> for InitialComponentFile {
 
     fn try_from(value: FileRecord) -> Result<Self, Self::Error> {
         Ok(InitialComponentFile {
-            path: InitialComponentFilePath::make(PathBuf::from(value.file_path))?,
+            path: InitialComponentFilePath::from_str(value.file_path.as_str())?,
             key: InitialComponentFileKey(value.file_key),
             permissions: InitialComponentFilePermissions::from_compact_str(&value.file_permissions)?,
         })

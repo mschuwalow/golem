@@ -20,7 +20,6 @@ pub mod wave;
 pub mod application_manifest;
 
 use chrono::{DateTime, Utc};
-use tempfile::NamedTempFile;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fmt::{Debug, Display, Formatter};
@@ -34,7 +33,7 @@ use clap::error::{ContextKind, ContextValue, ErrorKind};
 use clap::{Arg, ArgMatches, Error, FromArgMatches};
 use clap_verbosity_flag::Verbosity;
 use derive_more::{Display, FromStr};
-use golem_client::model::{ApiDefinitionInfo, ApiSite, InitialComponentFilePathAndPermissionsList, ScanCursor};
+use golem_client::model::{ApiDefinitionInfo, ApiSite, ScanCursor};
 use golem_common::model::trim_date::TrimDateTime;
 use golem_common::uri::oss::uri::ComponentUri;
 use golem_common::uri::oss::url::ComponentUrl;
@@ -681,11 +680,4 @@ impl From<golem_client::model::ApiDeployment> for ApiDeployment {
 
 pub trait HasVerbosity {
     fn verbosity(&self) -> Verbosity;
-}
-
-
-#[derive(Debug)]
-pub struct ComponentFilesArchiveAndProperties {
-    pub archive: NamedTempFile,
-    pub properties: InitialComponentFilePathAndPermissionsList,
 }

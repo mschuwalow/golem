@@ -17,7 +17,6 @@ use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Display, Formatter};
 use std::ops::Add;
-use std::path::{Component, Path, PathBuf};
 use std::str::FromStr;
 use std::time::Duration;
 
@@ -46,6 +45,7 @@ use poem_openapi::{Enum, NewType, Object, Union};
 use rand::prelude::IteratorRandom;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
+use typed_path::Utf8UnixPathBuf;
 use uuid::{uuid, Uuid};
 
 pub mod component_constraint;
@@ -2489,59 +2489,36 @@ impl FromStr for ComponentType {
 pub struct InitialComponentFileKey(pub String);
 
 
-/// Path inside a component filesystem. Must be absolute.
+/// Path inside a component filesystem. Must be
+/// - absolute (start with '/')
+/// - not contain ".." components
+/// - not contain "." components
+/// - use '/' as a separator
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct InitialComponentFilePath(PathBuf);
+pub struct InitialComponentFilePath(Utf8UnixPathBuf);
 
 impl InitialComponentFilePath {
-    pub fn make(path: PathBuf) -> Result<Self, String> {
-        if !path.is_absolute() {
-            return Err("Target path must be absolute".to_string())
+    pub fn from_str(s: &str) -> Result<Self, String> {
+        let buf: Utf8UnixPathBuf = s.into();
+        if !buf.is_absolute() {
+            return Err("Path must be absolute".to_string());
         }
 
-        Ok(InitialComponentFilePath(Self::normalize_path(&path)))
+        Ok(InitialComponentFilePath(buf.normalize()))
     }
 
-    pub fn make_from_relative(path: PathBuf) -> Result<Self, String> {
-        Self::make(PathBuf::from("/").join(path))
-    }
-
-    pub fn as_str(&self) -> &str {
-        self.0.to_str().expect("Path is not valid UTF-8")
-    }
-
-    pub fn as_rel_str(&self) -> &str {
-        self.0.strip_prefix("/").expect("Path is absolute").to_str().expect("Path is not valid UTF-8")
-    }
-
-    pub fn from_string(s: String) -> Result<Self, String> {
-        let path = PathBuf::from(s);
-        Self::make(path)
-    }
-
-    pub fn relative_path_buf(&self) -> PathBuf {
-        self.0.strip_prefix("/").expect("Path is absolute").to_path_buf()
-    }
-
-    pub fn as_path_buf(&self) -> &PathBuf {
+    pub fn as_path(&self) -> &Utf8UnixPathBuf {
         &self.0
     }
 
-    pub fn into_path_buf(self) -> PathBuf {
-        self.0
+    pub fn extend(&mut self, path: &str) -> Result<(), String> {
+        self.0.push_checked(path).map_err(|e| e.to_string())
     }
+}
 
-    /// Like path.canonicalize(), but does not require the path to exist.
-    fn normalize_path(path: &PathBuf) -> PathBuf {
-        let mut absolute = PathBuf::new();
-        for component in path.components() {
-            match component {
-                Component::CurDir => {},
-                Component::ParentDir => { absolute.pop(); },
-                component @ _ => absolute.push(component),
-            }
-        }
-        absolute
+impl ToString for InitialComponentFilePath {
+    fn to_string(&self) -> String {
+        self.0.to_string()
     }
 }
 
@@ -2576,7 +2553,7 @@ impl poem_openapi::types::Type for InitialComponentFilePath {
 
 impl poem_openapi::types::ToJSON for InitialComponentFilePath {
     fn to_json(&self) -> Option<serde_json::Value> {
-        Some(serde_json::Value::String(self.as_str().to_string()))
+        Some(serde_json::Value::String(self.to_string()))
     }
 }
 
@@ -2594,7 +2571,7 @@ impl Serialize for InitialComponentFilePath {
     where
         S: Serializer,
     {
-        PathBuf::serialize(&self.0, serializer)
+        String::serialize(&self.to_string(), serializer)
     }
 }
 
@@ -2603,12 +2580,12 @@ impl<'de> Deserialize<'de> for InitialComponentFilePath {
     where
         D: Deserializer<'de>,
     {
-        let pb = PathBuf::deserialize(deserializer)?;
-        Self::make(pb).map_err(serde::de::Error::custom)
+        let str = String::deserialize(deserializer)?;
+        Self::from_str(&str).map_err(serde::de::Error::custom)
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Enum)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum InitialComponentFilePermissions {
     ReadOnly,
@@ -2662,7 +2639,7 @@ impl From<InitialComponentFile> for golem_api_grpc::proto::golem::component::Ini
         let permissions: golem_api_grpc::proto::golem::component::InitialComponentFilePermissions = value.permissions.into();
         Self {
             key: value.key.0,
-            path: value.path.as_str().to_string(),
+            path: value.path.to_string(),
             permissions: permissions.into(),
         }
     }
@@ -2675,17 +2652,8 @@ pub struct InitialComponentFilePathAndPermissions {
 }
 
 impl InitialComponentFilePathAndPermissions {
-    pub fn push_path<A: AsRef<Path>>(&self, path: A) -> Result<Self, String> {
-        if path.as_ref().is_absolute() {
-            return Err("Path must be relative".to_string());
-        }
-
-        let mut new_path = self.path.0.clone();
-        new_path.push(path);
-        Ok(Self {
-            path: InitialComponentFilePath(new_path),
-            permissions: self.permissions.clone(),
-        })
+    pub fn extend_path(&mut self, path: &str) -> Result<(), String> {
+        self.path.extend(path)
     }
 }
 
@@ -2728,7 +2696,6 @@ mod tests {
     use std::str::FromStr;
     use std::time::SystemTime;
     use std::vec;
-    use std::path::PathBuf;
 
     use crate::model::oplog::OplogIndex;
     use crate::model::{
@@ -3075,13 +3042,13 @@ mod tests {
 
     #[test]
     fn initial_component_file_path_from_absolute() {
-        let path = InitialComponentFilePath::make(PathBuf::from("/a/b/c")).unwrap();
-        assert_eq!(path.as_str(), "/a/b/c");
+        let path = InitialComponentFilePath::from_str("/a/b/c").unwrap();
+        assert_eq!(path.to_string(), "/a/b/c");
     }
 
     #[test]
     fn initial_component_file_path_from_relative() {
-        let path = InitialComponentFilePath::make(PathBuf::from("a/b/c"));
+        let path = InitialComponentFilePath::from_str("a/b/c");
         assert!(path.is_err());
     }
 }

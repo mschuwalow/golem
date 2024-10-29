@@ -14,15 +14,13 @@
 
 use std::fmt::{Debug, Display, Formatter};
 use std::collections::{HashMap, HashSet};
-use std::io::Read;
-use std::path::PathBuf;
 use std::vec;
+use async_zip::ZipEntry;
 use bytes::Bytes;
 use sha2::{Sha256, Digest};
 use std::num::TryFromIntError;
 use std::pin::Pin;
 use std::sync::Arc;
-// use hex::hex;
 
 use crate::model::{Component, ComponentConstraints};
 use crate::repo::component::{ComponentConstraintsRecord, ComponentRepo};
@@ -35,7 +33,7 @@ use golem_api_grpc::proto::golem::component::v1::component_error;
 use golem_common::model::component_constraint::FunctionConstraintCollection;
 use golem_common::model::component_metadata::{ComponentMetadata, ComponentProcessingError};
 use golem_common::model::{ComponentId, ComponentType};
-use golem_common::model::{InitialComponentFile, InitialComponentFileKey, InitialComponentFilePath, InitialComponentFilePathAndPermissions, InitialComponentFilePermissions};
+use golem_common::model::{InitialComponentFile, InitialComponentFileKey, InitialComponentFilePath, InitialComponentFilePermissions};
 use golem_common::SafeDisplay;
 use golem_service_base::model::{ComponentName, VersionedComponentId};
 use golem_service_base::repo::RepoError;
@@ -46,6 +44,8 @@ use tap::TapFallible;
 use tokio_stream::Stream;
 use tracing::{error, info};
 use golem_worker_executor_base::services::initial_component_files::{InitialComponentFilesService};
+use async_zip::tokio::read::seek::ZipFileReader;
+use tokio::io::BufReader;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ComponentError {
@@ -102,7 +102,7 @@ impl ComponentError {
         }
     }
 
-    pub fn initial_component_files_upload_error(message: impl AsRef<str>, error: impl AsRef<str>) -> Self {
+    pub fn initial_component_file_upload_error(message: impl AsRef<str>, error: impl AsRef<str>) -> Self {
         Self::InitialComponentFileUploadError {
             message: message.as_ref().to_string(),
             error: error.as_ref().to_string(),
@@ -920,44 +920,56 @@ impl ComponentServiceDefault {
         files_properties: InitialComponentFilesArchiveAndPermissions,
     ) -> Result<Vec<InitialComponentFile>, ComponentError> {
         let files_file = files_properties.archive;
-        let expected_paths: HashMap<PathBuf, InitialComponentFilePathAndPermissions> = HashMap::from_iter(
-            files_properties.permissions.values.iter().map(|f| (f.path.relative_path_buf(), f.clone())),
+        let path_permissions: HashMap<InitialComponentFilePath, InitialComponentFilePermissions> = HashMap::from_iter(
+            files_properties.permissions.values.iter().map(|f| (f.path.clone(), f.permissions)),
         );
 
-        let mut zip_archive = zip::ZipArchive::new(files_file.into_std().await).map_err(|e| {
+        let mut buf_reader = BufReader::new(files_file);
+
+        let mut zip_archive = ZipFileReader::with_tokio(&mut buf_reader).await.map_err(|e| {
             ComponentError::malformed_component_archive_from_error("Failed to unpack provided component files", e.into())
         })?;
 
         let mut uploaded: Vec<InitialComponentFile> = vec![];
         let mut hasher = Sha256::new();
 
-        for i in 0..zip_archive.len() {
-            let (properties, content) = {
-                let mut file = zip_archive.by_index(i).unwrap();
+        for i in 0..zip_archive.file().entries().len() {
+            let (initial_component_file, content) = {
+                let mut entry_reader = zip_archive.reader_with_entry(i).await.map_err(|e| {
+                    ComponentError::malformed_component_archive_from_error("Failed to read entry from archive", e.into())
+                })?;
 
-                if file.is_dir() {
+                let entry = entry_reader.entry();
+
+                let is_dir = entry.dir().map_err(|e| {
+                    ComponentError::malformed_component_archive_from_error("Failed to check if entry is a directory", e.into())
+                })?;
+
+                if is_dir {
                     continue;
                 }
 
-                let path = file.enclosed_name().ok_or(ComponentError::malformed_component_archive_from_message("Failed to extract file path".to_string()))?;
+                let file_path = initial_component_file_path_from_zip_entry(&entry)?;
 
-                let mut buffer = vec![0; file.size() as usize];
-                file.read(&mut buffer).expect("buffer overflow");
+                let mut buffer = Vec::new();
+                entry_reader.read_to_end_checked(&mut buffer).await.map_err(|e| {
+                    ComponentError::malformed_component_archive_from_error("Failed to read entry content", e.into())
+                })?;
 
                 hasher.update(&buffer);
                 let hash = hex::encode(hasher.finalize_reset());
 
                 // if permissions are not provided, default to read-only
-                let initial_component_file = if let Some(path_and_permissions) = expected_paths.get(&path) {
+                let initial_component_file = if let Some(permissions) = path_permissions.get(&file_path) {
                     InitialComponentFile {
                         key: InitialComponentFileKey(hash),
-                        path: path_and_permissions.path.clone(),
-                        permissions: path_and_permissions.permissions.clone(),
+                        path: file_path,
+                        permissions: permissions.clone(),
                     }
                 } else {
                     InitialComponentFile {
                         key: InitialComponentFileKey(hash),
-                        path: InitialComponentFilePath::make_from_relative(path).expect("invalid path"),
+                        path: file_path,
                         permissions: InitialComponentFilePermissions::ReadOnly,
                     }
                 };
@@ -965,20 +977,22 @@ impl ComponentServiceDefault {
                 (initial_component_file, Bytes::from(buffer))
             };
 
+            info!("Uploading file: {}", initial_component_file.path.to_string());
+
             self.initial_component_files_service
-                .put_if_not_exists(&properties.key, content)
+                .put_if_not_exists(&initial_component_file.key, content)
                 .await
                 .map_err(|e| {
-                    ComponentError::initial_component_files_upload_error("Failed to upload component files", e)
+                    ComponentError::initial_component_file_upload_error("Failed to upload component files", e)
                 })?;
 
-            uploaded.push(properties);
+            uploaded.push(initial_component_file);
         }
 
-        let uploaded_paths = uploaded.iter().map(|f| f.path.relative_path_buf()).collect::<HashSet<_>>();
-        for path in expected_paths.keys() {
+        let uploaded_paths = uploaded.iter().map(|f| f.path.clone()).collect::<HashSet<_>>();
+        for path in path_permissions.keys() {
             if !uploaded_paths.contains(path) {
-                return Err(ComponentError::malformed_component_archive_from_message(format!("Didn't find expected file in the archive: {}", path.display().to_string())));
+                return Err(ComponentError::malformed_component_archive_from_message(format!("Didn't find expected file in the archive: {}", path.to_string())));
             }
         }
 
@@ -1013,6 +1027,24 @@ impl ComponentServiceDefault {
             _ => Ok(None),
         }
     }
+}
+
+fn initial_component_file_path_from_zip_entry(entry: &ZipEntry) -> Result<InitialComponentFilePath, ComponentError> {
+    let file_path = entry.filename().as_str().map_err(|e| {
+        ComponentError::malformed_component_archive_from_message(format!("Failed to convert filename to string: {}", e))
+    })?;
+
+    // convert windows path separators to unix and sanitize the path
+    let file_path: String = file_path
+        .replace('\\', "/")
+        .split('/')
+        .map(sanitize_filename::sanitize)
+        .collect::<Vec<_>>()
+        .join("/");
+
+    InitialComponentFilePath::from_str(&format!("/{file_path}")).map_err(|e| {
+        ComponentError::malformed_component_archive_from_message(format!("Failed to convert path to InitialComponentFilePath: {}", e))
+    })
 }
 
 mod internal {
