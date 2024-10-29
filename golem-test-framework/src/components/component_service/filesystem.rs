@@ -14,7 +14,7 @@
 
 use crate::components::component_service::{AddComponentError, ComponentService};
 use async_trait::async_trait;
-use golem_api_grpc::proto::golem::component::{v1::component_service_client::ComponentServiceClient};
+use golem_api_grpc::proto::golem::component::v1::component_service_client::ComponentServiceClient;
 use golem_common::model::{ComponentId, ComponentType, InitialComponentFile};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -69,7 +69,7 @@ impl FileSystemComponentService {
             ))
         });
 
-        let properties = ComponentFileProperties {
+        let properties = ComponentProperties {
             component_type,
             files,
         };
@@ -197,20 +197,16 @@ impl ComponentService for FileSystemComponentService {
     async fn kill(&self) {}
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ComponentFileProperties {
+pub struct ComponentProperties {
     pub component_type: ComponentType,
     pub files: Vec<InitialComponentFile>,
 }
 
-impl ComponentFileProperties {
+impl ComponentProperties {
     async fn write_to_file(&self, path: &Path) -> Result<(), AddComponentError> {
         let json = serde_json::to_string(self).map_err(|_| AddComponentError::Other("Failed to serialize component file properties".to_string()))?;
         tokio::fs::write(path, json).await.map_err(|_| AddComponentError::Other("Failed to write component file properties".to_string()))
-    }
-    async fn read_from_file(path: &Path) -> Result<Self, AddComponentError> {
-        let json = tokio::fs::read_to_string(path).await.map_err(|_| AddComponentError::Other("Failed to deserialize component file properties".to_string()))?;
-        serde_json::from_str(&json).map_err(|_| AddComponentError::Other("Failed to read component file properties".to_string()))
     }
 }

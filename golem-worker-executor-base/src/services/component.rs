@@ -25,6 +25,7 @@ use crate::services::golem_config::{
     CompiledComponentServiceConfig, ComponentCacheConfig, ComponentServiceConfig,
 };
 use crate::storage::blob::BlobStorage;
+use anyhow::anyhow;
 use async_trait::async_trait;
 use futures_util::TryStreamExt;
 use golem_api_grpc::proto::golem::component::v1::component_service_client::ComponentServiceClient;
@@ -43,6 +44,7 @@ use golem_common::retries::with_retries;
 use golem_wasm_ast::analysis::AnalysedExport;
 use http::Uri;
 use prost::Message;
+use serde::{Deserialize, Serialize};
 use tokio::task::spawn_blocking;
 use tonic::codec::CompressionEncoding;
 use tonic::transport::Channel;
@@ -591,9 +593,54 @@ impl ComponentServiceLocalFileSystem {
         }
     }
 
-    async fn get_from_path(
+    async fn find_component_files(
         &self,
-        path: &Path,
+        component_id: &ComponentId,
+        forced_version: Option<ComponentVersion>,
+    ) -> Result<(ComponentVersion, PathBuf, PathBuf), GolemError> {
+        let prefix: String = format!("{}-", component_id);
+        let mut reader = tokio::fs::read_dir(&self.root).await?;
+        let mut matching_files = Vec::new();
+        while let Some(entry) = reader.next_entry().await? {
+            if let Ok(file_name) = entry.file_name().into_string() {
+                if file_name.starts_with(&prefix) && file_name.ends_with(".wasm") {
+                    // strip wasm extensions
+                    let base_path = file_name[prefix.len()..file_name.len() - 5].to_string();
+
+                if let Some(version) = Self::extract_version(&base_path) {
+                        matching_files.push((
+                            version,
+                            entry.path(),
+                            PathBuf::from(format!("{base_path}.json")),
+                        ));
+                    };
+                }
+            }
+        }
+
+        match forced_version {
+            Some(forced_version) => matching_files
+                .into_iter()
+                .find(|(version, _, _)| *version == forced_version)
+                .ok_or(GolemError::GetLatestVersionOfComponentFailed {
+                    component_id: component_id.clone(),
+                    reason: "Could not find any component with the given id and version"
+                        .to_string(),
+                }),
+            None => matching_files
+                .into_iter()
+                .max_by_key(|(version, _, _)| *version)
+                .ok_or(GolemError::GetLatestVersionOfComponentFailed {
+                    component_id: component_id.clone(),
+                    reason: "Could not find any component with the given id".to_string(),
+                }),
+        }
+    }
+
+
+    async fn get_component_from_path(
+        &self,
+        wasm_path: &Path,
         engine: &Engine,
         component_id: &ComponentId,
         component_version: ComponentVersion,
@@ -605,7 +652,7 @@ impl ComponentServiceLocalFileSystem {
         let component_id = component_id.clone();
         let engine = engine.clone();
         let compiled_component_service = self.compiled_component_service.clone();
-        let path = path.to_path_buf();
+        let path = wasm_path.to_path_buf();
         debug!("Loading component from {:?}", path);
         self.component_cache
             .get_or_insert_simple(&key.clone(), || {
@@ -664,143 +711,81 @@ impl ComponentServiceLocalFileSystem {
             .await
     }
 
-    async fn analyze_memories_and_exports(
+    async fn get_metadata_from_path(
+        &self,
+        wasm_path: &Path,
+        props_path: &Path,
         component_id: &ComponentId,
-        path: &PathBuf,
-    ) -> Result<(Vec<LinearMemory>, Vec<AnalysedExport>), GolemError> {
-        // check if component metadata is already available in a corresponding `json` file in a target directory
-        // otherwise, try to analyse the component file.
-        let component_metadata_opt: Option<
-            golem_common::model::component_metadata::ComponentMetadata,
-        > = Self::read_component_metadata_from_local_file(path)
-            .await
-            .and_then(|bytes| serde_json::from_slice(&bytes).ok());
-
-        if let Some(golem_common::model::component_metadata::ComponentMetadata {
-            memories,
-            exports,
-            ..
-        }) = component_metadata_opt
-        {
-            let linear_memories = memories
-                .into_iter()
-                .map(|mem| LinearMemory {
-                    initial: mem.initial,
-                    maximum: mem.maximum,
-                })
-                .collect::<Vec<_>>();
-
-            Ok((linear_memories, exports))
-        } else {
-            let component_bytes = &tokio::fs::read(&path).await?;
-            let raw_component_metadata = RawComponentMetadata::analyse_component(component_bytes)
-                .map_err(|reason| {
-                GolemError::GetLatestVersionOfComponentFailed {
-                    component_id: component_id.clone(),
-                    reason: reason.to_string(),
-                }
-            })?;
-
-            let exports = raw_component_metadata
-                .exports
-                .into_iter()
-                .collect::<Vec<_>>();
-
-            let linear_memories: Vec<LinearMemory> = raw_component_metadata
-                .memories
-                .into_iter()
-                .map(|mem| LinearMemory {
-                    initial: mem.mem_type.limits.min * 65536,
-                    maximum: mem.mem_type.limits.max.map(|m| m * 65536),
-                })
-                .collect::<Vec<_>>();
-
-            Ok((linear_memories, exports))
-        }
-    }
-
-    fn parse_postfix(s: &str) -> Result<(ComponentVersion, ComponentType), String> {
-        let first_part = s.split('-').next().ok_or("Could not get version part")?;
-        let version = first_part.parse::<u64>().map_err(|err| err.to_string())?;
-        let component_type = if s.ends_with("-ephemeral") {
-            ComponentType::Ephemeral
-        } else {
-            ComponentType::Durable
-        };
-        Ok((version, component_type))
-    }
-
-    async fn get_metadata_impl(
-        root: &Path,
-        component_id: &ComponentId,
-        forced_version: Option<ComponentVersion>,
+        component_version: ComponentVersion,
     ) -> Result<ComponentMetadata, GolemError> {
-        let prefix = format!("{}-", component_id);
-        let mut reader = tokio::fs::read_dir(&root).await?;
-        let mut matching_files = Vec::new();
-        while let Some(entry) = reader.next_entry().await? {
-            if let Ok(file_name) = entry.file_name().into_string() {
-                if file_name.starts_with(&prefix) && file_name.ends_with(".wasm") {
-                    matching_files.push((
-                        entry.path(),
-                        file_name[prefix.len()..file_name.len() - 5].to_string(),
-                    ));
-                }
-            }
-        }
+        let key = ComponentKey { component_id: component_id.clone(), component_version };
 
-        let matching_files: Vec<_> = matching_files
+        let component_id = component_id.clone();
+        let wasm_path = PathBuf::from(wasm_path);
+        let props_path = PathBuf::from(props_path);
+
+        self.component_metadata_cache.get_or_insert_simple(
+            &key,
+            || Box::pin(async move {
+                let size = tokio::fs::metadata(&wasm_path).await?.len();
+
+                let (memories, exports) = Self::analyze_memories_and_exports(&wasm_path)
+                    .await
+                    .unwrap_or((vec![], vec![])); // We don't want to fail here if the component cannot be read, because that lead to a different kind of error compared to using the gRPC based component service
+
+                let (component_type, files) =
+                    Self::read_component_metadata_from_props_file(&props_path)
+                        .await
+                        .ok_or(
+                            GolemError::GetLatestVersionOfComponentFailed {
+                                component_id: component_id.clone(),
+                                reason: "Could not find any component with the given id".to_string(),
+                            }
+                        )?;
+
+                Ok(ComponentMetadata {
+                    version: component_version,
+                    size,
+                    memories,
+                    exports,
+                    component_type,
+                    files,
+                })
+            })
+        ).await
+    }
+
+    async fn analyze_memories_and_exports(
+        path: &Path,
+    ) -> Option<(Vec<LinearMemory>, Vec<AnalysedExport>)> {
+        let component_bytes = &tokio::fs::read(path).await.ok()?;
+        let raw_component_metadata = RawComponentMetadata::analyse_component(component_bytes).ok()?;
+
+        let exports = raw_component_metadata
+            .exports
             .into_iter()
-            .filter_map(|(path, s)| Self::parse_postfix(&s).ok().map(|version| (path, version)))
-            .collect();
+            .collect::<Vec<_>>();
 
-        let (path, (version, component_type)) = match forced_version {
-            Some(forced_version) => matching_files
-                .iter()
-                .find(|(_path, (version, _component_type))| *version == forced_version)
-                .ok_or(GolemError::GetLatestVersionOfComponentFailed {
-                    component_id: component_id.clone(),
-                    reason: "Could not find any component with the given id and version"
-                        .to_string(),
-                })?,
-            None => matching_files
-                .iter()
-                .max_by_key(|(_path, (version, _))| *version)
-                .ok_or(GolemError::GetLatestVersionOfComponentFailed {
-                    component_id: component_id.clone(),
-                    reason: "Could not find any component with the given id".to_string(),
-                })?,
-        };
+        let linear_memories: Vec<LinearMemory> = raw_component_metadata
+            .memories
+            .into_iter()
+            .map(|mem| LinearMemory {
+                initial: mem.mem_type.limits.min * 65536,
+                maximum: mem.mem_type.limits.max.map(|m| m * 65536),
+            })
+            .collect::<Vec<_>>();
 
-        let size = tokio::fs::metadata(&path).await?.len();
-        let (memories, exports) = Self::analyze_memories_and_exports(component_id, path)
-            .await
-            .unwrap_or((vec![], vec![])); // We don't want to fail here if the component cannot be read, because that lead to a different kind of error compared to using the gRPC based component service
-
-        Ok(ComponentMetadata {
-            version: *version,
-            size,
-            memories,
-            exports,
-            component_type: *component_type,
-            files: vec![], // TODO: Implement this
-        })
+        Some((linear_memories, exports))
     }
 
-    async fn read_component_metadata_from_local_file(component_path: &Path) -> Option<Vec<u8>> {
-        let component_metadata_local = Self::get_component_metadata_file(component_path).await?;
-        tokio::fs::read(component_metadata_local).await.ok()
+    fn extract_version(file_name: &str) -> Option<ComponentVersion> {
+        let version_part = file_name.split('-').last()?;
+        version_part.parse::<u64>().ok()
     }
 
-    pub async fn get_component_metadata_file(component_path: &Path) -> Option<PathBuf> {
-        let mut target_dir = Path::new("../target").to_path_buf();
-        let component_file = component_path
-            .file_name()
-            .and_then(|os_str| os_str.to_str())?;
-        target_dir.push(component_file);
-        // We expect the component metadata to be in the same directory as the component file with extension as json
-        target_dir.set_extension("json");
-        Some(target_dir)
+    async fn read_component_metadata_from_props_file(props_path: &Path) -> Option<(ComponentType, Vec<InitialComponentFile>)> {
+        let data = tokio::fs::read_to_string(props_path).await.ok()?;
+        serde_json::from_str(&data).ok()
     }
 }
 
@@ -812,25 +797,11 @@ impl ComponentService for ComponentServiceLocalFileSystem {
         component_id: &ComponentId,
         component_version: ComponentVersion,
     ) -> Result<(Component, ComponentMetadata), GolemError> {
-        let metadata = self
-            .get_metadata(component_id, Some(component_version))
-            .await?;
+        let (version, wasm_path, props_path) = self.find_component_files(component_id, Some(component_version)).await?;
 
-        let postfix = match metadata.component_type {
-            ComponentType::Ephemeral => "-ephemeral",
-            ComponentType::Durable => "",
-        };
-
-        let path = self.root.join(format!(
-            "{}-{}{postfix}.wasm",
-            component_id, component_version
-        ));
-
-        Ok((
-            self.get_from_path(&path, engine, component_id, component_version)
-                .await?,
-            metadata,
-        ))
+        let component = self.get_component_from_path(&wasm_path, engine, component_id, version).await?;
+        let metadata = self.get_metadata_from_path(&wasm_path, &props_path, component_id, version).await?;
+        Ok((component, metadata))
     }
 
     async fn get_metadata(
@@ -838,34 +809,14 @@ impl ComponentService for ComponentServiceLocalFileSystem {
         component_id: &ComponentId,
         forced_version: Option<ComponentVersion>,
     ) -> Result<ComponentMetadata, GolemError> {
-        match &forced_version {
-            Some(component_version) => {
-                let key = ComponentKey {
-                    component_id: component_id.clone(),
-                    component_version: *component_version,
-                };
-                let root = self.root.clone();
-                let component_id = component_id.clone();
-                self.component_metadata_cache
-                    .get_or_insert_simple(&key.clone(), || {
-                        Box::pin(async move {
-                            Self::get_metadata_impl(&root, &component_id, forced_version).await
-                        })
-                    })
-                    .await
-            }
-            None => {
-                let metadata = Self::get_metadata_impl(&self.root, component_id, None).await?;
-                let key = ComponentKey {
-                    component_id: component_id.clone(),
-                    component_version: metadata.version,
-                };
-                let metadata = self
-                    .component_metadata_cache
-                    .get_or_insert_simple(&key.clone(), || Box::pin(async move { Ok(metadata) }))
-                    .await?;
-                Ok(metadata)
-            }
-        }
+        let (version, wasm_path, props_path) = self.find_component_files(component_id, forced_version).await?;
+        self.get_metadata_from_path(&wasm_path, &props_path, component_id, version).await
     }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ComponentProperties {
+    pub component_type: ComponentType,
+    pub files: Vec<InitialComponentFile>,
 }
