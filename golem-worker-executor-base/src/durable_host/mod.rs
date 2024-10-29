@@ -2020,7 +2020,7 @@ async fn prepare_filesystem(
 ) -> Result<HashSet<PathBuf>, GolemError> {
     let mut read_only_files = HashSet::with_capacity(files.len());
     for file in files {
-        let path = root.join(file.path.relative_path_buf());
+        let path = root.join(&PathBuf::from(file.path.to_string()));
 
         match file.permissions {
             InitialComponentFilePermissions::ReadOnly => {

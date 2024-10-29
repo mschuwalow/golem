@@ -30,6 +30,7 @@ golem-rib = { path = "../golem-rib", version = "0.0.0" }
 anyhow.workspace = true
 assert2 = { workspace = true }
 async-trait = { workspace = true }
+async_zip = { workspace = true, features = ["tokio", "tokio-fs", "deflate"] }
 base64 = "0.22.1"
 chrono = { workspace = true }
 clap = { workspace = true }
@@ -70,6 +71,7 @@ tempfile = { workspace = true }
 testcontainers-modules = { workspace = true }
 textwrap = "0.16.1"
 tokio = { workspace = true }
+tokio-stream = { workspace = true, features = ["fs"] }
 tokio-tungstenite = { version = "0.20.1", features = ["native-tls"] }
 tower = "0.4.13"
 tracing = { workspace = true }
@@ -80,7 +82,6 @@ uuid = { workspace = true }
 version-compare = "=0.0.11"
 walkdir = "2.5.0"
 wasm-wave = { workspace = true }
-zip = { workspace = true }
 
 [dev-dependencies]
 golem-test-framework = { path = "../golem-test-framework", version = "0.0.0" }
