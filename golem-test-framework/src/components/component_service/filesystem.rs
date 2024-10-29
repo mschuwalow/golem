@@ -74,6 +74,8 @@ impl FileSystemComponentService {
             files,
         };
 
+        info!("writing to {}", target_dir.join(format!("{component_id}-{component_version}.json")).display().to_string());
+
         properties.write_to_file(&target_dir.join(format!("{component_id}-{component_version}.json"))).await?;
 
         Ok(component_id.clone())

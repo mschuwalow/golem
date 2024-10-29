@@ -1,0 +1,1555 @@
+Running 0 tests
+
+
+test result: ok; 0 passed; 0 failed; 0 ignored; 0 measured; 62 filtered out; finished in 0.000s
+
+Running 1 tests
+
+[1/1] Running test: integration::compatibility::worker_recovery::recover_auto_update_on_running
+[1/1] Finished test: integration::compatibility::worker_recovery::recover_auto_update_on_running [FAILED]
+---- integration::compatibility::worker_recovery::recover_auto_update_on_running stdout/err ----
+   INFO golem_test_framework::components::redis::spawned: Starting Redis on port 6379
+    at golem-test-framework/src/components/redis/spawned.rs:43
+
+   INFO golem_test_framework::components::redis: Waiting for Redis start on host localhost:6379, timeout: 10s
+    at golem-test-framework/src/components/redis/mod.rs:91
+
+   INFO golem_test_framework::components: [redis] 45738:C 30 Oct 2024 00:31:44.537 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+    at golem-test-framework/src/components/mod.rs:72
+
+   INFO golem_test_framework::components: [redis] 45738:C 30 Oct 2024 00:31:44.538 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+    at golem-test-framework/src/components/mod.rs:72
+
+   INFO golem_test_framework::components: [redis] 45738:C 30 Oct 2024 00:31:44.538 * Redis version=7.2.4, bits=64, commit=00000000, modified=0, pid=45738, just started
+    at golem-test-framework/src/components/mod.rs:72
+
+   INFO golem_test_framework::components: [redis] 45738:C 30 Oct 2024 00:31:44.538 * Configuration loaded
+    at golem-test-framework/src/components/mod.rs:72
+
+   INFO golem_test_framework::components: [redis] 45738:M 30 Oct 2024 00:31:44.538 * monotonic clock: POSIX clock_gettime
+    at golem-test-framework/src/components/mod.rs:72
+
+   INFO golem_test_framework::components: [redis] 45738:M 30 Oct 2024 00:31:44.538 * Running mode=standalone, port=6379.
+    at golem-test-framework/src/components/mod.rs:72
+
+   INFO golem_test_framework::components: [redis] 45738:M 30 Oct 2024 00:31:44.538 * Server initialized
+    at golem-test-framework/src/components/mod.rs:72
+
+   INFO golem_test_framework::components: [redis] 45738:M 30 Oct 2024 00:31:44.538 * Ready to accept connections tcp
+    at golem-test-framework/src/components/mod.rs:72
+
+   INFO golem_test_framework::components::redis_monitor::spawned: Starting Redis monitor on port 6379
+    at golem-test-framework/src/components/redis_monitor/spawned.rs:33
+
+   INFO golem_test_framework::components::component_service::filesystem: Using a directory for storing components: "data/components"
+    at golem-test-framework/src/components/component_service/filesystem.rs:31
+
+Using Redis on port 6379
+   INFO integration::common: Golem Worker Executor starting up...
+    at golem-worker-executor-base/tests/common/mod.rs:363
+
+   INFO golem_worker_executor_base: Golem Worker Executor starting up...
+    at golem-worker-executor-base/src/lib.rs:154
+
+   INFO golem_worker_executor_base: Total system memory: 31.29 GiB, Available system memory: 23.57 GiB, Total memory available for workers: 25.03 GiB
+    at golem-worker-executor-base/src/lib.rs:159
+
+  DEBUG golem_test_framework::components: [redis-cli] OK
+    at golem-test-framework/src/components/mod.rs:71
+
+   INFO golem_worker_executor_base: Using Redis for key-value storage at redis://localhost:6379/0
+    at golem-worker-executor-base/src/lib.rs:187
+
+   INFO golem_worker_executor_base: Using the same Redis for indexed-storage
+    at golem-worker-executor-base/src/lib.rs:216
+
+   INFO golem_worker_executor_base: Using local file system for blob storage at "data"
+    at golem-worker-executor-base/src/lib.rs:260
+
+   INFO golem_worker_executor_base::http_server: Http server started on 0.0.0.0:9001
+    at golem-worker-executor-base/src/http_server.rs:62
+
+   INFO warp::server: listening on http://0.0.0.0:9001
+    at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/warp-0.3.7/src/server.rs:138
+    in warp::server::Server::run with addr: 0.0.0.0:9001
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559017 [0 [::1]:47702] "PING"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559110 [0 [::1]:47708] "PING"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559253 [0 [::1]:47708] "SELECT" "0"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559259 [0 [::1]:47702] "SELECT" "0"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559293 [0 [::1]:47714] "PING"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559300 [0 [::1]:47712] "PING"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559305 [0 [::1]:47724] "PING"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559340 [0 [::1]:47718] "PING"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559346 [0 [::1]:47722] "PING"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559354 [0 [::1]:47720] "PING"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559360 [0 [::1]:47702] "CLIENT" "ID"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559398 [0 [::1]:47724] "SELECT" "0"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559400 [0 [::1]:47708] "CLIENT" "ID"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559404 [0 [::1]:47712] "SELECT" "0"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559439 [0 [::1]:47714] "SELECT" "0"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559442 [0 [::1]:47722] "SELECT" "0"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559488 [0 [::1]:47702] "INFO" "server"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559496 [0 [::1]:47720] "SELECT" "0"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559499 [0 [::1]:47718] "SELECT" "0"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559546 [0 [::1]:47712] "CLIENT" "ID"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559556 [0 [::1]:47708] "INFO" "server"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559560 [0 [::1]:47724] "CLIENT" "ID"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559563 [0 [::1]:47722] "CLIENT" "ID"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559566 [0 [::1]:47714] "CLIENT" "ID"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559626 [0 [::1]:47718] "CLIENT" "ID"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559630 [0 [::1]:47720] "CLIENT" "ID"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559691 [0 [::1]:47714] "INFO" "server"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559728 [0 [::1]:47724] "INFO" "server"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559736 [0 [::1]:47722] "INFO" "server"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559774 [0 [::1]:47720] "INFO" "server"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559782 [0 [::1]:47712] "INFO" "server"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.559823 [0 [::1]:47718] "INFO" "server"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.560201 [0 [::1]:47718] "INFO" "replication"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_common::redis: Redis replication info, info: "{\"master_replid\": \"4e2eed589f0aec5cd79e916f83555fdf1ae3315c\", \"repl_backlog_histlen\": \"0\", \"master_replid2\": \"0000000000000000000000000000000000000000\", \"role\": \"master\", \"master_failover_state\": \"no-failover\", \"master_repl_offset\": \"0\", \"repl_backlog_first_byte_offset\": \"0\", \"second_repl_offset\": \"-1\", \"repl_backlog_size\": \"1048576\", \"repl_backlog_active\": \"0\", \"connected_slaves\": \"0\"}"
+    at golem-common/src/redis.rs:701
+
+   INFO golem_worker_executor_base::grpc: Registering worker executor, host: "mschuwalow-desktop", port: 9000
+    at golem-worker-executor-base/src/grpc.rs:172
+
+  DEBUG golem_worker_executor_base::services::shard: ShardService.register, number_of_shards: 1, shard_ids_current: "", shard_ids_to_assign: "<0>"
+    at golem-worker-executor-base/src/services/shard.rs:121
+
+   INFO golem_worker_executor_base::grpc: Registered worker executor, waiting for shard assignment...
+    at golem-worker-executor-base/src/grpc.rs:184
+
+   INFO golem_worker_executor_base::durable_host: Recovering workers
+    at golem-worker-executor-base/src/durable_host/mod.rs:1374
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.578829 [0 [::1]:47708] "SMEMBERS" "test-0:worker:running_in_shard:<0>"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_worker_executor_base::durable_host: Recovering running workers: []
+    at golem-worker-executor-base/src/durable_host/mod.rs:1378
+
+   INFO golem_worker_executor_base::durable_host: Finished recovering workers
+    at golem-worker-executor-base/src/durable_host/mod.rs:1417
+
+   INFO golem_worker_executor_base: Starting gRPC server on port 9000
+    at golem-worker-executor-base/src/lib.rs:455
+
+   INFO golem_test_framework::components::redis::provided: Using already running Redis on localhost:6379
+    at golem-test-framework/src/components/redis/provided.rs:31
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+   INFO golem_test_framework::components::worker_executor::provided: Using already running golem-worker-executor on localhost, http port: 9001, grpc port: 9000
+    at golem-test-framework/src/components/worker_executor/provided.rs:30
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+   INFO golem_test_framework::dsl: Exports of "../test-components/update-test-v1.wasm": [Instance(AnalysedInstance { name: "golem:component/api", functions: [AnalysedFunction { name: "f1", parameters: [AnalysedFunctionParameter { name: "speed-ms", typ: U64(TypeU64) }], results: [AnalysedFunctionResult { name: None, typ: U64(TypeU64) }] }, AnalysedFunction { name: "f2", parameters: [], results: [AnalysedFunctionResult { name: None, typ: U64(TypeU64) }] }, AnalysedFunction { name: "f3", parameters: [], results: [AnalysedFunctionResult { name: None, typ: U64(TypeU64) }] }] })]
+    at golem-test-framework/src/dsl/mod.rs:1200
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+   INFO golem_test_framework::dsl: Linear memories of "../test-components/update-test-v1.wasm": [LinearMemory { initial: 1441792, maximum: None }]
+    at golem-test-framework/src/dsl/mod.rs:1201
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+  DEBUG golem_test_framework::components::component_service::filesystem: Local component store: "data/components"
+    at golem-test-framework/src/components/component_service/filesystem.rs:46
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+   INFO golem_test_framework::components::component_service::filesystem: writing to data/components/5c35f42e-a5da-448b-be26-0fde60e637a9-0.json
+    at golem-test-framework/src/components/component_service/filesystem.rs:77
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+   INFO golem_test_framework::dsl: Exports of "../test-components/update-test-v2.wasm": [Instance(AnalysedInstance { name: "golem:component/api", functions: [AnalysedFunction { name: "f1", parameters: [AnalysedFunctionParameter { name: "speed-ms", typ: U64(TypeU64) }], results: [AnalysedFunctionResult { name: None, typ: U64(TypeU64) }] }, AnalysedFunction { name: "f2", parameters: [], results: [AnalysedFunctionResult { name: None, typ: U64(TypeU64) }] }, AnalysedFunction { name: "f3", parameters: [], results: [AnalysedFunctionResult { name: None, typ: U64(TypeU64) }] }, AnalysedFunction { name: "f4", parameters: [], results: [AnalysedFunctionResult { name: None, typ: U64(TypeU64) }] }] }), Instance(AnalysedInstance { name: "golem:api/save-snapshot@0.2.0", functions: [AnalysedFunction { name: "save", parameters: [], results: [AnalysedFunctionResult { name: None, typ: List(TypeList { inner: U8(TypeU8) }) }] }] })]
+    at golem-test-framework/src/dsl/mod.rs:1200
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+   INFO golem_test_framework::dsl: Linear memories of "../test-components/update-test-v2.wasm": [LinearMemory { initial: 1441792, maximum: None }]
+    at golem-test-framework/src/dsl/mod.rs:1201
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+  DEBUG golem_test_framework::components::component_service::filesystem: Local component store: "data/components"
+    at golem-test-framework/src/components/component_service/filesystem.rs:146
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+  DEBUG golem_test_framework::components::component_service::filesystem: Local component store: "data/components"
+    at golem-test-framework/src/components/component_service/filesystem.rs:46
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+   INFO golem_test_framework::components::component_service::filesystem: writing to data/components/5c35f42e-a5da-448b-be26-0fde60e637a9-6.json
+    at golem-test-framework/src/components/component_service/filesystem.rs:77
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.587790 [0 [::1]:48316] "CLIENT" "SETINFO" "LIB-NAME" "redis-rs"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.587800 [0 [::1]:48316] "CLIENT" "SETINFO" "LIB-VER" "0.25.4"
+    at golem-test-framework/src/components/mod.rs:71
+
+   INFO integration::compatibility::worker_recovery: Using redis key test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running
+    at golem-worker-executor-base/tests/compatibility/worker_recovery.rs:252
+    in integration::compatibility::worker_recovery::recover_auto_update_on_running with last_unique_id: LastUniqueId { id: 0 }, deps: WorkerExecutorTestDependencies, _tracing: Tracing
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.588051 [0 [::1]:48316] "XRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "-" "+"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.588510 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "1-0" "key" "\x02\x00\xfdl\xc0\xad!%\x03\x00\x00\\5\xf4.\xa5\xdaD\x8b\xbe&\x0f\xde`\xe67\xa9\x16auto_update_on_running\x00\x00\x01\x04PORT\x049002\x0ctest-account\x00\xfc\xf9\xe9\t\x00\xfc\x00\x00\x16\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.588670 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "2-0" "key" "\x02\x02\xfd\x1c\xd1\xad!%\x03\x00\x00\x18golem:component/api.{f1}\x00\x05\x02\x01\x01\bd$268024a4-c52d-400c-b1cf-e232815a90ae"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.588830 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "3-0" "key" "\x02\x13\xfd \xd1\xad!%\x03\x00\x00\xfc\x00\x00\x01\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.588958 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "4-0" "key" "\x02\x13\xfd\"\xd1\xad!%\x03\x00\x00\xfc\x00\x00\x01\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.589100 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "5-0" "key" "\x02\x01\xfd&\xd1\xad!%\x03\x00\x00\x1ecli::preopens::get_directories\x00\a\x02\x00\x02\x01/\x01.\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.589227 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "6-0" "key" "\x02\x17\xfd(\xd1\xad!%\x03\x00\x00\x00\x00\x15Starting to count...\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.589367 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "7-0" "key" "\x02\x01\xfd(\xd1\xad!%\x03\x00\x00\"golem_environment::get_environment\x00\x88\x02\x00\x04\x04PORT\x049002\x11GOLEM_WORKER_NAME\x16auto_update_on_running\x12GOLEM_COMPONENT_ID$5c35f42e-a5da-448b-be26-0fde60e637a9\x17GOLEM_COMPONENT_VERSION\x010\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.589502 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "8-0" "key" "\x02\x17\xfd(\xd1\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.589644 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "9-0" "key" "\x02\r\xfd.\xd1\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.589772 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "10-0" "key" "\x02\x01\xfd2\xd1\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xb0\xaf\xa8>\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.589917 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "11-0" "key" "\x02\x01\xfd2\xd1\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\t"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.590052 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "12-0" "key" "\x02\x01\xfd6\xd1\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.590190 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "13-0" "key" "\x02\x01\xfd6\xd1\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:56 GMT\x04\x01\t"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.590320 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "14-0" "key" "\x02\x01\xfd:\xd1\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\t"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.590463 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "15-0" "key" "\x02\x0e\xfd:\xd1\xad!%\x03\x00\x00\t"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.590586 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "16-0" "key" "\x02\x17\xfd<\xd1\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.590726 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "17-0" "key" "\x02\x01\xfd<\xd1\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfdH\xda\xfe>\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.590851 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "18-0" "key" "\x02\x01\xfd\xa4\xd1\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.590997 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "19-0" "key" "\x02\x17\xfd\xa6\xd1\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.591128 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "20-0" "key" "\x02\r\xfd\xa8\xd1\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.591268 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "21-0" "key" "\x02\x01\xfd\xaa\xd1\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x00\xb8GB\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.591393 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "22-0" "key" "\x02\x01\xfd\xac\xd1\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\x14"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.591534 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "23-0" "key" "\x02\x01\xfd\xae\xd1\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.591658 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "24-0" "key" "\x02\x01\xfd\xae\xd1\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:56 GMT\x04\x01\x14"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.591799 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "25-0" "key" "\x02\x01\xfd\xb4\xd1\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\x14"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.591929 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "26-0" "key" "\x02\x0e\xfd\xb4\xd1\xad!%\x03\x00\x00\x14"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.592073 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "27-0" "key" "\x02\x17\xfd\xb6\xd1\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.592199 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "28-0" "key" "\x02\x01\xfd\xb6\xd1\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd \xea\x9fB\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.592340 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "29-0" "key" "\x02\x01\xfd\x1e\xd2\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.592464 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "30-0" "key" "\x02\x17\xfd \xd2\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.592608 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "31-0" "key" "\x02\r\xfd\"\xd2\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.592746 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "32-0" "key" "\x02\x01\xfd$\xd2\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xf0j\xe2E\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.592902 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "33-0" "key" "\x02\x01\xfd$\xd2\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\x1f"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.593039 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "34-0" "key" "\x02\x01\xfd&\xd2\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.593166 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "35-0" "key" "\x02\x01\xfd(\xd2\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:56 GMT\x0econtent-length\x010\x04\x01\x1f"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.593293 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "36-0" "key" "\x02\x01\xfd,\xd2\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\x1f"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.593455 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "37-0" "key" "\x02\x0e\xfd,\xd2\xad!%\x03\x00\x00\x1f"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.593583 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "38-0" "key" "\x02\x17\xfd.\xd2\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.593736 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "39-0" "key" "\x02\x01\xfd0\xd2\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfdxP=F\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.593864 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "40-0" "key" "\x02\x01\xfd\x98\xd2\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.594027 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "41-0" "key" "\x02\x17\xfd\x98\xd2\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.594162 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "42-0" "key" "\x02\r\xfd\x9e\xd2\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.594314 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "43-0" "key" "\x02\x01\xfd\xa0\xd2\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xf8\xf4\x97I\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.594444 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "44-0" "key" "\x02\x01\xfd\xa0\xd2\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01*"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.594597 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "45-0" "key" "\x02\x01\xfd\xa2\xd2\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.594728 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "46-0" "key" "\x02\x01\xfd\xa4\xd2\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:56 GMT\x0econtent-length\x010\x04\x01*"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.594894 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "47-0" "key" "\x02\x01\xfd\xa8\xd2\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01*"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.595030 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "48-0" "key" "\x02\x0e\xfd\xaa\xd2\xad!%\x03\x00\x00*"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.595183 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "49-0" "key" "\x02\x17\xfd\xac\xd2\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.595313 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "50-0" "key" "\x02\x01\xfd\xac\xd2\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x88\x97\xf6I\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.595465 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "51-0" "key" "\x02\x01\xfd\x14\xd3\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.595596 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "52-0" "key" "\x02\x17\xfd\x16\xd3\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.595747 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "53-0" "key" "\x02\r\xfd\x1a\xd3\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.595877 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "54-0" "key" "\x02\x01\xfd\x1c\xd3\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xb8\x96KM\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.596073 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "55-0" "key" "\x02\x01\xfd\x1c\xd3\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x015"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.596205 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "56-0" "key" "\x02\x01\xfd \xd3\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.596358 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "57-0" "key" "\x02\x01\xfd\"\xd3\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:56 GMT\x04\x015"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.596491 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "58-0" "key" "\x02\x01\xfd&\xd3\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x015"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.596644 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "59-0" "key" "\x02\x0e\xfd&\xd3\xad!%\x03\x00\x005"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.596785 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "60-0" "key" "\x02\x17\xfd(\xd3\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.596937 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "61-0" "key" "\x02\x01\xfd(\xd3\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xb8\x80\xa2M\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.597073 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "62-0" "key" "\x02\x01\xfd\x8e\xd3\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.597228 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "63-0" "key" "\x02\x17\xfd\xbc\xd3\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.597377 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "64-0" "key" "\x02\r\xfd\b\xd4\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.597529 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "65-0" "key" "\x02\x01\xfd\x0e\xd4\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xf0\x0b\x83T\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.597660 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "66-0" "key" "\x02\x01\xfd\x12\xd4\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01@"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.597812 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "67-0" "key" "\x02\x01\xfd\x14\xd4\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.597947 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "68-0" "key" "\x02\x01\xfd\x14\xd4\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:56 GMT\x0econtent-length\x010\x04\x01@"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.598107 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "69-0" "key" "\x02\x01\xfd\x1c\xd4\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01@"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.598239 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "70-0" "key" "\x02\x0e\xfd\x1e\xd4\xad!%\x03\x00\x00@"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.598391 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "71-0" "key" "\x02\x17\xfd \xd4\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.598521 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "72-0" "key" "\x02\x01\xfd \xd4\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfdh\x15\x10U\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.598675 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "73-0" "key" "\x02\x01\xfd\x88\xd4\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.598805 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "74-0" "key" "\x02\x17\xfd\x8a\xd4\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.598957 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "75-0" "key" "\x02\r\xfd\x94\xd4\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.599089 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "76-0" "key" "\x02\x01\xfd\x9c\xd4\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xc8\xf6\xbbX\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.599243 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "77-0" "key" "\x02\x01\xfd\x9e\xd4\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01K"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.599373 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "78-0" "key" "\x02\x01\xfd\xa0\xd4\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.599527 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "79-0" "key" "\x02\x01\xfd\xa2\xd4\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:56 GMT\x04\x01K"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.599659 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "80-0" "key" "\x02\x01\xfd\xaa\xd4\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01K"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.599812 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "81-0" "key" "\x02\x0e\xfd\xac\xd4\xad!%\x03\x00\x00K"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.599940 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "82-0" "key" "\x02\x17\xfd\xb0\xd4\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.600097 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "83-0" "key" "\x02\x01\xfd\xb0\xd4\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x00(RY\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.600229 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "84-0" "key" "\x02\x01\xfd\x16\xd5\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.600381 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "85-0" "key" "\x02\x17\xfd\x18\xd5\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.600512 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "86-0" "key" "\x02\r\xfd\"\xd5\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.600662 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "87-0" "key" "\x02\x01\xfd$\xd5\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xe0a\xd0\\\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.600791 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "88-0" "key" "\x02\x01\xfd&\xd5\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01V"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.600943 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "89-0" "key" "\x02\x01\xfd*\xd5\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.601079 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "90-0" "key" "\x02\x01\xfd.\xd5\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:56 GMT\x04\x01V"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.601233 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "91-0" "key" "\x02\x01\xfd>\xd5\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01V"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.601364 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "92-0" "key" "\x02\x0e\xfd>\xd5\xad!%\x03\x00\x00V"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.601516 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "93-0" "key" "\x02\x17\xfdD\xd5\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.601645 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "94-0" "key" "\x02\x01\xfdF\xd5\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xe0\xd2\xcc]\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.601799 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "95-0" "key" "\x02\x01\xfd\xac\xd5\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.601930 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "96-0" "key" "\x02\x17\xfd\xb0\xd5\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.602063 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "97-0" "key" "\x02\r\xfd\xbc\xd5\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.602216 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "98-0" "key" "\x02\x01\xfd\xc2\xd5\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x88+xa\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.602347 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "99-0" "key" "\x02\x01\xfd\xc6\xd5\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01a"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.602500 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "100-0" "key" "\x02\x01\xfd\xcc\xd5\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.602630 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "101-0" "key" "\x02\x01\xfd\xd0\xd5\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:56 GMT\x04\x01a"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.602787 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "102-0" "key" "\x02\x01\xfd\xd8\xd5\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01a"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.602934 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "103-0" "key" "\x02\x0e\xfd\xd8\xd5\xad!%\x03\x00\x00a"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.603091 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "104-0" "key" "\x02\x17\xfd\xde\xd5\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.603225 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "105-0" "key" "\x02\x01\xfd\xde\xd5\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xf0\xf7[b\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.603379 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "106-0" "key" "\x02\x01\xfdV\xd6\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.603510 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "107-0" "key" "\x02\x17\xfd\x8c\xd6\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.603662 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "108-0" "key" "\x02\r\xfd\xf0\xd6\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.603791 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "109-0" "key" "\x02\x01\xfd\xf6\xd6\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd`V\xb2j\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.603936 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "110-0" "key" "\x02\x01\xfd\xfa\xd6\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01l"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.604099 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "111-0" "key" "\x02\x10\xfd\x10\xd7\xad!%\x03\x00\x00\x00\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.604246 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "112-0" "key" "\x02\x01\xfd,\xd7\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.604380 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "113-0" "key" "\x02\a\xfdv\xe3\xad!%\x03\x00\x00mq"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.604525 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "114-0" "key" "\x02\x01\xfdv\xe3\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd q\t\xca\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.604661 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "115-0" "key" "\x02\x01\xfdv\xe3\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01l"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.604807 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "116-0" "key" "\x02\x01\xfdz\xe3\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.604942 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "117-0" "key" "\x02\x01\xfdz\xe3\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01l"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.605097 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "118-0" "key" "\x02\x01\xfd~\xe3\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01l"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.605237 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "119-0" "key" "\x02\x0e\xfd~\xe3\xad!%\x03\x00\x00l"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.605381 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "120-0" "key" "\x02\x17\xfd\x82\xe3\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.605515 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "121-0" "key" "\x02\x17\xfd\x82\xe3\xad!%\x03\x00\x00\x00\x00\x13Current count: 100\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.605659 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "122-0" "key" "\x02\x01\xfd\x82\xe3\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfdH0m\xca\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.605793 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "123-0" "key" "\x02\x01\xfd\xea\xe3\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.605943 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "124-0" "key" "\x02\x17\xfd\xec\xe3\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.606106 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "125-0" "key" "\x02\r\xfd\xf0\xe3\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.606255 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "126-0" "key" "\x02\x01\xfd\xf2\xe3\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xa83\xc0\xcd\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.606398 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "127-0" "key" "\x02\x01\xfd\xf4\xe3\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01}"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.606518 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "128-0" "key" "\x02\x01\xfd\xf8\xe3\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.606655 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "129-0" "key" "\x02\x01\xfd\xfa\xe3\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01}"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.606774 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "130-0" "key" "\x02\x01\xfd\x00\xe4\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01}"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.606922 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "131-0" "key" "\x02\x0e\xfd\x00\xe4\xad!%\x03\x00\x00}"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.607045 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "132-0" "key" "\x02\x17\xfd\x02\xe4\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.607184 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "133-0" "key" "\x02\x17\xfd\x02\xe4\xad!%\x03\x00\x00\x00\x00\x13Current count: 110\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.607300 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "134-0" "key" "\x02\x01\xfd\x02\xe4\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfdh\x97<\xce\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.607436 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "135-0" "key" "\x02\x01\xfdl\xe4\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.607552 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "136-0" "key" "\x02\x17\xfdl\xe4\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.607686 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "137-0" "key" "\x02\r\xfdp\xe4\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.607801 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "138-0" "key" "\x02\x01\xfdp\xe4\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x18\xa0\x85\xd1\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.607938 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "139-0" "key" "\x02\x01\xfdr\xe4\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\x89"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.608064 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "140-0" "key" "\x02\x01\xfdt\xe4\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.608203 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "141-0" "key" "\x02\x01\xfdt\xe4\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01\x89"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.608322 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "142-0" "key" "\x02\x01\xfdz\xe4\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\x89"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.608457 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "143-0" "key" "\x02\x0e\xfdz\xe4\xad!%\x03\x00\x00\x89"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.608574 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "144-0" "key" "\x02\x17\xfd|\xe4\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.608709 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "145-0" "key" "\x02\x17\xfd|\xe4\xad!%\x03\x00\x00\x00\x00\x13Current count: 120\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.608839 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "146-0" "key" "\x02\x01\xfd|\xe4\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xd8j\xdc\xd1\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.608979 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "147-0" "key" "\x02\x01\xfd\xe4\xe4\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.609103 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "148-0" "key" "\x02\x17\xfd\xe4\xe4\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.609240 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "149-0" "key" "\x02\r\xfd\xe8\xe4\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.609357 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "150-0" "key" "\x02\x01\xfd\xea\xe4\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xd0 \x1c\xd5\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.609494 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "151-0" "key" "\x02\x01\xfd\xea\xe4\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\x95"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.609610 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "152-0" "key" "\x02\x01\xfd\xec\xe4\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.609745 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "153-0" "key" "\x02\x01\xfd\xec\xe4\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x0econtent-length\x010\x04\x01\x95"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.609863 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "154-0" "key" "\x02\x01\xfd\xf2\xe4\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\x95"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.609999 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "155-0" "key" "\x02\x0e\xfd\xf2\xe4\xad!%\x03\x00\x00\x95"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.610120 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "156-0" "key" "\x02\x17\xfd\xf6\xe4\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.610255 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "157-0" "key" "\x02\x17\xfd\xf6\xe4\xad!%\x03\x00\x00\x00\x00\x13Current count: 130\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.610372 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "158-0" "key" "\x02\x01\xfd\xf6\xe4\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd(g}\xd5\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.610509 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "159-0" "key" "\x02\x01\xfd^\xe5\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.610627 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "160-0" "key" "\x02\x17\xfd^\xe5\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.610762 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "161-0" "key" "\x02\r\xfdb\xe5\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.610877 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "162-0" "key" "\x02\x01\xfdd\xe5\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xe8x\xcb\xd8\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.611014 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "163-0" "key" "\x02\x01\xfdf\xe5\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xa1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.611134 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "164-0" "key" "\x02\x01\xfdh\xe5\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.611265 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "165-0" "key" "\x02\x01\xfdj\xe5\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01\xa1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.611380 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "166-0" "key" "\x02\x01\xfdl\xe5\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xa1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.611511 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "167-0" "key" "\x02\x0e\xfdl\xe5\xad!%\x03\x00\x00\xa1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.611622 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "168-0" "key" "\x02\x17\xfdn\xe5\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.611753 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "169-0" "key" "\x02\x17\xfdn\xe5\xad!%\x03\x00\x00\x00\x00\x13Current count: 140\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.611880 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "170-0" "key" "\x02\x01\xfdn\xe5\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xe0\xed\x12\xd9\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.612024 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "171-0" "key" "\x02\x01\xfd\xd4\xe5\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.612153 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "172-0" "key" "\x02\x17\xfd\xd6\xe5\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.612285 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "173-0" "key" "\x02\r\xfd\xda\xe5\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.612397 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "174-0" "key" "\x02\x01\xfd\xdc\xe5\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xf0\xf8X\xdc\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.612529 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "175-0" "key" "\x02\x01\xfd\xdc\xe5\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xad"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.612643 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "176-0" "key" "\x02\x01\xfd\xde\xe5\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.612775 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "177-0" "key" "\x02\x01\xfd\xe0\xe5\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x0econtent-length\x010\x04\x01\xad"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.612906 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "178-0" "key" "\x02\x01\xfd\xe4\xe5\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xad"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.613042 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "179-0" "key" "\x02\x0e\xfd\xe4\xe5\xad!%\x03\x00\x00\xad"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.613150 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "180-0" "key" "\x02\x17\xfd\xe6\xe5\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.613279 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "181-0" "key" "\x02\x17\xfd\xe6\xe5\xad!%\x03\x00\x00\x00\x00\x13Current count: 150\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.613425 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "182-0" "key" "\x02\x01\xfd\xe6\xe5\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x00L\xa5\xdc\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.613565 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "183-0" "key" "\x02\x01\xfdL\xe6\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.613705 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "184-0" "key" "\x02\x17\xfdN\xe6\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.613843 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "185-0" "key" "\x02\r\xfdR\xe6\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.613972 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "186-0" "key" "\x02\x01\xfdT\xe6\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd@y\xe4\xdf\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.614118 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "187-0" "key" "\x02\x01\xfdT\xe6\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xb9"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.614250 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "188-0" "key" "\x02\x01\xfdV\xe6\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.614404 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "189-0" "key" "\x02\x01\xfdV\xe6\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x0econtent-length\x010\x04\x01\xb9"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.614531 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "190-0" "key" "\x02\x01\xfd\\\xe6\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xb9"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.614675 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "191-0" "key" "\x02\x0e\xfd\\\xe6\xad!%\x03\x00\x00\xb9"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.614795 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "192-0" "key" "\x02\x17\xfd^\xe6\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.614936 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "193-0" "key" "\x02\x17\xfd^\xe6\xad!%\x03\x00\x00\x00\x00\x13Current count: 160\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.615058 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "194-0" "key" "\x02\x01\xfd^\xe6\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x00\xc1;\xe0\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.615199 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "195-0" "key" "\x02\x01\xfd\xc6\xe6\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.615316 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "196-0" "key" "\x02\x17\xfd\xc6\xe6\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.615454 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "197-0" "key" "\x02\r\xfd\xcc\xe6\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.615571 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "198-0" "key" "\x02\x01\xfd\xce\xe6\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\b\xaf\x8d\xe3\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.615709 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "199-0" "key" "\x02\x01\xfd\xce\xe6\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xc5"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.615827 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "200-0" "key" "\x02\x01\xfd\xd2\xe6\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.615968 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "201-0" "key" "\x02\x01\xfd\xd2\xe6\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x0econtent-length\x010\x04\x01\xc5"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.616094 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "202-0" "key" "\x02\x01\xfd\xd6\xe6\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xc5"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.616235 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "203-0" "key" "\x02\x0e\xfd\xd6\xe6\xad!%\x03\x00\x00\xc5"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.616351 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "204-0" "key" "\x02\x17\xfd\xd8\xe6\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.616503 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "205-0" "key" "\x02\x17\xfd\xd8\xe6\xad!%\x03\x00\x00\x00\x00\x13Current count: 170\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.616619 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "206-0" "key" "\x02\x01\xfd\xd8\xe6\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd`\xf6\xd9\xe3\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.616757 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "207-0" "key" "\x02\x01\xfd>\xe7\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.616874 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "208-0" "key" "\x02\x17\xfd>\xe7\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.617016 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "209-0" "key" "\x02\r\xfdD\xe7\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.617138 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "210-0" "key" "\x02\x01\xfdH\xe7\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x90\x13*\xe7\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.617280 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "211-0" "key" "\x02\x01\xfdH\xe7\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xd1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.617420 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "212-0" "key" "\x02\x01\xfdJ\xe7\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.617562 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "213-0" "key" "\x02\x01\xfdJ\xe7\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01\xd1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.617680 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "214-0" "key" "\x02\x01\xfdN\xe7\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xd1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.617826 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "215-0" "key" "\x02\x0e\xfdN\xe7\xad!%\x03\x00\x00\xd1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.617941 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "216-0" "key" "\x02\x17\xfdP\xe7\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.618091 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "217-0" "key" "\x02\x17\xfdP\xe7\xad!%\x03\x00\x00\x00\x00\x13Current count: 180\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.618218 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "218-0" "key" "\x02\x01\xfdP\xe7\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x88\xa0m\xe7\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.618363 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "219-0" "key" "\x02\x01\xfd\xb6\xe7\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.618477 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "220-0" "key" "\x02\x17\xfd\xb6\xe7\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.618622 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "221-0" "key" "\x02\r\xfd\xbc\xe7\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.618736 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "222-0" "key" "\x02\x01\xfd\xbe\xe7\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xc8\x85\xb8\xea\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.618884 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "223-0" "key" "\x02\x01\xfd\xc0\xe7\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xdd"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.618998 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "224-0" "key" "\x02\x01\xfd\xc0\xe7\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.619148 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "225-0" "key" "\x02\x01\xfd\xc2\xe7\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01\xdd"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.619266 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "226-0" "key" "\x02\x01\xfd\xc4\xe7\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xdd"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.619410 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "227-0" "key" "\x02\x0e\xfd\xc4\xe7\xad!%\x03\x00\x00\xdd"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.619522 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "228-0" "key" "\x02\x17\xfd\xc6\xe7\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.619642 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "229-0" "key" "\x02\x17\xfd\xc6\xe7\xad!%\x03\x00\x00\x00\x00\x13Current count: 190\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.619755 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "230-0" "key" "\x02\x01\xfd\xc6\xe7\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd`X\xf3\xea\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.619899 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "231-0" "key" "\x02\x01\xfd.\xe8\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.620020 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "232-0" "key" "\x02\x17\xfd.\xe8\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.620163 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "233-0" "key" "\x02\r\xfd2\xe8\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.620283 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "234-0" "key" "\x02\x01\xfd2\xe8\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xe8\x91.\xee\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.620449 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "235-0" "key" "\x02\x01\xfd4\xe8\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xe9"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.620587 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "236-0" "key" "\x02\x01\xfd6\xe8\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.620708 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "237-0" "key" "\x02\x01\xfd6\xe8\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01\xe9"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.620828 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "238-0" "key" "\x02\x01\xfd8\xe8\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xe9"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.620948 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "239-0" "key" "\x02\x0e\xfd8\xe8\xad!%\x03\x00\x00\xe9"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.621073 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "240-0" "key" "\x02\x17\xfd:\xe8\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.621193 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "241-0" "key" "\x02\x17\xfd:\xe8\xad!%\x03\x00\x00\x00\x00\x13Current count: 200\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.621314 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "242-0" "key" "\x02\x01\xfd:\xe8\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xf0il\xee\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.621434 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "243-0" "key" "\x02\x01\xfd\xa4\xe8\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.621552 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "244-0" "key" "\x02\x17\xfd\xa4\xe8\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.621671 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "245-0" "key" "\x02\r\xfd\xa6\xe8\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.621788 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "246-0" "key" "\x02\x01\xfd\xa8\xe8\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd8B\xb2\xf1\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.621908 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "247-0" "key" "\x02\x01\xfd\xaa\xe8\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xf5"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.622031 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "248-0" "key" "\x02\x01\xfd\xac\xe8\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.622152 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "249-0" "key" "\x02\x01\xfd\xac\xe8\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x0econtent-length\x010\x04\x01\xf5"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.622272 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "250-0" "key" "\x02\x01\xfd\xb0\xe8\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xf5"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.622391 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "251-0" "key" "\x02\x0e\xfd\xb0\xe8\xad!%\x03\x00\x00\xf5"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.622510 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "252-0" "key" "\x02\x17\xfd\xb2\xe8\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.622627 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "253-0" "key" "\x02\x17\xfd\xb4\xe8\xad!%\x03\x00\x00\x00\x00\x13Current count: 210\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.622746 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "254-0" "key" "\x02\x01\xfd\xb4\xe8\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xa87\x0b\xf2\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.622879 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "255-0" "key" "\x02\x01\xfd\x1c\xe9\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.622999 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "256-0" "key" "\x02\x17\xfd\x1c\xe9\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.623127 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "257-0" "key" "\x02\r\xfd\"\xe9\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.623254 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "258-0" "key" "\x02\x01\xfd$\xe9\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfdXWe\xf5\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.623373 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "259-0" "key" "\x02\x01\xfd&\xe9\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xfb\x01\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.623493 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "260-0" "key" "\x02\x01\xfd(\xe9\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.623612 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "261-0" "key" "\x02\x01\xfd(\xe9\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01\xfb\x01\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.623733 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "262-0" "key" "\x02\x01\xfd*\xe9\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xfb\x01\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.623854 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "263-0" "key" "\x02\x0e\xfd,\xe9\xad!%\x03\x00\x00\xfb\x01\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.623973 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "264-0" "key" "\x02\x17\xfd,\xe9\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.624098 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "265-0" "key" "\x02\x17\xfd,\xe9\xad!%\x03\x00\x00\x00\x00\x13Current count: 220\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.624217 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "266-0" "key" "\x02\x01\xfd.\xe9\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x00\xaa\xa6\xf5\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.624338 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "267-0" "key" "\x02\x01\xfd\x96\xe9\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.624455 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "268-0" "key" "\x02\x17\xfd\x98\xe9\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.624572 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "269-0" "key" "\x02\r\xfd\x9a\xe9\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.624691 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "270-0" "key" "\x02\x01\xfd\x9c\xe9\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xa8\xd1\xf1\xf8\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.624810 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "271-0" "key" "\x02\x01\xfd\x9c\xe9\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xfb\r\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.624930 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "272-0" "key" "\x02\x01\xfd\x9e\xe9\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.625055 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "273-0" "key" "\x02\x01\xfd\x9e\xe9\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x0econtent-length\x010\x04\x01\xfb\r\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.625179 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "274-0" "key" "\x02\x01\xfd\xa2\xe9\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xfb\r\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.625301 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "275-0" "key" "\x02\x0e\xfd\xa2\xe9\xad!%\x03\x00\x00\xfb\r\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.625419 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "276-0" "key" "\x02\x17\xfd\xa6\xe9\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.625536 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "277-0" "key" "\x02\x17\xfd\xa6\xe9\xad!%\x03\x00\x00\x00\x00\x13Current count: 230\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.625656 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "278-0" "key" "\x02\x01\xfd\xa6\xe9\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfdp\x18B\xf9\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.625773 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "279-0" "key" "\x02\x01\xfd\x0e\xea\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.625892 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "280-0" "key" "\x02\x17\xfd\x10\xea\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.626019 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "281-0" "key" "\x02\r\xfd\x14\xea\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.626138 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "282-0" "key" "\x02\x01\xfd\x16\xea\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xe0\x1e\x9b\xfc\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.626257 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "283-0" "key" "\x02\x01\xfd\x18\xea\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xfb\x19\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.626381 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "284-0" "key" "\x02\x01\xfd\x1a\xea\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.626500 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "285-0" "key" "\x02\x01\xfd\x1c\xea\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01\xfb\x19\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.626622 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "286-0" "key" "\x02\x01\xfd \xea\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xfb\x19\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.626743 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "287-0" "key" "\x02\x0e\xfd\"\xea\xad!%\x03\x00\x00\xfb\x19\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.626862 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "288-0" "key" "\x02\x17\xfd\"\xea\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.626981 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "289-0" "key" "\x02\x17\xfd$\xea\xad!%\x03\x00\x00\x00\x00\x13Current count: 240\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.627105 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "290-0" "key" "\x02\x01\xfd$\xea\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x88(\xfd\xfc\x93\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.627225 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "291-0" "key" "\x02\x01\xfd\x8a\xea\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.627355 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "292-0" "key" "\x02\x17\xfd\x8a\xea\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.627473 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "293-0" "key" "\x02\r\xfd\x90\xea\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.627590 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "294-0" "key" "\x02\x01\xfd\x92\xea\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xf8/A\x00\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.627709 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "295-0" "key" "\x02\x01\xfd\x92\xea\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xfb%\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.627828 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "296-0" "key" "\x02\x01\xfd\x94\xea\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.627948 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "297-0" "key" "\x02\x01\xfd\x96\xea\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01\xfb%\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.628077 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "298-0" "key" "\x02\x01\xfd\x9a\xea\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xfb%\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.628197 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "299-0" "key" "\x02\x0e\xfd\x9a\xea\xad!%\x03\x00\x00\xfb%\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.628315 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "300-0" "key" "\x02\x17\xfd\x9c\xea\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.628433 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "301-0" "key" "\x02\x17\xfd\x9c\xea\xad!%\x03\x00\x00\x00\x00\x13Current count: 250\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.628552 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "302-0" "key" "\x02\x01\xfd\x9c\xea\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xc8\t\x9c\x00\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.628682 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "303-0" "key" "\x02\x01\xfd\x06\xeb\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.628799 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "304-0" "key" "\x02\x17\xfd\x06\xeb\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.628917 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "305-0" "key" "\x02\r\xfd\b\xeb\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.629039 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "306-0" "key" "\x02\x01\xfd\n\xeb\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xa0e\xdd\x03\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.629160 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "307-0" "key" "\x02\x01\xfd\n\xeb\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xfb1\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.629278 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "308-0" "key" "\x02\x01\xfd\x0c\xeb\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.629396 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "309-0" "key" "\x02\x01\xfd\x0e\xeb\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:58 GMT\x04\x01\xfb1\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.629517 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "310-0" "key" "\x02\x01\xfd\x10\xeb\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xfb1\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.629636 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "311-0" "key" "\x02\x0e\xfd\x10\xeb\xad!%\x03\x00\x00\xfb1\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.629754 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "312-0" "key" "\x02\x17\xfd\x8a\xeb\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.629872 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "313-0" "key" "\x02\x17\xfd\x90\xeb\xad!%\x03\x00\x00\x00\x00\x13Current count: 260\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.629989 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "314-0" "key" "\x02\x01\xfd\x90\xeb\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xe0k\xde\a\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.630114 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "315-0" "key" "\x02\x01\xfd\xf8\xeb\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.630234 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "316-0" "key" "\x02\x17\xfd\xfa\xeb\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.630354 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "317-0" "key" "\x02\r\xfd\x04\xec\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.630471 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "318-0" "key" "\x02\x01\xfd\n\xec\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xd0\x18z\x0b\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.630592 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "319-0" "key" "\x02\x01\xfd\x0e\xec\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xfb=\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.630710 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "320-0" "key" "\x02\x01\xfd\x12\xec\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.630827 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "321-0" "key" "\x02\x01\xfd\x14\xec\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:59 GMT\x0econtent-length\x010\x04\x01\xfb=\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.630947 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "322-0" "key" "\x02\x01\xfd\x1a\xec\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xfb=\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.631077 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "323-0" "key" "\x02\x0e\xfd\x1a\xec\xad!%\x03\x00\x00\xfb=\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.631199 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "324-0" "key" "\x02\x17\xfd\x1c\xec\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.631319 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "325-0" "key" "\x02\x17\xfd\x1c\xec\xad!%\x03\x00\x00\x00\x00\x13Current count: 270\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.631437 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "326-0" "key" "\x02\x01\xfd\x1c\xec\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xb0^\b\x0c\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.631553 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "327-0" "key" "\x02\x01\xfd\x84\xec\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.631673 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "328-0" "key" "\x02\x17\xfd\x84\xec\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.631790 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "329-0" "key" "\x02\r\xfd\x88\xec\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.631906 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "330-0" "key" "\x02\x01\xfd\x8a\xec\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd`\x9dH\x0f\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.632033 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "331-0" "key" "\x02\x01\xfd\x8a\xec\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xfbI\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.632155 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "332-0" "key" "\x02\x01\xfd\x8c\xec\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.632275 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "333-0" "key" "\x02\x01\xfd\x8c\xec\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x0econtent-length\x010\x04date\x1dTue, 15 Oct 2024 15:40:59 GMT\x04\x01\xfbI\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.632395 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "334-0" "key" "\x02\x01\xfd\x90\xec\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xfbI\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.632513 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "335-0" "key" "\x02\x0e\xfd\x90\xec\xad!%\x03\x00\x00\xfbI\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.632630 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "336-0" "key" "\x02\x17\xfd\x90\xec\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.632747 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "337-0" "key" "\x02\x17\xfd\x92\xec\xad!%\x03\x00\x00\x00\x00\x13Current count: 280\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.632865 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "338-0" "key" "\x02\x01\xfd\x92\xec\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\x003\x86\x0f\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.632995 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "339-0" "key" "\x02\x01\xfd\xf8\xec\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.633144 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "340-0" "key" "\x02\x17\xfd\xfa\xec\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.633260 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "341-0" "key" "\x02\r\xfd\xfc\xec\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.633391 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "342-0" "key" "\x02\x01\xfd\xfe\xec\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xd0\xd7\xc2\x12\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.633521 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "343-0" "key" "\x02\x01\xfd\xfe\xec\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xfbU\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.633638 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "344-0" "key" "\x02\x01\xfd\x00\xed\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.633768 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "345-0" "key" "\x02\x01\xfd\x02\xed\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:59 GMT\x0econtent-length\x010\x04\x01\xfbU\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.633886 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "346-0" "key" "\x02\x01\xfd\x04\xed\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xfbU\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.634020 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "347-0" "key" "\x02\x0e\xfd\x04\xed\xad!%\x03\x00\x00\xfbU\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.634144 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "348-0" "key" "\x02\x17\xfd\x06\xed\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.634284 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "349-0" "key" "\x02\x17\xfd\x06\xed\xad!%\x03\x00\x00\x00\x00\x13Current count: 290\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.634398 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "350-0" "key" "\x02\x01\xfd\x06\xed\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\xb0\xf1\x04\x13\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.634541 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "351-0" "key" "\x02\x01\xfdn\xed\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.634655 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "352-0" "key" "\x02\x17\xfdn\xed\xad!%\x03\x00\x00\x00\x00&Sending POST http://localhost:9002/f1\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.634792 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "353-0" "key" "\x02\r\xfdr\xed\xad!%\x03\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.634918 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "354-0" "key" "\x02\x01\xfdt\xed\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\b'B\x16\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.635056 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "355-0" "key" "\x02\x01\xfdt\xed\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x00\x02\x02\x00\x04\x01\xfba\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.635204 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "356-0" "key" "\x02\x01\xfdv\xed\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.635323 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "357-0" "key" "\x02\x01\xfdv\xed\xad!%\x03\x00\x00*http::types::future_incoming_response::get\x008\x02\x01\xc8\x02\x04date\x1dTue, 15 Oct 2024 15:40:59 GMT\x0econtent-length\x010\x04\x01\xfba\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.635461 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "358-0" "key" "\x02\x01\xfdz\xed\xad!%\x03\x00\x000http::types::incoming_body_stream::blocking_read\x00\x03\x02\x01\x00\x04\x01\xfba\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.635578 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "359-0" "key" "\x02\x0e\xfdz\xed\xad!%\x03\x00\x00\xfba\x01"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.635722 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "360-0" "key" "\x02\x17\xfd|\xed\xad!%\x03\x00\x00\x00\x00\x10Received 200 OK\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.635835 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "361-0" "key" "\x02\x17\xfd|\xed\xad!%\x03\x00\x00\x00\x00\x13Current count: 300\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.635980 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "362-0" "key" "\x02\x01\xfd~\xed\xad!%\x03\x00\x00\x14monotonic_clock::now\x00\x0b\x02\x00\xfd\b\xe2\x8b\x16\x94\xaa\xfe\x17\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.636104 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "363-0" "key" "\x02\x01\xfd\xe4\xed\xad!%\x03\x00\x00\x14golem io::poll::poll\x00\x04\x02\x00\x01\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.636229 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "364-0" "key" "\x02\x17\xfd\xe6\xed\xad!%\x03\x00\x00\x00\x00\x15Finished to count...\n"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.636370 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "365-0" "key" "\x02\x03\xfd\xe6\xed\xad!%\x03\x00\x00\x00\n\x02\x0e\x01\x01\x00\x10\x01\x01\b\x96\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.636487 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "366-0" "key" "\x02\x11\xfd\xee\xed\xad!%\x03\x00\x00\x01\xfcH\xd6\t\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.636627 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "367-0" "key" "\x02\x0f\xfd\xf8\xed\xad!%\x03\x00\x00\x00$bb0cbe15-5d6d-41db-a65d-24b875c7be4e\x18golem:component/api.{f3}\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.636741 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "368-0" "key" "\x02\x02\xfd\x16\xf1\xad!%\x03\x00\x00\x18golem:component/api.{f3}\x00\x02\x02\x00$bb0cbe15-5d6d-41db-a65d-24b875c7be4e"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.636886 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "369-0" "key" "\x02\x01\xfd\x18\xf1\xad!%\x03\x00\x00 golem_environment::get_arguments\x00\x03\x02\x00\x00\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.636999 [0 [::1]:48316] "XADD" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "370-0" "key" "\x02\x03\xfd\x18\xf1\xad!%\x03\x00\x00\x00\n\x02\x0e\x01\x01\x00\x10\x01\x01\b\x04\x00"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.637278 [0 [::1]:48316] "XRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "-" "+"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.646201 [0 [::1]:47702] "XRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "1" "1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.646700 [0 [::1]:47724] "GET" "test-0:worker:status:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.646971 [0 [::1]:47712] "XREVRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "+" "-" "COUNT" "1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.647353 [0 [::1]:47714] "XRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "1" "370"
+    at golem-test-framework/src/components/mod.rs:71
+
+   WARN golem_worker_executor_base::grpc: Attempted interrupting worker which is idle
+    at golem-worker-executor-base/src/grpc.rs:458
+    in golem_worker_executor_base::grpc::api_request with api: "interrupt_worker", api_type: "grpc", worker_id: "5c35f42e-a5da-448b-be26-0fde60e637a9/auto_update_on_running"
+
+   INFO golem_common::metrics::api: API request succeeded, elapsed_ms: 8
+    at golem-common/src/metrics.rs:337
+    in golem_worker_executor_base::grpc::api_request with api: "interrupt_worker", api_type: "grpc", worker_id: "5c35f42e-a5da-448b-be26-0fde60e637a9/auto_update_on_running"
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.656177 [0 [::1]:47722] "XRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "1" "1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.656441 [0 [::1]:47720] "GET" "test-0:worker:status:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.656617 [0 [::1]:47718] "XREVRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "+" "-" "COUNT" "1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.656928 [0 [::1]:47708] "XRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "1" "370"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.663928 [0 [::1]:47702] "XREVRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "+" "-" "COUNT" "1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.664179 [0 [::1]:47724] "XRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "370" "370"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_worker_executor_base::grpc: Last error and retry count: None
+    at golem-worker-executor-base/src/grpc.rs:217
+    in golem_worker_executor_base::grpc::api_request with api: "resume_worker", api_type: "grpc", worker_id: "5c35f42e-a5da-448b-be26-0fde60e637a9/auto_update_on_running"
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.664482 [0 [::1]:47712] "XREVRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "+" "-" "COUNT" "1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.664798 [0 [::1]:47714] "XRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "1" "370"
+    at golem-test-framework/src/components/mod.rs:71
+
+   INFO golem_worker_executor_base::grpc: Activating Idle worker 5c35f42e-a5da-448b-be26-0fde60e637a9/auto_update_on_running due to explicit resume request
+    at golem-worker-executor-base/src/grpc.rs:532
+    in golem_worker_executor_base::grpc::api_request with api: "resume_worker", api_type: "grpc", worker_id: "5c35f42e-a5da-448b-be26-0fde60e637a9/auto_update_on_running"
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.671366 [0 [::1]:47722] "XRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "1" "1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.671795 [0 [::1]:47720] "GET" "test-0:worker:status:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.672035 [0 [::1]:47718] "XREVRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "+" "-" "COUNT" "1"
+    at golem-test-framework/src/components/mod.rs:71
+
+  DEBUG golem_test_framework::components: [redis-cli] 1730244704.672384 [0 [::1]:47708] "XRANGE" "test-0:worker:oplog:5c35f42e-a5da-448b-be26-0fde60e637a9:auto_update_on_running" "1" "370"
+    at golem-test-framework/src/components/mod.rs:71
+
+   INFO golem_worker_executor_base::services::component: props path "data/components/5c35f42e-a5da-448b-be26-0fde60e637a9-1.json"
+    at golem-worker-executor-base/src/services/component.rs:787
+    in golem_worker_executor_base::grpc::api_request with api: "resume_worker", api_type: "grpc", worker_id: "5c35f42e-a5da-448b-be26-0fde60e637a9/auto_update_on_running"
+
+  ERROR golem_common::metrics::api: API request failed, elapsed_ms: 26, error: "GetLatestVersionOfComponentFailed { component_id: ComponentId(5c35f42e-a5da-448b-be26-0fde60e637a9), reason: \"Failed to read properties of component\" }"
+    at golem-common/src/metrics.rs:350
+    in golem_worker_executor_base::grpc::api_request with api: "resume_worker", api_type: "grpc", worker_id: "5c35f42e-a5da-448b-be26-0fde60e637a9/auto_update_on_running"
+
+  ERROR golem_common::tracing: panic, panic_info: panicked at /home/mschuwalow/ghq/github.com/mschuwalow/golem-public/golem-test-framework/src/dsl/mod.rs:1508:14:
+Failed to resume worker: Failed to connect worker: WorkerError { error: Some(InternalError(WorkerExecutionError { error: Some(GetLatestVersionOfComponentFailed(GetLatestVersionOfComponentFailed { component_id: Some(ComponentId { value: Some(Uuid { high_bits: 6644485306443252875, low_bits: 13701656364104169385 }) }), reason: "Failed to read properties of component" })) })) }, panic_backtrace:    0: golem_common::tracing::init_tracing::{{closure}}
+             at /home/mschuwalow/ghq/github.com/mschuwalow/golem-public/golem-common/src/tracing.rs:398:63
+   1: <alloc::boxed::Box<F,A> as core::ops::function::Fn<Args>>::call
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/alloc/src/boxed.rs:2245:9
+   2: std::panicking::rust_panic_with_hook
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/std/src/panicking.rs:805:13
+   3: std::panicking::begin_panic_handler::{{closure}}
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/std/src/panicking.rs:671:13
+   4: std::sys::backtrace::__rust_end_short_backtrace
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/std/src/sys/backtrace.rs:170:18
+   5: rust_begin_unwind
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/std/src/panicking.rs:662:5
+   6: core::panicking::panic_fmt
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/panicking.rs:74:14
+   7: core::result::unwrap_failed
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/result.rs:1677:5
+   8: core::result::Result<T,E>::expect
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/result.rs:1059:23
+   9: <T as golem_test_framework::dsl::TestDslUnsafe>::resume::{{closure}}
+             at /home/mschuwalow/ghq/github.com/mschuwalow/golem-public/golem-test-framework/src/dsl/mod.rs:1506:9
+  10: <core::pin::Pin<P> as core::future::future::Future>::poll
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/future/future.rs:123:9
+  11: integration::compatibility::worker_recovery::recover_auto_update_on_running::{{closure}}::{{closure}}
+             at ./tests/compatibility/worker_recovery.rs:179:33
+  12: <tracing::instrument::Instrumented<T> as core::future::future::Future>::poll
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tracing-0.1.40/src/instrument.rs:321:9
+  13: integration::compatibility::worker_recovery::recover_auto_update_on_running::{{closure}}
+             at ./tests/compatibility/worker_recovery.rs:162:1
+  14: integration::compatibility::worker_recovery::test_r_register_recover_auto_update_on_running::{{closure}}::{{closure}}
+             at ./tests/compatibility/worker_recovery.rs:161:1
+  15: <core::pin::Pin<P> as core::future::future::Future>::poll
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/future/future.rs:123:9
+  16: test_r_core::tokio::run_test::{{closure}}::{{closure}}::{{closure}}::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/test-r-core-0.0.13/src/tokio.rs:293:66
+  17: <core::pin::Pin<P> as core::future::future::Future>::poll
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/future/future.rs:123:9
+  18: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/panic/unwind_safe.rs:297:9
+  19: <futures_util::future::future::catch_unwind::CatchUnwind<Fut> as core::future::future::Future>::poll::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-util-0.3.31/src/future/future/catch_unwind.rs:37:42
+  20: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/panic/unwind_safe.rs:272:9
+  21: std::panicking::try::do_call
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/std/src/panicking.rs:554:40
+  22: __rust_try
+  23: std::panicking::try
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/std/src/panicking.rs:518:19
+  24: std::panic::catch_unwind
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/std/src/panic.rs:345:14
+  25: <futures_util::future::future::catch_unwind::CatchUnwind<Fut> as core::future::future::Future>::poll
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-util-0.3.31/src/future/future/catch_unwind.rs:37:9
+  26: test_r_core::tokio::run_test::{{closure}}::{{closure}}::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/test-r-core-0.0.13/src/tokio.rs:319:26
+  27: <core::pin::Pin<P> as core::future::future::Future>::poll
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/future/future.rs:123:9
+  28: test_r_core::tokio::run_with_flakiness_control::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/test-r-core-0.0.13/src/tokio.rs:227:25
+  29: test_r_core::tokio::run_test::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/test-r-core-0.0.13/src/tokio.rs:322:18
+  30: test_r_core::tokio::test_thread::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/test-r-core-0.0.13/src/tokio.rs:181:18
+  31: <core::pin::Pin<P> as core::future::future::Future>::poll
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/future/future.rs:123:9
+  32: tokio::runtime::park::CachedParkThread::block_on::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/park.rs:281:63
+  33: tokio::runtime::coop::with_budget
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/coop.rs:107:5
+  34: tokio::runtime::coop::budget
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/coop.rs:73:5
+  35: tokio::runtime::park::CachedParkThread::block_on
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/park.rs:281:31
+  36: tokio::runtime::context::blocking::BlockingRegionGuard::block_on
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/context/blocking.rs:66:9
+  37: tokio::runtime::handle::Handle::block_on_inner::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/handle.rs:327:13
+  38: tokio::runtime::context::runtime::enter_runtime
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/context/runtime.rs:65:16
+  39: tokio::runtime::handle::Handle::block_on_inner
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/handle.rs:326:9
+  40: tokio::runtime::handle::Handle::block_on
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/handle.rs:303:13
+  41: test_r_core::tokio::async_test_runner::{{closure}}::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/test-r-core-0.0.13/src/tokio.rs:92:17
+  42: <tokio::runtime::blocking::task::BlockingTask<T> as core::future::future::Future>::poll
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/blocking/task.rs:42:21
+  43: tokio::runtime::task::core::Core<T,S>::poll::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/task/core.rs:331:17
+  44: tokio::loom::std::unsafe_cell::UnsafeCell<T>::with_mut
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/loom/std/unsafe_cell.rs:16:9
+  45: tokio::runtime::task::core::Core<T,S>::poll
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/task/core.rs:320:13
+  46: tokio::runtime::task::harness::poll_future::{{closure}}
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/task/harness.rs:499:19
+  47: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/core/src/panic/unwind_safe.rs:272:9
+  48: std::panicking::try::do_call
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/std/src/panicking.rs:554:40
+  49: __rust_try
+  50: std::panicking::try
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/std/src/panicking.rs:518:19
+  51: std::panic::catch_unwind
+             at /rustc/f6e511eec7342f59a25f7c0534f1dbea00d01b14/library/std/src/panic.rs:345:14
+  52: tokio::runtime::task::harness::poll_future
+             at /home/mschuwalow/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.41.0/src/runtime/task/harness.rs:487:18
+
+
+test result: FAILED; 0 passed; 1 failed; 0 ignored; 0 measured; 416 filtered out; finished in 0.353s
+
+Failed tests:
+ - integration::compatibility::worker_recovery::recover_auto_update_on_running (Failed to resume worker: Failed to connect worker: WorkerError { error: Some(InternalError(WorkerExecutionError { error: Some(GetLatestVersionOfComponentFailed(GetLatestVersionOfComponentFailed { component_id: Some(ComponentId { value: Some(Uuid { high_bits: 6644485306443252875, low_bits: 13701656364104169385 }) }), reason: "Failed to read properties of component" })) })) })
+

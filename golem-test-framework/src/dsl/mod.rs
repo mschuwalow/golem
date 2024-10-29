@@ -190,7 +190,7 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
             .get_or_add_component(&source_path, ComponentType::Durable)
             .await;
 
-        let _ = log_and_save_component_metadata(&source_path).await;
+        // let _ = log_and_save_component_metadata(&source_path).await;
 
         component_id
     }
@@ -203,7 +203,7 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
             .get_or_add_component(&source_path, ComponentType::Ephemeral)
             .await;
 
-        let _ = log_and_save_component_metadata(&source_path).await;
+        // let _ = log_and_save_component_metadata(&source_path).await;
 
         component_id
     }

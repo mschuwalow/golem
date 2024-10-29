@@ -604,19 +604,19 @@ impl ComponentServiceLocalFileSystem {
         while let Some(entry) = reader.next_entry().await? {
             if let Ok(file_name) = entry.file_name().into_string() {
                 if file_name.starts_with(&prefix) && file_name.ends_with(".wasm") {
-                    // strip wasm extensions
-                    let base_path = file_name[prefix.len()..file_name.len() - 5].to_string();
+                    // strip wasm extension
+                    let base_path = file_name[..file_name.len() - 5].to_string();
 
-                if let Some(version) = Self::extract_version(&base_path) {
+                    if let Some(version) = Self::extract_version(&base_path) {
                         matching_files.push((
                             version,
                             entry.path(),
-                            PathBuf::from(format!("{base_path}.json")),
+                            self.root.join(PathBuf::from(format!("{base_path}.json"))),
                         ));
                     };
-                }
-            }
-        }
+                };
+            };
+        };
 
         match forced_version {
             Some(forced_version) => matching_files
@@ -653,7 +653,7 @@ impl ComponentServiceLocalFileSystem {
         let engine = engine.clone();
         let compiled_component_service = self.compiled_component_service.clone();
         let path = wasm_path.to_path_buf();
-        debug!("Loading component from {:?}", path);
+
         self.component_cache
             .get_or_insert_simple(&key.clone(), || {
                 Box::pin(async move {
@@ -718,11 +718,11 @@ impl ComponentServiceLocalFileSystem {
         component_id: &ComponentId,
         component_version: ComponentVersion,
     ) -> Result<ComponentMetadata, GolemError> {
-        let key = ComponentKey { component_id: component_id.clone(), component_version };
-
         let component_id = component_id.clone();
         let wasm_path = PathBuf::from(wasm_path);
         let props_path = PathBuf::from(props_path);
+
+        let key = ComponentKey { component_id: component_id.clone(), component_version };
 
         self.component_metadata_cache.get_or_insert_simple(
             &key,
@@ -739,7 +739,7 @@ impl ComponentServiceLocalFileSystem {
                         .ok_or(
                             GolemError::GetLatestVersionOfComponentFailed {
                                 component_id: component_id.clone(),
-                                reason: "Could not find any component with the given id".to_string(),
+                                reason: "Failed to read properties of component".to_string(),
                             }
                         )?;
 
