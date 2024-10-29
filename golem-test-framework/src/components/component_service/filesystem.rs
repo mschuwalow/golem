@@ -15,9 +15,10 @@
 use crate::components::component_service::{AddComponentError, ComponentService};
 use async_trait::async_trait;
 use golem_api_grpc::proto::golem::component::v1::component_service_client::ComponentServiceClient;
-use golem_common::model::{ComponentId, ComponentType, InitialComponentFile};
-use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
+use golem_common::model::{component_metadata::{LinearMemory, RawComponentMetadata}, ComponentId, ComponentType, ComponentVersion, InitialComponentFile};
+use golem_wasm_ast::analysis::AnalysedExport;
+use serde::Serialize;
+use std::{os::unix::fs::MetadataExt, path::{Path, PathBuf}};
 use tonic::transport::Channel;
 use tracing::{debug, info};
 use uuid::Uuid;
@@ -34,11 +35,11 @@ impl FileSystemComponentService {
         }
     }
 
-    pub async fn write_component_to_filesystem(
+    async fn write_component_to_filesystem(
         &self,
-        local_path: &Path,
+        source_path: &Path,
         component_id: &ComponentId,
-        component_version: u64,
+        component_version: ComponentVersion,
         component_type: ComponentType,
         files: Vec<InitialComponentFile>
     ) -> Result<ComponentId, AddComponentError> {
@@ -52,33 +53,70 @@ impl FileSystemComponentService {
             })?;
         }
 
-        if !local_path.exists() {
+        if !source_path.exists() {
             return Err(AddComponentError::Other(format!(
-                "Source file does not exist: {local_path:?}"
+                "Source file does not exist: {source_path:?}"
             )));
         }
 
-        let _ = tokio::fs::copy(
-            local_path,
-            target_dir.join(format!("{component_id}-{component_version}.wasm")),
+        let target_path = target_dir.join(format!("{component_id}-{component_version}.wasm"));
+
+        tokio::fs::copy(
+            source_path,
+            &target_path,
         )
         .await
         .map_err(|err| {
             AddComponentError::Other(format!(
                 "Failed to copy WASM to the local component store: {err}"
             ))
-        });
+        })?;
 
-        let properties = ComponentProperties {
+        let (memories, exports) = Self::analyze_memories_and_exports(&target_path)
+            .await
+            .ok_or(AddComponentError::Other("Failed to analyze component".to_string()))?;
+
+        let size = tokio::fs::metadata(&target_path)
+            .await
+            .map_err(|e|
+                AddComponentError::Other(format!("Failed to read component size: {}", e))
+            )?
+            .size();
+
+        let metadata = ComponentMetadata {
+            version: component_version,
             component_type,
             files,
+            size,
+            memories,
+            exports
         };
-
-        info!("writing to {}", target_dir.join(format!("{component_id}-{component_version}.json")).display().to_string());
-
-        properties.write_to_file(&target_dir.join(format!("{component_id}-{component_version}.json"))).await?;
+        metadata.write_to_file(&target_dir.join(format!("{component_id}-{component_version}.json"))).await?;
 
         Ok(component_id.clone())
+    }
+
+    async fn analyze_memories_and_exports(
+        path: &Path,
+    ) -> Option<(Vec<LinearMemory>, Vec<AnalysedExport>)> {
+        let component_bytes = &tokio::fs::read(path).await.ok()?;
+        let raw_component_metadata = RawComponentMetadata::analyse_component(component_bytes).ok()?;
+
+        let exports = raw_component_metadata
+            .exports
+            .into_iter()
+            .collect::<Vec<_>>();
+
+        let linear_memories: Vec<LinearMemory> = raw_component_metadata
+            .memories
+            .into_iter()
+            .map(|mem| LinearMemory {
+                initial: mem.mem_type.limits.min * 65536,
+                maximum: mem.mem_type.limits.max.map(|m| m * 65536),
+            })
+            .collect::<Vec<_>>();
+
+        Some((linear_memories, exports))
     }
 }
 
@@ -201,12 +239,16 @@ impl ComponentService for FileSystemComponentService {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ComponentProperties {
+pub struct ComponentMetadata {
+    pub version: ComponentVersion,
+    pub size: u64,
+    pub memories: Vec<LinearMemory>,
+    pub exports: Vec<AnalysedExport>,
     pub component_type: ComponentType,
     pub files: Vec<InitialComponentFile>,
 }
 
-impl ComponentProperties {
+impl ComponentMetadata {
     async fn write_to_file(&self, path: &Path) -> Result<(), AddComponentError> {
         let json = serde_json::to_string(self).map_err(|_| AddComponentError::Other("Failed to serialize component file properties".to_string()))?;
         tokio::fs::write(path, json).await.map_err(|_| AddComponentError::Other("Failed to write component file properties".to_string()))
