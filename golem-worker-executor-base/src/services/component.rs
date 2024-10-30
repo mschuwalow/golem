@@ -36,7 +36,7 @@ use golem_common::cache::{BackgroundEvictionMode, Cache, FullCacheEvictionMode, 
 use golem_common::client::{GrpcClient, GrpcClientConfig};
 use golem_common::config::RetryConfig;
 use golem_common::metrics::external_calls::record_external_call_response_size_bytes;
-use golem_common::model::component_metadata::{LinearMemory, RawComponentMetadata};
+use golem_common::model::component_metadata::LinearMemory;
 use golem_common::model::{InitialComponentFilePath, ComponentId, ComponentType, ComponentVersion, InitialComponentFile};
 use golem_common::retries::with_retries;
 use golem_wasm_ast::analysis::AnalysedExport;
