@@ -41,7 +41,7 @@ impl FileSystemComponentService {
         component_id: &ComponentId,
         component_version: ComponentVersion,
         component_type: ComponentType,
-        files: Vec<InitialComponentFile>
+        files: &Vec<InitialComponentFile>
     ) -> Result<ComponentId, AddComponentError> {
         let target_dir = &self.root;
         debug!("Local component store: {target_dir:?}");
@@ -86,7 +86,7 @@ impl FileSystemComponentService {
         let metadata = ComponentMetadata {
             version: component_version,
             component_type,
-            files,
+            files: files.clone(),
             size,
             memories,
             exports
@@ -142,7 +142,7 @@ impl ComponentService for FileSystemComponentService {
         component_id: &ComponentId,
         component_type: ComponentType,
     ) -> Result<(), AddComponentError> {
-        self.write_component_to_filesystem(local_path, component_id, 0, component_type, vec![]).await?;
+        self.write_component_to_filesystem(local_path, component_id, 0, component_type, &vec![]).await?;
         Ok(())
     }
 
@@ -151,7 +151,7 @@ impl ComponentService for FileSystemComponentService {
         local_path: &Path,
         component_type: ComponentType,
     ) -> Result<ComponentId, AddComponentError> {
-        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, vec![]).await
+        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, &vec![]).await
     }
 
     async fn add_component_with_name(
@@ -160,7 +160,7 @@ impl ComponentService for FileSystemComponentService {
         _name: &str,
         component_type: ComponentType,
     ) -> Result<ComponentId, AddComponentError> {
-        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, vec![]).await
+        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, &vec![]).await
     }
 
     async fn add_component_with_files(
@@ -168,7 +168,7 @@ impl ComponentService for FileSystemComponentService {
         local_path: &Path,
         _name: &str,
         component_type: ComponentType,
-        files: Vec<InitialComponentFile>
+        files: &Vec<InitialComponentFile>
     ) -> Result<ComponentId, AddComponentError> {
         self.write_component_to_filesystem(local_path, &&ComponentId(Uuid::new_v4()), 0, component_type, files).await
     }
@@ -194,7 +194,7 @@ impl ComponentService for FileSystemComponentService {
         let last_version = self.get_latest_version(component_id).await;
         let new_version = last_version + 1;
 
-        self.write_component_to_filesystem(local_path, component_id, new_version, component_type, vec![]).await.expect("Failed to write component to filesystem");
+        self.write_component_to_filesystem(local_path, component_id, new_version, component_type, &vec![]).await.expect("Failed to write component to filesystem");
         new_version
     }
 

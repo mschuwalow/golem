@@ -154,7 +154,7 @@ pub trait ComponentService {
         name: &str,
         component_type: ComponentType
     ) -> Result<ComponentId, AddComponentError> {
-        self.add_component_with_files(local_path, name, component_type, vec![]).await
+        self.add_component_with_files(local_path, name, component_type, &vec![]).await
     }
 
     async fn add_component_with_files(
@@ -162,7 +162,7 @@ pub trait ComponentService {
         local_path: &Path,
         name: &str,
         component_type: ComponentType,
-        files: Vec<InitialComponentFile>
+        files: &Vec<InitialComponentFile>
     ) -> Result<ComponentId, AddComponentError> {
         let mut client = self.client().await;
         let mut file = File::open(local_path).await.map_err(|_| {
@@ -171,7 +171,7 @@ pub trait ComponentService {
 
         let component_type: golem_api_grpc::proto::golem::component::ComponentType = component_type.into();
 
-        let files = files.into_iter().map(|f| f.into()).collect();
+        let files = files.iter().map(|f| f.clone().into()).collect();
 
         let mut chunks: Vec<CreateComponentRequest> = vec![CreateComponentRequest {
             data: Some(Data::Header(CreateComponentRequestHeader {

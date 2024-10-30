@@ -197,6 +197,41 @@ async fn file_write_read_delete(
 
 #[test]
 #[tracing::instrument]
+async fn initial_file_read_write(
+    last_unique_id: &LastUniqueId,
+    deps: &WorkerExecutorTestDependencies,
+    _tracing: &Tracing,
+) {
+    let context = TestContext::new(last_unique_id);
+    let executor = start(deps, &context).await.unwrap();
+
+    let component_id = executor.store_component("initial_file_read_write").await;
+    let mut env = HashMap::new();
+    env.insert("RUST_BACKTRACE".to_string(), "full".to_string());
+    let worker_id = executor
+        .start_worker_with(&component_id, "file-write-read-delete-1", vec![], env)
+        .await;
+
+    let result = executor
+        .invoke_and_await(&worker_id, "run", vec![])
+        .await
+        .unwrap();
+
+    drop(executor);
+
+    check!(
+        result
+            == vec![Value::Tuple(vec![
+                Value::Option(None),
+                Value::Option(Some(Box::new(Value::String("hello world".to_string())))),
+                Value::Option(None)
+            ])]
+    );
+}
+
+
+#[test]
+#[tracing::instrument]
 async fn directories(
     last_unique_id: &LastUniqueId,
     deps: &WorkerExecutorTestDependencies,

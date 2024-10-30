@@ -41,7 +41,7 @@ use golem_common::model::regions::DeletedRegions;
 use golem_common::model::{
     ComponentId, ComponentType, ComponentVersion, FailedUpdateRecord, IdempotencyKey, ScanCursor,
     SuccessfulUpdateRecord, TargetWorkerId, WorkerFilter, WorkerId, WorkerMetadata,
-    WorkerResourceDescription, WorkerStatusRecord,
+    WorkerResourceDescription, WorkerStatusRecord, InitialComponentFile
 };
 use golem_service_base::model::PublicOplogEntryWithIndex;
 use golem_wasm_rpc::Value;
@@ -60,6 +60,7 @@ pub trait TestDsl {
     async fn store_unique_component(&self, name: &str) -> ComponentId;
     async fn store_component_unverified(&self, name: &str) -> ComponentId;
     async fn store_component_with_id(&self, name: &str, component_id: &ComponentId);
+    async fn store_component_with_files(&self, name: &str, component_type: ComponentType, files: &Vec<InitialComponentFile>);
     async fn update_component(&self, component_id: &ComponentId, name: &str) -> ComponentVersion;
 
     async fn start_worker(&self, component_id: &ComponentId, name: &str)
@@ -231,6 +232,15 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
         let _ = dump_component_info(&source_path);
         self.component_service()
             .add_component_with_id(&source_path, component_id, ComponentType::Durable)
+            .await
+            .expect("Failed to store component with id {component_id}");
+    }
+
+    async fn store_component_with_files(&self, name: &str, component_type: ComponentType, files: &Vec<InitialComponentFile>) {
+        let source_path = self.component_directory().join(format!("{name}.wasm"));
+        let _ = dump_component_info(&source_path);
+        self.component_service()
+            .add_component_with_files(&source_path, name, component_type, files)
             .await
             .expect("Failed to store component with id {component_id}");
     }
@@ -1229,6 +1239,7 @@ pub trait TestDslUnsafe {
     async fn store_unique_component(&self, name: &str) -> ComponentId;
     async fn store_component_unverified(&self, name: &str) -> ComponentId;
     async fn store_component_with_id(&self, name: &str, component_id: &ComponentId);
+    async fn store_component_with_files(&self, name: &str, component_type: ComponentType, files: &Vec<InitialComponentFile>);
     async fn update_component(&self, component_id: &ComponentId, name: &str) -> ComponentVersion;
 
     async fn start_worker(&self, component_id: &ComponentId, name: &str) -> WorkerId;
@@ -1343,6 +1354,10 @@ impl<T: TestDsl + Sync> TestDslUnsafe for T {
 
     async fn store_component_with_id(&self, name: &str, component_id: &ComponentId) {
         <T as TestDsl>::store_component_with_id(self, name, component_id).await
+    }
+
+    async fn store_component_with_files(&self, name: &str, component_type: ComponentType, files: &Vec<InitialComponentFile>) {
+        <T as TestDsl>::store_component_with_files(self, name, component_type, files).await
     }
 
     async fn update_component(&self, component_id: &ComponentId, name: &str) -> ComponentVersion {
