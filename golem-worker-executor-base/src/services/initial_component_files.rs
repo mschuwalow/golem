@@ -16,6 +16,7 @@ use std::{path::PathBuf, sync::Arc};
 
 use async_trait::async_trait;
 use bytes::Bytes;
+use sha2::{Sha256, Digest};
 
 use crate::storage::blob::{BlobStorage, BlobStorageNamespace};
 use golem_common::model::InitialComponentFileKey;
@@ -31,9 +32,8 @@ pub trait InitialComponentFilesService {
     ) -> Result<Option<Bytes>, String>;
     async fn put_if_not_exists(
         &self,
-        key: &InitialComponentFileKey,
         bytes: Bytes,
-    ) -> Result<(), String>;
+    ) -> Result<InitialComponentFileKey, String>;
 }
 
 pub struct InitialComponentFilesServiceDefault {
@@ -65,10 +65,13 @@ impl InitialComponentFilesService for InitialComponentFilesServiceDefault {
 
     async fn put_if_not_exists(
         &self,
-        key: &InitialComponentFileKey,
         bytes: Bytes,
-    ) -> Result<(), String> {
-        let path = PathBuf::from(key.0.clone());
+    ) -> Result<InitialComponentFileKey, String> {
+        let mut hasher = Sha256::new();
+        hasher.update(&bytes);
+        let hash = hex::encode(hasher.finalize());
+
+        let key = PathBuf::from(hash.clone());
 
         let exists = self
             .blob_storage
@@ -76,7 +79,7 @@ impl InitialComponentFilesService for InitialComponentFilesServiceDefault {
                 INITIAL_COMPONENT_FILES_LABEL,
                 "put",
                 BlobStorageNamespace::InitialComponentFiles,
-                &path,
+                &key,
             )
             .await
             .map_err(|err| format!("Failed to get metadata: {}", err))?;
@@ -87,12 +90,12 @@ impl InitialComponentFilesService for InitialComponentFilesServiceDefault {
                     INITIAL_COMPONENT_FILES_LABEL,
                     "put",
                     BlobStorageNamespace::InitialComponentFiles,
-                    &path,
+                    &key,
                     &bytes,
                 )
-                .await
-        } else {
-            Ok(())
-        }
+                .await?;
+
+        };
+        Ok(InitialComponentFileKey(hash))
     }
 }

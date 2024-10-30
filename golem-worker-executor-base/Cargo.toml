@@ -70,6 +70,7 @@ ringbuf = "0.4.1"
 rustls = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+sha2 = { workspace = true }
 sysinfo = "0.30.12"
 tempfile = { workspace = true }
 thiserror = { workspace = true }
