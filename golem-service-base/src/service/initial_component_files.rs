@@ -32,7 +32,7 @@ pub trait InitialComponentFilesService {
     ) -> Result<Option<Bytes>, String>;
     async fn put_if_not_exists(
         &self,
-        bytes: Bytes,
+        bytes: &Bytes,
     ) -> Result<InitialComponentFileKey, String>;
 }
 
@@ -65,10 +65,10 @@ impl InitialComponentFilesService for InitialComponentFilesServiceDefault {
 
     async fn put_if_not_exists(
         &self,
-        bytes: Bytes,
+        bytes: &Bytes,
     ) -> Result<InitialComponentFileKey, String> {
         let mut hasher = Sha256::new();
-        hasher.update(&bytes);
+        hasher.update(bytes);
         let hash = hex::encode(hasher.finalize());
 
         let key = PathBuf::from(hash.clone());
@@ -91,7 +91,7 @@ impl InitialComponentFilesService for InitialComponentFilesServiceDefault {
                     "put",
                     BlobStorageNamespace::InitialComponentFiles,
                     &key,
-                    &bytes,
+                    bytes,
                 )
                 .await?;
 

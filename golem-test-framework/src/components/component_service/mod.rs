@@ -388,6 +388,11 @@ impl ComponentServiceEnvVars for GolemEnvVars {
                 "GOLEM__COMPONENT_STORE__CONFIG__ROOT_PATH",
                 "/tmp/ittest-local-object-store/golem",
             )
+            .with_str("GOLEM__BLOB_STORAGE__TYPE", "LocalFileSystem")
+            .with_str(
+                "GOLEM__BLOB_STORAGE__CONFIG__ROOT",
+                "/tmp/ittest-local-object-store/golem",
+            )
             .with("GOLEM__GRPC_PORT", grpc_port.to_string())
             .with("GOLEM__HTTP_PORT", http_port.to_string())
             .with_all(rdb.info().env("golem_component"));

@@ -17,6 +17,7 @@ pub mod benchmark;
 use crate::config::TestDependencies;
 use anyhow::anyhow;
 use async_trait::async_trait;
+use bytes::Bytes;
 use golem_api_grpc::proto::golem::worker::update_record::Update;
 use golem_api_grpc::proto::golem::worker::v1::worker_error::Error;
 use golem_api_grpc::proto::golem::worker::v1::{
@@ -39,9 +40,7 @@ use golem_common::model::oplog::{
 use golem_common::model::public_oplog::PublicOplogEntry;
 use golem_common::model::regions::DeletedRegions;
 use golem_common::model::{
-    ComponentId, ComponentType, ComponentVersion, FailedUpdateRecord, IdempotencyKey, ScanCursor,
-    SuccessfulUpdateRecord, TargetWorkerId, WorkerFilter, WorkerId, WorkerMetadata,
-    WorkerResourceDescription, WorkerStatusRecord, InitialComponentFile
+    ComponentId, ComponentType, ComponentVersion, FailedUpdateRecord, IdempotencyKey, InitialComponentFile, InitialComponentFileKey, ScanCursor, SuccessfulUpdateRecord, TargetWorkerId, WorkerFilter, WorkerId, WorkerMetadata, WorkerResourceDescription, WorkerStatusRecord
 };
 use golem_service_base::model::PublicOplogEntryWithIndex;
 use golem_wasm_rpc::Value;
@@ -179,6 +178,10 @@ pub trait TestDsl {
         worker_id: &WorkerId,
         query: &str,
     ) -> crate::Result<Vec<PublicOplogEntryWithIndex>>;
+    async fn add_initial_file(
+        &self,
+        path: &Path
+    ) -> crate::Result<InitialComponentFileKey>;
 }
 
 #[async_trait]
@@ -890,6 +893,19 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
         }
 
         Ok(result)
+    }
+
+    async fn add_initial_file(
+        &self,
+        path: &Path
+    ) -> crate::Result<InitialComponentFileKey> {
+        let data = tokio::fs::read(path).await?;
+        let bytes = Bytes::from(data);
+
+        self.initial_component_files_service()
+            .put_if_not_exists(&bytes)
+            .await
+            .map_err(|e| anyhow!("Failed to add initial file: {e:?}"))
     }
 }
 

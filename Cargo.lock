@@ -3887,6 +3887,7 @@ dependencies = [
  "async-dropper-simple",
  "async-scoped",
  "async-trait",
+ "bytes 1.8.0",
  "chrono",
  "clap 4.5.20",
  "cli-table",

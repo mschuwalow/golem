@@ -17,6 +17,7 @@ use async_trait::async_trait;
 pub use cli::{CliParams, CliTestDependencies, CliTestService};
 pub use env::EnvBasedTestDependencies;
 pub use env::EnvBasedTestDependenciesConfig;
+use golem_service_base::service::initial_component_files::InitialComponentFilesService;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -45,6 +46,7 @@ pub trait TestDependencies {
     ) -> Arc<dyn ComponentCompilationService + Send + Sync + 'static>;
     fn worker_service(&self) -> Arc<dyn WorkerService + Send + Sync + 'static>;
     fn worker_executor_cluster(&self) -> Arc<dyn WorkerExecutorCluster + Send + Sync + 'static>;
+    fn initial_component_files_service(&self) -> Arc<dyn InitialComponentFilesService + Send + Sync + 'static>;
 
     async fn kill_all(&self) {
         self.worker_executor_cluster().kill_all().await;
