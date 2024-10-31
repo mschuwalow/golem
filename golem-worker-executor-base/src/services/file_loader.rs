@@ -31,12 +31,12 @@ use golem_service_base::service::initial_component_files::InitialComponentFilesS
 // TODO: add bookkeeping for files that are no longer needed.
 pub struct FileLoader {
     cache_dir: TempDir,
-    initial_component_files_service: Arc<dyn InitialComponentFilesService + Send + Sync>,
+    initial_component_files_service: Arc<InitialComponentFilesService>,
 }
 
 impl FileLoader {
     pub fn new(
-        initial_component_files_service: Arc<dyn InitialComponentFilesService + Send + Sync>,
+        initial_component_files_service: Arc<InitialComponentFilesService>,
     ) -> anyhow::Result<Self> {
         let cache_dir = tempfile::Builder::new().prefix("golem-file-cache").tempdir()?;
 

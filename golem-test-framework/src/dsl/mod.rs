@@ -61,6 +61,7 @@ pub trait TestDsl {
     async fn store_component_with_id(&self, name: &str, component_id: &ComponentId);
     async fn store_component_with_files(&self, name: &str, component_type: ComponentType, files: &Vec<InitialComponentFile>);
     async fn update_component(&self, component_id: &ComponentId, name: &str) -> ComponentVersion;
+    async fn add_initial_component_file(&self, path: &Path) -> InitialComponentFileKey;
 
     async fn start_worker(&self, component_id: &ComponentId, name: &str)
         -> crate::Result<WorkerId>;
@@ -178,10 +179,6 @@ pub trait TestDsl {
         worker_id: &WorkerId,
         query: &str,
     ) -> crate::Result<Vec<PublicOplogEntryWithIndex>>;
-    async fn add_initial_file(
-        &self,
-        path: &Path
-    ) -> crate::Result<InitialComponentFileKey>;
 }
 
 #[async_trait]
@@ -246,6 +243,16 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
             .add_component_with_files(&source_path, name, component_type, files)
             .await
             .expect("Failed to store component with id {component_id}");
+    }
+
+    async fn add_initial_component_file(&self, path: &Path) -> InitialComponentFileKey {
+        let source_path = self.component_directory().join(path);
+        let data = tokio::fs::read(&source_path).await.expect("Failed to read file");
+        let bytes = Bytes::from(data);
+        self.initial_component_files_service()
+            .put_if_not_exists(&bytes)
+            .await
+            .expect("Failed to add initial component file")
     }
 
     async fn update_component(&self, component_id: &ComponentId, name: &str) -> ComponentVersion {
@@ -893,19 +900,6 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
         }
 
         Ok(result)
-    }
-
-    async fn add_initial_file(
-        &self,
-        path: &Path
-    ) -> crate::Result<InitialComponentFileKey> {
-        let data = tokio::fs::read(path).await?;
-        let bytes = Bytes::from(data);
-
-        self.initial_component_files_service()
-            .put_if_not_exists(&bytes)
-            .await
-            .map_err(|e| anyhow!("Failed to add initial file: {e:?}"))
     }
 }
 

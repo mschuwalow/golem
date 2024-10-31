@@ -1,6 +1,7 @@
 use anyhow::Error;
 use async_trait::async_trait;
 
+use golem_service_base::service::initial_component_files::InitialComponentFilesService;
 use golem_wasm_rpc::wasmtime::ResourceStore;
 use golem_wasm_rpc::{Uri, Value};
 use golem_worker_executor_base::services::file_loader::{FileLoader};
@@ -234,6 +235,10 @@ impl TestDependencies for TestWorkerExecutor {
 
     fn worker_executor_cluster(&self) -> Arc<dyn WorkerExecutorCluster + Send + Sync + 'static> {
         self.deps.worker_executor_cluster()
+    }
+
+    fn initial_component_files_service(&self) -> Arc<InitialComponentFilesService> {
+        self.deps.initial_component_files_service()
     }
 }
 

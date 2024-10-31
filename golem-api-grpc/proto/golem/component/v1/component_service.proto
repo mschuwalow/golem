@@ -65,6 +65,7 @@ message CreateComponentRequestHeader {
   golem.common.ProjectId projectId = 1;
   string componentName = 2;
   optional ComponentType componentType = 3;
+  // All files need to be uploaded to the blob storage before providing them here
   repeated InitialComponentFile files = 4;
 }
 

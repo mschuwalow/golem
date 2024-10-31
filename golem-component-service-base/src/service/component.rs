@@ -300,7 +300,7 @@ pub struct ComponentServiceDefault {
     component_repo: Arc<dyn ComponentRepo + Sync + Send>,
     object_store: Arc<dyn ComponentObjectStore + Sync + Send>,
     component_compilation: Arc<dyn ComponentCompilationService + Sync + Send>,
-    initial_component_files_service: Arc<dyn InitialComponentFilesService + Sync + Send>,
+    initial_component_files_service: Arc<InitialComponentFilesService>,
 }
 
 impl ComponentServiceDefault {
@@ -308,7 +308,7 @@ impl ComponentServiceDefault {
         component_repo: Arc<dyn ComponentRepo + Sync + Send>,
         object_store: Arc<dyn ComponentObjectStore + Sync + Send>,
         component_compilation: Arc<dyn ComponentCompilationService + Sync + Send>,
-        initial_component_files_service: Arc<dyn InitialComponentFilesService + Sync + Send>,
+        initial_component_files_service: Arc<InitialComponentFilesService>,
     ) -> Self {
         ComponentServiceDefault {
             component_repo,
@@ -963,7 +963,7 @@ impl ComponentServiceDefault {
             info!("Uploading file: {}", path.to_string());
 
             let key = self.initial_component_files_service
-                .put_if_not_exists(content)
+                .put_if_not_exists(&content)
                 .await
                 .map_err(|e| {
                     ComponentError::initial_component_file_upload_error("Failed to upload component files", e)

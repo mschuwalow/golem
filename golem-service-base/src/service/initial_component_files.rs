@@ -24,31 +24,16 @@ use golem_common::model::InitialComponentFileKey;
 const INITIAL_COMPONENT_FILES_LABEL: &str = "initial_component_files";
 
 /// Service for storing initial component files.
-#[async_trait]
-pub trait InitialComponentFilesService {
-    async fn get(
-        &self,
-        key: &InitialComponentFileKey,
-    ) -> Result<Option<Bytes>, String>;
-    async fn put_if_not_exists(
-        &self,
-        bytes: &Bytes,
-    ) -> Result<InitialComponentFileKey, String>;
-}
-
-pub struct InitialComponentFilesServiceDefault {
+pub struct InitialComponentFilesService {
     blob_storage: Arc<dyn BlobStorage + Send + Sync>,
 }
 
-impl InitialComponentFilesServiceDefault {
+impl InitialComponentFilesService {
     pub fn new(blob_storage: Arc<dyn BlobStorage + Send + Sync>) -> Self {
         Self { blob_storage }
     }
-}
 
-#[async_trait]
-impl InitialComponentFilesService for InitialComponentFilesServiceDefault {
-    async fn get(
+    pub async fn get(
         &self,
         key: &InitialComponentFileKey,
     ) -> Result<Option<Bytes>, String> {
@@ -63,7 +48,7 @@ impl InitialComponentFilesService for InitialComponentFilesServiceDefault {
             .await
     }
 
-    async fn put_if_not_exists(
+    pub async fn put_if_not_exists(
         &self,
         bytes: &Bytes,
     ) -> Result<InitialComponentFileKey, String> {

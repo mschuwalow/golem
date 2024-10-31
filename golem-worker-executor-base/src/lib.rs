@@ -78,7 +78,7 @@ use humansize::{ISizeFormatter, BINARY};
 use nonempty_collections::NEVec;
 use prometheus::Registry;
 use services::file_loader::FileLoader;
-use golem_service_base::service::initial_component_files::InitialComponentFilesServiceDefault;
+use golem_service_base::service::initial_component_files::InitialComponentFilesService;
 use std::sync::Arc;
 use storage::keyvalue::sqlite::SqliteKeyValueStorage;
 use golem_service_base::storage::sqlite::SqlitePool;
@@ -296,7 +296,7 @@ pub trait Bootstrap<Ctx: WorkerCtx> {
             }
         };
 
-        let initial_files_service = Arc::new(InitialComponentFilesServiceDefault::new(blob_storage.clone()));
+        let initial_files_service = Arc::new(InitialComponentFilesService::new(blob_storage.clone()));
 
         let file_loader = Arc::new(FileLoader::new(initial_files_service.clone())?);
 

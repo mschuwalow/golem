@@ -22,7 +22,7 @@ use golem_service_base::config::ComponentStoreConfig;
 use golem_service_base::db;
 use golem_service_base::service::component_object_store;
 use golem_service_base::config::BlobStorageConfig;
-use golem_service_base::service::initial_component_files;
+use golem_service_base::service::initial_component_files::{self, InitialComponentFilesService};
 use golem_service_base::storage::blob::sqlite::SqliteBlobStorage;
 use golem_service_base::storage::blob::BlobStorage;
 use golem_service_base::storage::sqlite::SqlitePool;
@@ -92,8 +92,8 @@ impl Services {
             }
         };
 
-        let initial_component_files_service: Arc<dyn initial_component_files::InitialComponentFilesService + Sync + Send> =
-            Arc::new(initial_component_files::InitialComponentFilesServiceDefault::new(blob_storage.clone()));
+        let initial_component_files_service: Arc<InitialComponentFilesService> =
+            Arc::new(initial_component_files::InitialComponentFilesService::new(blob_storage.clone()));
 
         let object_store: Arc<dyn ComponentObjectStore + Sync + Send> =
             match &config.component_store {
