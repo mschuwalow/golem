@@ -19,11 +19,12 @@ use golem_common::model::{
 };
 use golem_worker_executor_base::error::GolemError;
 use golem_worker_executor_base::services::golem_config::{
-    BlobStorageConfig, CompiledComponentServiceConfig, CompiledComponentServiceEnabledConfig,
+    CompiledComponentServiceConfig, CompiledComponentServiceEnabledConfig,
     ComponentServiceConfig, ComponentServiceLocalConfig, GolemConfig, IndexedStorageConfig,
-    KeyValueStorageConfig, LocalFileSystemBlobStorageConfig, MemoryConfig,
+    KeyValueStorageConfig, MemoryConfig,
     ShardManagerServiceConfig, WorkerServiceGrpcConfig,
 };
+use golem_service_base::config::{BlobStorageConfig, LocalFileSystemBlobStorageConfig};
 
 use golem_worker_executor_base::durable_host::{
     DurableWorkerCtx, DurableWorkerCtxView, PublicDurableWorkerState,

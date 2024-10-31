@@ -1,6 +1,6 @@
-use golem_worker_executor_base::services::initial_component_files::{InitialComponentFilesServiceDefault};
-use golem_worker_executor_base::storage::blob::fs::FileSystemBlobStorage;
-use golem_worker_executor_base::storage::blob::BlobStorage;
+use golem_service_base::service::initial_component_files::InitialComponentFilesServiceDefault;
+use golem_service_base::storage::blob::fs::FileSystemBlobStorage;
+use golem_service_base::storage::blob::BlobStorage;
 use test_r::test;
 
 use golem_common::config::{DbPostgresConfig, DbSqliteConfig};
