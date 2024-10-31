@@ -42,7 +42,7 @@ use rib::{FunctionTypeRegistry, RegistryKey, RegistryValue};
 use tap::TapFallible;
 use tokio_stream::Stream;
 use tracing::{error, info};
-use golem_worker_executor_base::services::initial_component_files::{InitialComponentFilesService};
+use golem_service_base::service::initial_component_files::InitialComponentFilesService;
 use async_zip::tokio::read::seek::ZipFileReader;
 use tokio::io::BufReader;
 

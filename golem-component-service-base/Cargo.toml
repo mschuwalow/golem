@@ -16,7 +16,6 @@ golem-common = { path = "../golem-common", version = "0.0.0" }
 golem-service-base = { path = "../golem-service-base" }
 golem-rib = { path = "../golem-rib" }
 golem-wasm-ast = { workspace = true }
-golem-worker-executor-base = { path = "../golem-worker-executor-base", version = "0.0.0" }
 
 anyhow = { workspace = true }
 async-trait = { workspace = true }

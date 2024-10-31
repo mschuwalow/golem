@@ -23,7 +23,7 @@ use tempfile::TempDir;
 
 use crate::error::GolemError;
 
-use super::initial_component_files::InitialComponentFilesService;
+use golem_service_base::service::initial_component_files::InitialComponentFilesService;
 
 /// Interface for loading files and making them available to workers.
 /// This will hardlink to a temporary directory to avoid copying files between workers. Beware

@@ -24,7 +24,7 @@ use crate::services::compiled_component::CompiledComponentService;
 use crate::services::golem_config::{
     CompiledComponentServiceConfig, ComponentCacheConfig, ComponentServiceConfig,
 };
-use crate::storage::blob::BlobStorage;
+use golem_service_base::storage::blob::BlobStorage;
 use async_trait::async_trait;
 use futures_util::TryStreamExt;
 use golem_api_grpc::proto::golem::component::v1::component_service_client::ComponentServiceClient;
