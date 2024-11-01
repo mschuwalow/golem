@@ -52,7 +52,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "golem-it-file-write-read-delete"
+name = "golem-it-initial-file-read-write"
 version = "0.0.1"
 dependencies = [
  "fs",

@@ -16,6 +16,7 @@ use test_r::{inherit_test_dep, test};
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use std::sync::atomic::AtomicU8;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
@@ -23,9 +24,9 @@ use std::time::{Duration, SystemTime};
 use crate::common::{start, TestContext};
 use crate::{LastUniqueId, Tracing, WorkerExecutorTestDependencies};
 use assert2::{assert, check};
-use golem_common::model::{IdempotencyKey, WorkerStatus};
+use golem_common::model::{ComponentType, IdempotencyKey, InitialComponentFile, InitialComponentFilePath, InitialComponentFilePermissions, WorkerStatus};
 use golem_test_framework::dsl::{
-    drain_connection, stderr_events, stdout_events, worker_error_message, TestDslUnsafe,
+    drain_connection, stderr_events, stdout_events, worker_error_message, TestDslUnsafe
 };
 use golem_wasm_rpc::Value;
 use http_02::{Response, StatusCode};
@@ -205,11 +206,27 @@ async fn initial_file_read_write(
     let context = TestContext::new(last_unique_id);
     let executor = start(deps, &context).await.unwrap();
 
-    let component_id = executor.store_component("initial_file_read_write").await;
+    let file1_key = executor.add_initial_component_file(PathBuf::from("initial-file-read-write/files/foo.txt").as_path()).await;
+    let file2_key = executor.add_initial_component_file(PathBuf::from("initial-file-read-write/files/baz.txt").as_path()).await;
+
+    let component_files: Vec<InitialComponentFile> = vec![
+        InitialComponentFile {
+            key: file1_key,
+            path: InitialComponentFilePath::from_str("/foo.txt").unwrap(),
+            permissions: InitialComponentFilePermissions::ReadOnly,
+        },
+        InitialComponentFile {
+            key: file2_key,
+            path: InitialComponentFilePath::from_str("/bar/baz.txt").unwrap(),
+            permissions: InitialComponentFilePermissions::ReadWrite,
+        }
+    ];
+
+    let component_id = executor.store_component_with_files("initial-file-read-write", ComponentType::Ephemeral, &component_files).await;
     let mut env = HashMap::new();
     env.insert("RUST_BACKTRACE".to_string(), "full".to_string());
     let worker_id = executor
-        .start_worker_with(&component_id, "file-write-read-delete-1", vec![], env)
+        .start_worker_with(&component_id, "initial-file-read-write-1", vec![], env)
         .await;
 
     let result = executor
@@ -222,9 +239,10 @@ async fn initial_file_read_write(
     check!(
         result
             == vec![Value::Tuple(vec![
+                Value::Option(Some(Box::new(Value::String("foo\n".to_string())))),
                 Value::Option(None),
+                Value::Option(Some(Box::new(Value::String("baz\n".to_string())))),
                 Value::Option(Some(Box::new(Value::String("hello world".to_string())))),
-                Value::Option(None)
             ])]
     );
 }
