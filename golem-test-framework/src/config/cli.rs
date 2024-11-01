@@ -15,7 +15,7 @@
 use async_trait::async_trait;
 use clap::{Parser, Subcommand};
 use golem_common::tracing::{init_tracing, TracingConfig};
-use golem_service_base::service::initial_component_files::{self, InitialComponentFilesService};
+use golem_service_base::service::initial_component_files::{InitialComponentFilesService};
 use golem_service_base::storage::blob::fs::FileSystemBlobStorage;
 use golem_service_base::storage::blob::BlobStorage;
 use itertools::Itertools;

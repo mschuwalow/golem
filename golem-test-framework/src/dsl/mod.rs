@@ -211,7 +211,6 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
 
     async fn store_unique_component(&self, name: &str) -> ComponentId {
         let source_path = self.component_directory().join(format!("{name}.wasm"));
-        let _ = dump_component_info(&source_path);
         let uuid = Uuid::new_v4();
         let unique_name = format!("{name}-{uuid}");
         self.component_service()
@@ -229,7 +228,6 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
 
     async fn store_component_with_id(&self, name: &str, component_id: &ComponentId) {
         let source_path = self.component_directory().join(format!("{name}.wasm"));
-        let _ = dump_component_info(&source_path);
         self.component_service()
             .add_component_with_id(&source_path, component_id, ComponentType::Durable)
             .await
@@ -238,7 +236,6 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
 
     async fn store_component_with_files(&self, name: &str, component_type: ComponentType, files: &Vec<InitialComponentFile>) -> ComponentId {
         let source_path = self.component_directory().join(format!("{name}.wasm"));
-        let _ = dump_component_info(&source_path);
         self.component_service()
             .add_component_with_files(&source_path, name, component_type, files)
             .await
@@ -257,7 +254,6 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
 
     async fn update_component(&self, component_id: &ComponentId, name: &str) -> ComponentVersion {
         let source_path = self.component_directory().join(format!("{name}.wasm"));
-        let _ = dump_component_info(&source_path);
         self.component_service()
             .update_component(component_id, &source_path, ComponentType::Durable)
             .await
@@ -1205,41 +1201,6 @@ pub fn to_worker_metadata(
         },
         metadata.last_error.clone(),
     )
-}
-
-fn dump_component_info(path: &Path) -> golem_common::model::component_metadata::ComponentMetadata {
-    let data = std::fs::read(path).unwrap();
-
-    let component_metadata: golem_common::model::component_metadata::ComponentMetadata =
-        golem_common::model::component_metadata::ComponentMetadata::analyse_component(&data)
-            .unwrap();
-
-    let exports = &component_metadata.exports;
-    let mems = &component_metadata.memories;
-
-    info!("Exports of {path:?}: {exports:?}");
-    info!("Linear memories of {path:?}: {mems:?}");
-
-    component_metadata
-}
-
-async fn log_and_save_component_metadata(path: &Path) {
-    let component_metadata: golem_common::model::component_metadata::ComponentMetadata =
-        dump_component_info(path);
-
-    let json_data = serde_json::to_string(&component_metadata).unwrap();
-
-    // Write metadata to a path corresponding to component-id
-    // This step is important for the following reason:
-    // * this way it will perfectly simulate downloading the metadata from the component service even in the case of local-component-file tests.
-    // * The test simulates what happens if you invoke an old wasm in component service (that has valid metadata but cannot be loaded anymore)
-    // * The path is used to see if the metadata already exists for component analysis when it comes to local file
-    // See ComponentServiceLocalFileSystem::get_component_metadata_file
-    let component_name = path.file_name().unwrap().to_str().unwrap();
-    let mut current_dir = Path::new("../target").to_path_buf();
-    current_dir.push(component_name);
-    current_dir.set_extension("json");
-    tokio::fs::write(&current_dir, json_data).await.unwrap()
 }
 
 #[async_trait]

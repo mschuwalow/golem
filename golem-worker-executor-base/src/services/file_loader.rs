@@ -15,7 +15,7 @@
 use std::{path::PathBuf, sync::Arc};
 use anyhow::anyhow;
 use golem_common::model::InitialComponentFileKey;
-use tracing::{debug, warn};
+use tracing::debug;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use tokio::fs::{hard_link, copy, create_dir_all};

@@ -24,7 +24,7 @@ use golem_service_base::config::BlobStorageConfig;
 use golem_service_base::storage::blob::s3::S3BlobStorage;
 use golem_service_base::storage::blob::BlobStorage;
 use golem_worker_executor_base::{
-    http_server::HttpServerImpl, services::compiled_component, storage,
+    http_server::HttpServerImpl, services::compiled_component,
 };
 use grpc::CompileGrpcService;
 use prometheus::Registry;

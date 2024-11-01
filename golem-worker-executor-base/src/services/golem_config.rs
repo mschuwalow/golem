@@ -19,7 +19,7 @@ use std::time::Duration;
 use anyhow::Context;
 use figment::providers::{Format, Toml};
 use figment::Figment;
-use golem_service_base::config::{BlobStorageConfig, LocalFileSystemBlobStorageConfig, S3BlobStorageConfig};
+use golem_service_base::config::BlobStorageConfig;
 use http::Uri;
 use serde::{Deserialize, Serialize};
 use url::Url;
