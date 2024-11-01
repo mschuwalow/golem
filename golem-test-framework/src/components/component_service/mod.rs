@@ -128,6 +128,16 @@ pub trait ComponentService {
         }
     }
 
+    // Forward to get_or_add_component. This method is only used in tests for adding a 'broken' component using the
+    // filesystem component service, which will skip verification here.
+    async fn get_or_add_component_unverified(
+        &self,
+        local_path: &Path,
+        component_type: ComponentType,
+    ) -> ComponentId {
+        self.get_or_add_component(local_path, component_type).await
+    }
+
     async fn add_component_with_id(
         &self,
         _local_path: &Path,

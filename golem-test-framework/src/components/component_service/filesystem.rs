@@ -41,7 +41,8 @@ impl FileSystemComponentService {
         component_id: &ComponentId,
         component_version: ComponentVersion,
         component_type: ComponentType,
-        files: &Vec<InitialComponentFile>
+        files: &Vec<InitialComponentFile>,
+        skip_analysis: bool,
     ) -> Result<ComponentId, AddComponentError> {
         let target_dir = &self.root;
         debug!("Local component store: {target_dir:?}");
@@ -72,9 +73,13 @@ impl FileSystemComponentService {
             ))
         })?;
 
-        let (memories, exports) = Self::analyze_memories_and_exports(&target_path)
-            .await
-            .ok_or(AddComponentError::Other("Failed to analyze component".to_string()))?;
+        let (memories, exports) = if skip_analysis {
+            (vec![], vec![])
+        } else {
+            Self::analyze_memories_and_exports(&target_path)
+                .await
+                .ok_or(AddComponentError::Other("Failed to analyze component".to_string()))?
+        };
 
         let size = tokio::fs::metadata(&target_path)
             .await
@@ -136,13 +141,23 @@ impl ComponentService for FileSystemComponentService {
             .expect("Failed to add component")
     }
 
+    async fn get_or_add_component_unverified(
+        &self,
+        local_path: &Path,
+        component_type: ComponentType
+    ) -> ComponentId {
+        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, &vec![], true)
+            .await
+            .expect("Failed to add component")
+    }
+
     async fn add_component_with_id(
         &self,
         local_path: &Path,
         component_id: &ComponentId,
         component_type: ComponentType,
     ) -> Result<(), AddComponentError> {
-        self.write_component_to_filesystem(local_path, component_id, 0, component_type, &vec![]).await?;
+        self.write_component_to_filesystem(local_path, component_id, 0, component_type, &vec![], false).await?;
         Ok(())
     }
 
@@ -151,7 +166,7 @@ impl ComponentService for FileSystemComponentService {
         local_path: &Path,
         component_type: ComponentType,
     ) -> Result<ComponentId, AddComponentError> {
-        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, &vec![]).await
+        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, &vec![], false).await
     }
 
     async fn add_component_with_name(
@@ -160,7 +175,7 @@ impl ComponentService for FileSystemComponentService {
         _name: &str,
         component_type: ComponentType,
     ) -> Result<ComponentId, AddComponentError> {
-        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, &vec![]).await
+        self.write_component_to_filesystem(local_path, &ComponentId(Uuid::new_v4()), 0, component_type, &vec![], false).await
     }
 
     async fn add_component_with_files(
@@ -170,7 +185,7 @@ impl ComponentService for FileSystemComponentService {
         component_type: ComponentType,
         files: &Vec<InitialComponentFile>
     ) -> Result<ComponentId, AddComponentError> {
-        self.write_component_to_filesystem(local_path, &&ComponentId(Uuid::new_v4()), 0, component_type, files).await
+        self.write_component_to_filesystem(local_path, &&ComponentId(Uuid::new_v4()), 0, component_type, files, false).await
     }
 
     async fn update_component(
@@ -194,7 +209,7 @@ impl ComponentService for FileSystemComponentService {
         let last_version = self.get_latest_version(component_id).await;
         let new_version = last_version + 1;
 
-        self.write_component_to_filesystem(local_path, component_id, new_version, component_type, &vec![]).await.expect("Failed to write component to filesystem");
+        self.write_component_to_filesystem(local_path, component_id, new_version, component_type, &vec![], false).await.expect("Failed to write component to filesystem");
         new_version
     }
 

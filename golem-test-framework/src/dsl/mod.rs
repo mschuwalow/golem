@@ -222,7 +222,7 @@ impl<T: TestDependencies + Send + Sync> TestDsl for T {
     async fn store_component_unverified(&self, name: &str) -> ComponentId {
         let source_path = self.component_directory().join(format!("{name}.wasm"));
         self.component_service()
-            .get_or_add_component(&source_path, ComponentType::Durable)
+            .get_or_add_component_unverified(&source_path, ComponentType::Durable)
             .await
     }
 
