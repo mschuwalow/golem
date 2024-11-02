@@ -15,6 +15,7 @@
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::mem;
 use std::ops::DerefMut;
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
@@ -36,6 +37,7 @@ use crate::services::{
 };
 use crate::workerctx::{PublicWorkerIo, WorkerCtx};
 use anyhow::anyhow;
+use futures::channel::oneshot;
 use golem_common::config::RetryConfig;
 use golem_common::model::oplog::{
     OplogEntry, OplogIndex, TimestampedUpdateDescription, UpdateDescription, WorkerError,
@@ -1655,6 +1657,30 @@ impl RunningWorker {
                             }
                             break;
                         }
+                        WorkerCommand::ListDirectory(request) => {
+                            panic!("unimplemented");
+                            // let path = request.path;
+                            // let full_path =
+                            // let result = tokio::fs::read_dir(path.clone()).await
+                            //     .map_err(|e| GolemError::runtime(e.to_string()))
+                            //     .map(|entries| {
+                            //         entries
+                            //             .filter_map(|entry| {
+                            //                 entry.ok().and_then(|entry| {
+                            //                     entry.file_name().into_string().ok()
+                            //                 })
+                            //             })
+                            //             .collect()
+                            //     });
+
+
+                            // let result = store
+                            //     .data_mut()
+                            //     .list_directory(&path)
+                            //     .await
+                            //     .map_err(|e| GolemError::runtime(e.to_string()));
+                            // let _ = request.result.send(result);
+                        }
                     }
                     waiting_for_command.store(true, Ordering::Release);
                 }
@@ -1804,10 +1830,18 @@ pub enum RetryDecision {
     ReacquirePermits,
 }
 
-#[derive(Clone, Debug)]
+
+#[derive(Debug)]
+pub struct ListDirectoryRequest {
+    path: String,
+    result: oneshot::Sender<Result<Vec<String>, GolemError>>,
+}
+
+#[derive(Debug)]
 enum WorkerCommand {
     Invocation,
     Interrupt(InterruptKind),
+    ListDirectory(ListDirectoryRequest),
 }
 
 pub async fn get_component_metadata<Ctx: WorkerCtx>(

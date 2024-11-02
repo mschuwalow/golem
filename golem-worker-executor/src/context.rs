@@ -52,8 +52,7 @@ use golem_worker_executor_base::services::{
 };
 use golem_worker_executor_base::worker::{RetryDecision, Worker};
 use golem_worker_executor_base::workerctx::{
-    ExternalOperations, FuelManagement, IndexedResourceStore, InvocationHooks,
-    InvocationManagement, StatusManagement, UpdateManagement, WorkerCtx,
+    ExternalOperations, FileSystemReading, FuelManagement, IndexedResourceStore, InvocationHooks, InvocationManagement, StatusManagement, UpdateManagement, WorkerCtx
 };
 
 use crate::services::AdditionalDeps;
@@ -407,5 +406,16 @@ impl ResourceStore for Context {
 
     async fn borrow(&self, resource_id: u64) -> Option<ResourceAny> {
         self.durable_ctx.borrow(resource_id).await
+    }
+}
+
+#[async_trait]
+impl FileSystemReading for Context {
+    async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<Vec<ComponentFileSystemNode>, GolemError> {
+        self.durable_ctx.list_directory(path).await
+    }
+
+    async fn read_file(&self, path: &InitialComponentFilePath) -> Result<Vec<u8>, GolemError> {
+        self.durable_ctx.read_file(path).await
     }
 }

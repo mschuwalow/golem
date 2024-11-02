@@ -22,8 +22,7 @@ use wasmtime::{AsContextMut, ResourceLimiterAsync};
 
 use golem_common::model::oplog::WorkerResourceId;
 use golem_common::model::{
-    AccountId, ComponentVersion, IdempotencyKey, OwnedWorkerId, WorkerId, WorkerMetadata,
-    WorkerStatus, WorkerStatusRecord,
+    AccountId, ComponentFileSystemNode, ComponentVersion, IdempotencyKey, InitialComponentFilePath, OwnedWorkerId, WorkerId, WorkerMetadata, WorkerStatus, WorkerStatusRecord
 };
 
 use crate::error::GolemError;
@@ -61,6 +60,7 @@ pub trait WorkerCtx:
     + ResourceStore
     + IndexedResourceStore
     + UpdateManagement
+    + FileSystemReading
     + Send
     + Sync
     + Sized
@@ -373,4 +373,13 @@ pub trait PublicWorkerIo {
     /// Gets the event service created for the worker, which can be used to
     /// subscribe to worker events.
     fn event_service(&self) -> Arc<dyn WorkerEventService + Send + Sync>;
+}
+
+/// Trait used for reading worker filesystem. The worker will not be running any invocations when methods of this trait are called,
+/// so not locking is needed in the implementation.
+#[async_trait]
+pub trait FileSystemReading {
+    // List the contents of a directory. Will return an error if the path is not a directory.
+    async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<Vec<ComponentFileSystemNode>, GolemError>;
+    async fn read_file(&self, path: &InitialComponentFilePath) -> Result<Vec<u8>, GolemError>;
 }

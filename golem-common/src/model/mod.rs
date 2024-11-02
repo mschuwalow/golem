@@ -18,7 +18,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Display, Formatter};
 use std::ops::Add;
 use std::str::FromStr;
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 use crate::config::RetryConfig;
 use crate::model::oplog::{
@@ -2520,9 +2520,9 @@ impl InitialComponentFilePath {
     }
 }
 
-impl ToString for InitialComponentFilePath {
-    fn to_string(&self) -> String {
-        self.0.to_string()
+impl Display for InitialComponentFilePath {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
@@ -2667,7 +2667,7 @@ impl Display for InitialComponentFilePathAndPermissions {
     }
 }
 
-// /// Format of the properties.json file inside of the archive file that can be uploaded when creating a component
+/// Format of the properties.json file inside of the archive file that can be uploaded when creating a component
 #[derive(Clone, Debug, Serialize, Deserialize, Object)]
 pub struct InitialComponentFilePathAndPermissionsList {
     pub values: Vec<InitialComponentFilePathAndPermissions>,
@@ -2690,6 +2690,25 @@ impl poem_openapi::types::ParseFromMultipartField for InitialComponentFilePathAn
                 .and_then(|s| serde_json::from_str(&s).map_err(|err| poem_openapi::types::ParseError::custom(err)))
         }
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct ComponentFileSystemFileNode {
+    pub permissions: InitialComponentFilePermissions,
+    pub size: u64,
+}
+
+#[derive(Clone, Debug)]
+pub enum ComponentFileSystemNodeKind {
+    File(ComponentFileSystemFileNode),
+    Directory,
+}
+
+#[derive(Clone, Debug)]
+pub struct ComponentFileSystemNode {
+   pub path: InitialComponentFilePath,
+   pub last_modified: SystemTime,
+   pub kind: ComponentFileSystemNodeKind,
 }
 
 #[cfg(test)]

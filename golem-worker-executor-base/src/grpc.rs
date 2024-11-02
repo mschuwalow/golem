@@ -2039,30 +2039,31 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
         &self,
         request: Request<ListDirectoryRequest>,
     ) -> ResponseResult<ListDirectoryResponse> {
-        let request = request.into_inner();
-        let record = recorded_grpc_api_request!(
-            "list_directory",
-            worker_id = proto_worker_id_string(&request.worker_id),
-            path = request.path,
-        );
+        panic!("Not implemented")
+        // let request = request.into_inner();
+        // let record = recorded_grpc_api_request!(
+        //     "list_directory",
+        //     worker_id = proto_worker_id_string(&request.worker_id),
+        //     path = request.path,
+        // );
 
-        let result = self
-            .list_directory_internal(request)
-            .instrument(record.span.clone())
-            .await;
-        match result {
-            Ok(response) => record.succeed(Ok(Response::new(response))),
-            Err(err) => record.fail(
-                Ok(Response::new(ListDirectoryResponse {
-                    result: Some(
-                        golem::workerexecutor::v1::list_directory_response::Result::Failure(
-                            err.clone().into(),
-                        ),
-                    ),
-                })),
-                &err,
-            ),
-        }
+        // let result = self
+        //     .list_directory_internal(request)
+        //     .instrument(record.span.clone())
+        //     .await;
+        // match result {
+        //     Ok(response) => record.succeed(Ok(Response::new(response))),
+        //     Err(err) => record.fail(
+        //         Ok(Response::new(ListDirectoryResponse {
+        //             result: Some(
+        //                 golem::workerexecutor::v1::list_directory_response::Result::Failure(
+        //                     err.clone().into(),
+        //                 ),
+        //             ),
+        //         })),
+        //         &err,
+        //     ),
+        // }
     }
 
     type GetFileContentsStream = FileChunkStream;

@@ -21,7 +21,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::ops::Add;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, RwLock, Weak};
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime};
 use std::vec;
 
 use crate::error::GolemError;
@@ -39,8 +39,7 @@ use crate::services::worker::WorkerService;
 use crate::services::worker_event::WorkerEventService;
 use crate::services::{worker_enumeration, HasAll, HasConfig, HasOplog, HasWorker};
 use crate::workerctx::{
-    ExternalOperations, IndexedResourceStore, InvocationHooks, InvocationManagement,
-    PublicWorkerIo, StatusManagement, UpdateManagement, WorkerCtx,
+    ExternalOperations, FileSystemReading, IndexedResourceStore, InvocationHooks, InvocationManagement, PublicWorkerIo, StatusManagement, UpdateManagement, WorkerCtx
 };
 use anyhow::anyhow;
 use async_trait::async_trait;
@@ -52,7 +51,7 @@ use golem_common::model::oplog::{
 };
 use golem_common::model::regions::{DeletedRegions, OplogRegion};
 use golem_common::model::{
-    AccountId, ComponentId, ComponentType, ComponentVersion, FailedUpdateRecord, IdempotencyKey, InitialComponentFile, InitialComponentFilePermissions, OwnedWorkerId, ScanCursor, ScheduledAction, SuccessfulUpdateRecord, Timestamp, WorkerEvent, WorkerFilter, WorkerId, WorkerMetadata, WorkerResourceDescription, WorkerStatus, WorkerStatusRecord
+    AccountId, ComponentFileSystemFileNode, ComponentFileSystemNode, ComponentId, ComponentType, ComponentVersion, FailedUpdateRecord, IdempotencyKey, InitialComponentFile, InitialComponentFilePath, InitialComponentFilePermissions, OwnedWorkerId, ScanCursor, ScheduledAction, SuccessfulUpdateRecord, Timestamp, WorkerEvent, WorkerFilter, WorkerId, WorkerMetadata, WorkerResourceDescription, WorkerStatus, WorkerStatusRecord, ComponentFileSystemNodeKind
 };
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::wasmtime::ResourceStore;
@@ -1418,6 +1417,390 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> ExternalOperations<Ctx> for Dur
         Ok(())
     }
 }
+
+#[async_trait]
+impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWorkerCtx<Ctx> {
+    async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<Vec<ComponentFileSystemNode>, GolemError> {
+        let root = self._temp_dir.path();
+        let target = root.join(&PathBuf::from(path.to_rel_string()));
+        let mut entries = tokio::fs::read_dir(target).await.map_err(|e| GolemError::FileSystemError {
+            details: format!("Failed to list directory {path}: {e}"),
+        })?;
+        let mut result = Vec::new();
+        while let Some(entry) = entries.next_entry().await? {
+            let metadata = entry.metadata().await.map_err(|e| GolemError::FileSystemError {
+                details: format!("Failed to get file metadata {path}: {e}"),
+            })?;
+
+            let entry_name = entry.file_name().to_string_lossy().to_string();
+
+            let mut entry_path = path.clone();
+            entry_path
+                .extend(&entry_name)
+                .map_err(|_| GolemError::FileSystemError {
+                    details: format!("Could not handle file name for file {path}: {entry_name}"),
+                })?;
+
+            let last_modified = metadata.modified().ok().unwrap_or(SystemTime::UNIX_EPOCH);
+
+            if metadata.is_file() {
+                let is_readonly = metadata.permissions().readonly();
+                let permissions = if is_readonly {
+                    InitialComponentFilePermissions::ReadOnly
+                } else {
+                    InitialComponentFilePermissions::ReadWrite
+                };
+
+                result.push(ComponentFileSystemNode {
+                    path: entry_path,
+                    last_modified,
+                    kind: ComponentFileSystemNodeKind::File(
+                        ComponentFileSystemFileNode {
+                            size: metadata.len(),
+                            permissions,
+                        }
+                    ),
+                });
+            } else {
+                result.push(ComponentFileSystemNode {
+                    path: entry_path,
+                    last_modified,
+                    kind: ComponentFileSystemNodeKind::Directory
+                });
+            };
+        }
+        Ok(result)
+    }
+
+    async fn read_file(&self, path: &InitialComponentFilePath) -> Result<Vec<u8>, GolemError> {
+        let root = self._temp_dir.path();
+        let target = root.join(&PathBuf::from(path.to_rel_string()));
+        tokio::fs::read(target).await.map_err(|e| GolemError::FileSystemError {
+            details: format!("Failed to read file {path}: {e}"),
+        })
+    }
+
+
+    // type ExtraDeps = Ctx::ExtraDeps;
+
+    // async fn get_last_error_and_retry_count<T: HasAll<Ctx> + Send + Sync>(
+    //     this: &T,
+    //     owned_worker_id: &OwnedWorkerId,
+    // ) -> Option<LastError> {
+    //     last_error_and_retry_count(this, owned_worker_id).await
+    // }
+
+    // async fn compute_latest_worker_status<T: HasOplogService + HasConfig + Send + Sync>(
+    //     this: &T,
+    //     owned_worker_id: &OwnedWorkerId,
+    //     metadata: &Option<WorkerMetadata>,
+    // ) -> Result<WorkerStatusRecord, GolemError> {
+    //     calculate_last_known_status(this, owned_worker_id, metadata).await
+    // }
+
+    // async fn prepare_instance(
+    //     worker_id: &WorkerId,
+    //     instance: &Instance,
+    //     store: &mut (impl AsContextMut<Data = Ctx> + Send),
+    // ) -> Result<RetryDecision, GolemError> {
+    //     debug!("Starting prepare_instance");
+    //     let start = Instant::now();
+    //     let mut count = 0;
+
+    //     store.as_context_mut().data_mut().set_running();
+
+    //     if store
+    //         .as_context()
+    //         .data()
+    //         .component_metadata()
+    //         .component_type
+    //         == ComponentType::Ephemeral
+    //     {
+    //         // Ephemeral workers cannot be recovered
+
+    //         // Moving to the end of the oplog
+    //         store
+    //             .as_context_mut()
+    //             .data_mut()
+    //             .durable_ctx_mut()
+    //             .state
+    //             .replay_state
+    //             .switch_to_live();
+
+    //         // Appending a Restart marker
+    //         store
+    //             .as_context_mut()
+    //             .data_mut()
+    //             .get_public_state()
+    //             .oplog()
+    //             .add(OplogEntry::restart())
+    //             .await;
+
+    //         Ok(RetryDecision::None)
+    //     } else {
+    //         // Handle the case when recovery immediately starts in a deleted region
+    //         // (for example due to a manual update)
+    //         store
+    //             .as_context_mut()
+    //             .data_mut()
+    //             .durable_ctx_mut()
+    //             .state
+    //             .replay_state
+    //             .get_out_of_deleted_region()
+    //             .await;
+
+    //         let result = loop {
+    //             let cont = store.as_context().data().durable_ctx().state.is_replay();
+
+    //             if cont {
+    //                 let oplog_entry = store
+    //                     .as_context_mut()
+    //                     .data_mut()
+    //                     .durable_ctx_mut()
+    //                     .state
+    //                     .replay_state
+    //                     .get_oplog_entry_exported_function_invoked()
+    //                     .await;
+    //                 match oplog_entry {
+    //                     Err(error) => break Err(error),
+    //                     Ok(None) => break Ok(RetryDecision::None),
+    //                     Ok(Some((function_name, function_input, idempotency_key))) => {
+    //                         debug!("Replaying function {function_name}");
+    //                         let span = span!(Level::INFO, "replaying", function = function_name);
+    //                         store
+    //                             .as_context_mut()
+    //                             .data_mut()
+    //                             .set_current_idempotency_key(idempotency_key)
+    //                             .await;
+
+    //                         let full_function_name = function_name.to_string();
+    //                         let invoke_result = invoke_worker(
+    //                             full_function_name.clone(),
+    //                             function_input.clone(),
+    //                             store,
+    //                             instance,
+    //                         )
+    //                         .instrument(span)
+    //                         .await;
+
+    //                         match invoke_result {
+    //                             Ok(InvokeResult::Succeeded {
+    //                                 output,
+    //                                 consumed_fuel,
+    //                             }) => {
+    //                                 let component_metadata =
+    //                                     store.as_context().data().component_metadata();
+
+    //                                 match exports::function_by_name(
+    //                                     &component_metadata.exports,
+    //                                     &full_function_name,
+    //                                 ) {
+    //                                     Ok(value) => {
+    //                                         if let Some(value) = value {
+    //                                             let result = interpret_function_results(
+    //                                                 output,
+    //                                                 value.results,
+    //                                             )
+    //                                             .map_err(|e| GolemError::ValueMismatch {
+    //                                                 details: e.join(", "),
+    //                                             })?;
+    //                                             if let Err(err) = store
+    //                                                 .as_context_mut()
+    //                                                 .data_mut()
+    //                                                 .on_invocation_success(
+    //                                                     &full_function_name,
+    //                                                     &function_input,
+    //                                                     consumed_fuel,
+    //                                                     result,
+    //                                                 )
+    //                                                 .await
+    //                                             {
+    //                                                 break Err(err);
+    //                                             }
+    //                                         } else {
+    //                                             let trap_type = TrapType::Error(
+    //                                                 WorkerError::InvalidRequest(format!(
+    //                                                     "Function {full_function_name} not found"
+    //                                                 )),
+    //                                             );
+
+    //                                             let _ = store
+    //                                                 .as_context_mut()
+    //                                                 .data_mut()
+    //                                                 .on_invocation_failure(&trap_type)
+    //                                                 .await;
+
+    //                                             break Err(GolemError::invalid_request(format!(
+    //                                                 "Function {full_function_name} not found"
+    //                                             )));
+    //                                         }
+    //                                     }
+    //                                     Err(err) => {
+    //                                         let trap_type = TrapType::Error(
+    //                                             WorkerError::InvalidRequest(format!(
+    //                                                 "Function {full_function_name} not found: {err}"
+    //                                             )),
+    //                                         );
+
+    //                                         let _ = store
+    //                                             .as_context_mut()
+    //                                             .data_mut()
+    //                                             .on_invocation_failure(&trap_type)
+    //                                             .await;
+
+    //                                         break Err(GolemError::invalid_request(format!(
+    //                                             "Function {full_function_name} not found: {err}"
+    //                                         )));
+    //                                     }
+    //                                 }
+    //                                 count += 1;
+    //                                 continue;
+    //                             }
+    //                             _ => {
+    //                                 let trap_type = match invoke_result {
+    //                                     Ok(invoke_result) => invoke_result.as_trap_type::<Ctx>(),
+    //                                     Err(error) => {
+    //                                         Some(TrapType::from_error::<Ctx>(&anyhow!(error)))
+    //                                     }
+    //                                 };
+    //                                 let decision = match trap_type {
+    //                                     Some(trap_type) => {
+    //                                         let decision = store
+    //                                             .as_context_mut()
+    //                                             .data_mut()
+    //                                             .on_invocation_failure(&trap_type)
+    //                                             .await;
+
+    //                                         if decision == RetryDecision::None {
+    //                                             // Cannot retry so we need to fail
+    //                                             match trap_type {
+    //                                                 TrapType::Interrupt(interrupt_kind) => {
+    //                                                     if interrupt_kind
+    //                                                         == InterruptKind::Interrupt
+    //                                                     {
+    //                                                         break Err(GolemError::runtime(
+    //                                                             "Interrupted via the Golem API",
+    //                                                         ));
+    //                                                     } else {
+    //                                                         break Err(GolemError::runtime("The worker could not finish replaying a function {function_name}"));
+    //                                                     }
+    //                                                 }
+    //                                                 TrapType::Exit => {
+    //                                                     break Err(GolemError::runtime(
+    //                                                         "Process exited",
+    //                                                     ))
+    //                                                 }
+    //                                                 TrapType::Error(error) => {
+    //                                                     let stderr = store
+    //                                                         .as_context()
+    //                                                         .data()
+    //                                                         .get_public_state()
+    //                                                         .event_service()
+    //                                                         .get_last_invocation_errors();
+    //                                                     break Err(GolemError::runtime(
+    //                                                         error.to_string(&stderr),
+    //                                                     ));
+    //                                                 }
+    //                                             }
+    //                                         }
+
+    //                                         decision
+    //                                     }
+    //                                     None => RetryDecision::None,
+    //                                 };
+
+    //                                 break Ok(decision);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             } else {
+    //                 break Ok(RetryDecision::None);
+    //             }
+    //         };
+    //         record_resume_worker(start.elapsed());
+    //         record_number_of_replayed_functions(count);
+
+    //         let final_decision = Self::finalize_pending_update(&result, instance, store).await;
+
+    //         // The update finalization has the right to override the Err result with an explicit retry request
+    //         if final_decision != RetryDecision::None {
+    //             debug!("Retrying prepare_instance after failed update attempt");
+    //             Ok(final_decision)
+    //         } else {
+    //             store.as_context_mut().data_mut().set_suspended().await?;
+    //             debug!("Finished prepare_instance");
+    //             result.map_err(|err| GolemError::failed_to_resume_worker(worker_id.clone(), err))
+    //         }
+    //     }
+    // }
+
+    // async fn record_last_known_limits<T: HasAll<Ctx> + Send + Sync>(
+    //     _this: &T,
+    //     _account_id: &AccountId,
+    //     _last_known_limits: &CurrentResourceLimits,
+    // ) -> Result<(), GolemError> {
+    //     Ok(())
+    // }
+
+    // async fn on_worker_deleted<T: HasAll<Ctx> + Send + Sync>(
+    //     _this: &T,
+    //     _worker_id: &WorkerId,
+    // ) -> Result<(), GolemError> {
+    //     Ok(())
+    // }
+
+    // async fn on_shard_assignment_changed<T: HasAll<Ctx> + Send + Sync + 'static>(
+    //     this: &T,
+    // ) -> Result<(), anyhow::Error> {
+    //     info!("Recovering workers");
+
+    //     let workers = this.worker_service().get_running_workers_in_shards().await;
+
+    //     debug!("Recovering running workers: {:?}", workers);
+
+    //     let default_retry_config = &this.config().retry;
+    //     for worker in workers {
+    //         let owned_worker_id = worker.owned_worker_id();
+    //         let actualized_metadata =
+    //             calculate_last_known_status(this, &owned_worker_id, &Some(worker)).await?;
+    //         let last_error = Self::get_last_error_and_retry_count(this, &owned_worker_id).await;
+    //         let decision = Self::get_recovery_decision_on_startup(
+    //             actualized_metadata
+    //                 .overridden_retry_config
+    //                 .as_ref()
+    //                 .unwrap_or(default_retry_config),
+    //             &last_error,
+    //         );
+
+    //         if let Some(last_error) = last_error {
+    //             debug!("Recovery decision after {last_error}: {decision:?}");
+    //         }
+
+    //         match decision {
+    //             RetryDecision::Immediate | RetryDecision::ReacquirePermits => {
+    //                 let _ = Worker::get_or_create_running(
+    //                     this,
+    //                     &owned_worker_id,
+    //                     None,
+    //                     None,
+    //                     None,
+    //                     None,
+    //                 )
+    //                 .await?;
+    //             }
+    //             RetryDecision::Delayed(_) => {
+    //                 panic!("Delayed recovery on startup is not supported currently")
+    //             }
+    //             RetryDecision::None => {}
+    //         }
+    //     }
+
+    //     info!("Finished recovering workers");
+    //     Ok(())
+    // }
+}
+
 
 async fn last_error_and_retry_count<T: HasOplogService + HasConfig>(
     this: &T,

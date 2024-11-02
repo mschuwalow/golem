@@ -101,6 +101,9 @@ pub enum GolemError {
         path: String,
         reason: String,
     },
+    FileSystemError {
+        details: String,
+    },
 }
 
 impl GolemError {
