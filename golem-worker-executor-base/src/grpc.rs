@@ -1227,6 +1227,36 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
 
         self.ensure_worker_belongs_to_this_executor(&worker_id)?;
 
+        let metadata = self.worker_service().get(&owned_worker_id).await;
+        self.validate_worker_status(&owned_worker_id, &metadata)
+            .await?;
+
+        let worker_status =
+            Ctx::compute_latest_worker_status(self, &owned_worker_id, &metadata).await?;
+
+        match &worker_status.status {
+            WorkerStatus::Suspended | WorkerStatus::Interrupted | WorkerStatus::Idle => {
+                info!(
+                    "Activating {:?} worker {worker_id} due to explicit resume request",
+                    worker_status.status
+                );
+                let worker = Worker::get_or_create_running(
+                    &self.services,
+                    &owned_worker_id,
+                    None,
+                    None,
+                    None,
+                    None,
+                )
+                .await?;
+                Ok(())
+            }
+            _ => Err(GolemError::invalid_request(format!(
+                "Worker {worker_id} is not suspended, interrupted or idle",
+                worker_id = worker_id
+            ))),
+        }
+
         panic!("Not implemented")
 
         // let chunk = match request.cursor {
