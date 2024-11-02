@@ -13,15 +13,14 @@
 // limitations under the License.
 
 use std::{collections::HashMap, sync::Arc};
-
 use async_trait::async_trait;
+use bytes::Bytes;
 use golem_wasm_ast::analysis::AnalysedFunctionResult;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::protobuf::Val as ProtoVal;
 use tonic::transport::Channel;
 use tonic::Code;
 use tracing::{error, info};
-
 use golem_api_grpc::proto::golem::worker::UpdateMode;
 use golem_api_grpc::proto::golem::worker::{InvocationContext, InvokeResult};
 use golem_api_grpc::proto::golem::workerexecutor;
@@ -42,9 +41,8 @@ use golem_service_base::model::{
     GetOplogResponse, GolemErrorUnknown, PublicOplogEntryWithIndex, ResourceLimits, WorkerMetadata,
 };
 use golem_service_base::service::routing_table::{HasRoutingTableService, RoutingTableService};
-
+use golem_api_grpc::proto::golem::worker::LogEvent;
 use crate::service::component::ComponentService;
-
 use super::{
     AllExecutors, CallWorkerExecutorError, ConnectWorkerStream, HasWorkerExecutorClients,
     RandomExecutor, ResponseMapResult, RoutingLogic, WorkerServiceError,
@@ -69,7 +67,7 @@ pub trait WorkerService<AuthCtx> {
         worker_id: &WorkerId,
         metadata: WorkerRequestMetadata,
         auth_ctx: &AuthCtx,
-    ) -> WorkerResult<ConnectWorkerStream>;
+    ) -> WorkerResult<ConnectWorkerStream<LogEvent>>;
 
     async fn delete(
         &self,
@@ -357,7 +355,7 @@ where
         worker_id: &WorkerId,
         metadata: WorkerRequestMetadata,
         _auth_ctx: &AuthCtx,
-    ) -> WorkerResult<ConnectWorkerStream> {
+    ) -> WorkerResult<ConnectWorkerStream<LogEvent>> {
         let worker_id = worker_id.clone();
         let worker_id_err: WorkerId = worker_id.clone();
         let stream = self
@@ -1031,22 +1029,6 @@ where
                             .map_err(|_| "Failed to convert node".into())
                         )
                         .collect::<Result<Vec<_>, _>>()
-                    // let entries: Vec<PublicOplogEntryWithIndex> = entries
-                    //     .into_iter()
-                    //     .map(|e| e.try_into())
-                    //     .collect::<Result<Vec<_>, _>>()
-                    //     .map_err(|err| {
-                    //         GolemError::Unknown(GolemErrorUnknown {
-                    //             details: format!("Unexpected oplog entries in error: {err}"),
-                    //         })
-                    //     })?;
-                    // let first_index_in_chunk =  entries.first().map(|entry| entry.oplog_index).unwrap_or(OplogIndex::INITIAL).into();
-                    // Ok(GetOplogResponse {
-                    //     entries,
-                    //     next: next.map(|c| c.into()),
-                    //     first_index_in_chunk,
-                    //     last_index,
-                    // })
                 }
                 workerexecutor::v1::ListDirectoryResponse {
                     result: Some(workerexecutor::v1::list_directory_response::Result::Failure(err)),
@@ -1057,6 +1039,43 @@ where
         )
             .await
     }
+
+    async fn get_file_contents(
+        &self,
+        worker_id: &WorkerId,
+        path: InitialComponentFilePath,
+        metadata: WorkerRequestMetadata,
+        _auth_ctx: &AuthCtx,
+    ) -> WorkerResult<ConnectWorkerStream<Bytes>> {
+        let worker_id = worker_id.clone();
+        let worker_id_err: WorkerId = worker_id.clone();
+        let stream = self
+            .call_worker_executor(
+                worker_id.clone(),
+                "read_file",
+                move |worker_executor_client| {
+                    info!("Connect worker");
+                    Box::pin(worker_executor_client.get_file_contents(workerexecutor::v1::GetFileContentsRequest {
+                        worker_id: Some(worker_id.clone().into()),
+                        account_id: metadata.account_id.clone().map(|id| id.into()),
+                        file_path: path.to_string()
+                    }))
+                },
+                |response| Ok(ConnectWorkerStream::new(response.into_inner())),
+                |error| match error {
+                    CallWorkerExecutorError::FailedToConnectToPod(status)
+                        if status.code() == Code::NotFound =>
+                    {
+                        WorkerServiceError::WorkerNotFound(worker_id_err.clone())
+                    }
+                    _ => WorkerServiceError::InternalCallError(error),
+                },
+            )
+            .await?;
+
+        Ok(stream)
+    }
+
 }
 
 impl<AuthCtx> WorkerServiceDefault<AuthCtx>

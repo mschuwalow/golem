@@ -28,13 +28,13 @@ use golem_common::metrics::api::{
     record_closed_grpc_api_active_stream, record_new_grpc_api_active_stream,
 };
 
-pub struct ConnectWorkerStream {
-    receiver: mpsc::Receiver<Result<LogEvent, Status>>,
+pub struct ConnectWorkerStream<T> {
+    receiver: mpsc::Receiver<Result<T, Status>>,
     cancel: CancellationToken,
 }
 
-impl ConnectWorkerStream {
-    pub fn new(streaming: Streaming<LogEvent>) -> Self {
+impl<T: Send + 'static> ConnectWorkerStream<T> {
+    pub fn new(streaming: Streaming<T>) -> Self {
         // Create a channel which is Send and Sync.
         // Streaming is not Sync.
         let (sender, receiver) = mpsc::channel(32);
@@ -78,18 +78,18 @@ impl ConnectWorkerStream {
     }
 }
 
-impl Stream for ConnectWorkerStream {
-    type Item = Result<LogEvent, Status>;
+impl<T: Send + 'static> Stream for ConnectWorkerStream<T> {
+    type Item = Result<T, Status>;
 
     fn poll_next(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-    ) -> Poll<Option<Result<LogEvent, Status>>> {
+    ) -> Poll<Option<Result<T, Status>>> {
         self.receiver.poll_recv(cx)
     }
 }
 
-impl Drop for ConnectWorkerStream {
+impl<T> Drop for ConnectWorkerStream<T> {
     fn drop(&mut self) {
         self.cancel.cancel();
     }
