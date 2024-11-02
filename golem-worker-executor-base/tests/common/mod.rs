@@ -19,7 +19,7 @@ use std::sync::atomic::Ordering;
 use std::sync::{Arc, RwLock, Weak};
 
 use golem_common::model::{
-    AccountId, ComponentId, ComponentVersion, IdempotencyKey, InitialComponentFilePath, OwnedWorkerId, ScanCursor, WorkerFilter, WorkerId, WorkerMetadata, WorkerStatus, WorkerStatusRecord
+    AccountId, ComponentFileSystemNode, ComponentId, ComponentVersion, IdempotencyKey, InitialComponentFilePath, OwnedWorkerId, ScanCursor, WorkerFilter, WorkerId, WorkerMetadata, WorkerStatus, WorkerStatusRecord
 };
 use golem_worker_executor_base::error::GolemError;
 use golem_worker_executor_base::services::golem_config::{
@@ -751,7 +751,7 @@ impl ResourceLimiterAsync for TestWorkerCtx {
 
 #[async_trait]
 impl FileSystemReading for TestWorkerCtx {
-    async fn list_directory(&self, path: &Path) -> Result<Vec<PathBuf>, GolemError> {
+    async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<Vec<ComponentFileSystemNode>, GolemError> {
         self.durable_ctx.list_directory(path).await
     }
 
