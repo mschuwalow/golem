@@ -36,7 +36,7 @@ use golem_api_grpc::proto::golem::worker::v1::{
     SearchOplogResponse, SearchOplogSuccessResponse, UnknownError, UpdateWorkerRequest,
     UpdateWorkerResponse, WorkerError as GrpcWorkerError, WorkerExecutionError,
 };
-use golem_api_grpc::proto::golem::worker::{InvokeResult, InvokeResultTyped, WorkerMetadata};
+use golem_api_grpc::proto::golem::worker::{InvokeResult, InvokeResultTyped, LogEvent, WorkerMetadata};
 use golem_common::grpc::{
     proto_component_id_string, proto_idempotency_key_string,
     proto_invocation_context_parent_worker_id_string, proto_target_worker_id_string,
@@ -48,7 +48,7 @@ use golem_common::recorded_grpc_api_request;
 use golem_service_base::auth::EmptyAuthCtx;
 use golem_service_base::model::validate_worker_name;
 use golem_worker_service_base::api::WorkerTraceErrorKind;
-use golem_worker_service_base::service::worker::ConnectWorkerStream;
+use golem_worker_service_base::service::worker::WorkerStream;
 
 use crate::empty_worker_metadata;
 use crate::service::component::ComponentService;
@@ -390,7 +390,7 @@ impl GrpcWorkerService for WorkerGrpcApi {
         }))
     }
 
-    type ConnectWorkerStream = golem_worker_service_base::service::worker::ConnectWorkerStream;
+    type ConnectWorkerStream = golem_worker_service_base::service::worker::WorkerStream<LogEvent>;
 
     async fn connect_worker(
         &self,
@@ -831,7 +831,7 @@ impl WorkerGrpcApi {
     async fn connect_worker(
         &self,
         request: ConnectWorkerRequest,
-    ) -> Result<ConnectWorkerStream, GrpcWorkerError> {
+    ) -> Result<WorkerStream, GrpcWorkerError> {
         let worker_id = validate_protobuf_worker_id(request.worker_id)?;
         let stream = self
             .worker_service
