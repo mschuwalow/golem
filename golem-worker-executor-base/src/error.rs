@@ -102,7 +102,8 @@ pub enum GolemError {
         reason: String,
     },
     FileSystemError {
-        details: String,
+        path: String,
+        reason: String,
     },
 }
 
@@ -287,6 +288,15 @@ impl Display for GolemError {
             }
             GolemError::ShardingNotReady => {
                 write!(f, "Sharding not ready")
+            }
+            GolemError::FileSystemError {
+                path,
+                reason,
+            } => {
+                write!(
+                    f,
+                    "Failed to access file in worker filesystem {path}: {reason}"
+                )
             }
         }
     }
@@ -622,10 +632,10 @@ impl From<GolemError> for golem::worker::v1::WorkerExecutionError {
                     ),
                 ),
             },
-            GolemError::FileSystemError { details } => golem::worker::v1::WorkerExecutionError {
+            GolemError::FileSystemError { path, reason } => golem::worker::v1::WorkerExecutionError {
                 error: Some(
                     golem::worker::v1::worker_execution_error::Error::FileSystemError(
-                        golem::worker::v1::FileSystemError { details },
+                        golem::worker::v1::FileSystemError { path, reason },
                     ),
                 ),
             },
@@ -802,6 +812,12 @@ impl TryFrom<golem::worker::v1::WorkerExecutionError> for GolemError {
             )) => Ok(GolemError::InitialComponentFileDownloadFailed {
                 path: initial_file_download_failed.path,
                 reason: initial_file_download_failed.reason,
+            }),
+            Some(golem::worker::v1::worker_execution_error::Error::FileSystemError(
+                file_system_error,
+            )) => Ok(GolemError::FileSystemError {
+                path: file_system_error.path,
+                reason: file_system_error.reason,
             }),
         }
     }

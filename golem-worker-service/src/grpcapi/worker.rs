@@ -1105,6 +1105,9 @@ fn error_to_status(error: GrpcWorkerError) -> Status {
                 worker_execution_error::Error::InitialComponentFileDownloadFailed(_) => {
                     "Initial File Download Failed".to_string()
                 }
+                worker_execution_error::Error::FileSystemError(_) => {
+                    "Failed accessing worker filesystem".to_string()
+                }
             };
             Status::internal(message)
         }

@@ -1080,6 +1080,9 @@ pub fn worker_error_message(error: &Error) -> String {
                 worker_execution_error::Error::InitialComponentFileDownloadFailed(error) => {
                     format!("Initial File download failed: {}", error.reason)
                 }
+                worker_execution_error::Error::FileSystemError(error) => {
+                    format!("File system error: {}", error.reason)
+                }
             },
         },
     }

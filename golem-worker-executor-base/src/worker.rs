@@ -975,10 +975,10 @@ impl<Ctx: WorkerCtx> Worker<Ctx> {
                             }
                         },
                         QueuedWorkerInvocation::ListDirectory { sender, .. } => {
-                            sender.send(Err(fail_pending_invocations.clone())).ok();
+                            let _ = sender.send(Err(fail_pending_invocations.clone()));
                         },
                         QueuedWorkerInvocation::ReadFile { sender, .. } => {
-                            sender.send(Err(fail_pending_invocations.clone())).ok();
+                            let _ = sender.send(Err(fail_pending_invocations.clone()));
                         },
                     }
 
@@ -1441,7 +1441,7 @@ impl RunningWorker {
                             match message {
                                 QueuedWorkerInvocation::ListDirectory { path, sender } => {
                                     let result = store.data_mut().list_directory(&path).await;
-                                    sender.send(result);
+                                    let _ = sender.send(result);
                                 },
                                 QueuedWorkerInvocation::ReadFile { path, sender } => {
                                     // Wait until the client is done with the file to avoid corruption.
@@ -1453,8 +1453,8 @@ impl RunningWorker {
 
                                     let stream = store.data_mut().read_file(&path);
                                     let drop_stream = DropStream::new(stream, || latch.send(()).unwrap());
-                                    sender.send(Ok(Box::pin(drop_stream)));
-                                    latch_receiver.await;
+                                    let _ = sender.send(Ok(Box::pin(drop_stream)));
+                                    latch_receiver.await.unwrap();
                                 },
                                 QueuedWorkerInvocation::External(inner) => {
                                     match inner.invocation {

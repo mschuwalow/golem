@@ -1427,12 +1427,14 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWo
         let root = self._temp_dir.path();
         let target = root.join(&PathBuf::from(path.to_rel_string()));
         let mut entries = tokio::fs::read_dir(target).await.map_err(|e| GolemError::FileSystemError {
-            details: format!("Failed to list directory {path}: {e}"),
+            path: path.to_string(),
+            reason: format!("Failed to list directory: {e}"),
         })?;
         let mut result = Vec::new();
         while let Some(entry) = entries.next_entry().await? {
             let metadata = entry.metadata().await.map_err(|e| GolemError::FileSystemError {
-                details: format!("Failed to get file metadata {path}: {e}"),
+                path: path.to_string(),
+                reason: format!("Failed to get file metadata {e}"),
             })?;
 
             let entry_name = entry.file_name().to_string_lossy().to_string();
@@ -1475,7 +1477,8 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWo
             .map_ok(|file| FramedRead::new(file, BytesCodec::new()).map_ok(BytesMut::freeze))
             .try_flatten_stream()
             .map_err(move |e| GolemError::FileSystemError {
-                details: format!("Failed to open file {path_clone}: {e}"),
+                path: path_clone.to_string(),
+                reason: format!("Failed to open file: {e}"),
             });
 
         Box::pin(stream)

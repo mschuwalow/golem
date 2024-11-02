@@ -4031,9 +4031,11 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "bytes 1.8.0",
  "cap-std",
  "console-subscriber",
  "figment",
+ "futures",
  "golem-api-grpc",
  "golem-common",
  "golem-wasm-rpc",

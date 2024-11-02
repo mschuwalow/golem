@@ -987,6 +987,42 @@ impl From<GolemErrorInitialComponentFileDownloadFailed>
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Object, thiserror::Error)]
+#[error("Error with accessing worker files")]
+pub struct GolemErrorFileSystemError {
+    pub path: String,
+    pub reason: String,
+}
+
+impl SafeDisplay for GolemErrorFileSystemError {
+    fn to_safe_string(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl From<golem_api_grpc::proto::golem::worker::v1::FileSystemError>
+    for GolemErrorFileSystemError
+{
+
+    fn from(value: golem_api_grpc::proto::golem::worker::v1::FileSystemError) -> Self {
+        Self {
+            path: value.path,
+            reason: value.reason,
+        }
+    }
+}
+
+impl From<GolemErrorFileSystemError>
+    for golem_api_grpc::proto::golem::worker::v1::FileSystemError
+{
+    fn from(value: GolemErrorFileSystemError) -> Self {
+        Self {
+            path: value.path,
+            reason: value.reason,
+         }
+    }
+}
+
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Object, thiserror::Error)]
 #[error("Invalid account")]
@@ -1427,6 +1463,8 @@ pub enum GolemError {
     ShardingNotReady(GolemErrorShardingNotReady),
     #[error(transparent)]
     InitialComponentFileDownloadFailed(GolemErrorInitialComponentFileDownloadFailed),
+    #[error(transparent)]
+    FileSystemError(GolemErrorFileSystemError),
 }
 
 impl SafeDisplay for GolemError {
@@ -1456,6 +1494,7 @@ impl SafeDisplay for GolemError {
             GolemError::InvalidAccount(inner) => inner.to_safe_string(),
             GolemError::ShardingNotReady(inner) => inner.to_safe_string(),
             GolemError::InitialComponentFileDownloadFailed(inner) => inner.to_safe_string(),
+            GolemError::FileSystemError(inner) => inner.to_safe_string(),
         }
     }
 }
@@ -1542,6 +1581,9 @@ impl TryFrom<golem_api_grpc::proto::golem::worker::v1::WorkerExecutionError> for
             }
             Some(golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::InitialComponentFileDownloadFailed(err)) => {
                 Ok(GolemError::InitialComponentFileDownloadFailed(err.into()))
+            }
+            Some(golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::FileSystemError(err)) => {
+                Ok(GolemError::FileSystemError(err.into()))
             }
             None => Err("Missing field: error".to_string()),
         }
@@ -1630,6 +1672,9 @@ impl From<GolemError> for golem_api_grpc::proto::golem::worker::v1::worker_execu
             }
             GolemError::InitialComponentFileDownloadFailed(err) => {
                 golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::InitialComponentFileDownloadFailed(err.into())
+            }
+            GolemError::FileSystemError(err) => {
+                golem_api_grpc::proto::golem::worker::v1::worker_execution_error::Error::FileSystemError(err.into())
             }
         }
     }

@@ -14,7 +14,6 @@
 
 use std::pin::Pin;
 use std::sync::{Arc, RwLock, Weak};
-
 use anyhow::Error;
 use async_trait::async_trait;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
@@ -23,7 +22,6 @@ use golem_wasm_rpc::{Uri, Value};
 use golem_worker_executor_base::services::file_loader::FileLoader;
 use wasmtime::component::{Instance, ResourceAny};
 use wasmtime::{AsContextMut, ResourceLimiterAsync};
-
 use golem_common::model::oplog::WorkerResourceId;
 use golem_common::model::{
     AccountId, ComponentVersion, IdempotencyKey, OwnedWorkerId, WorkerId, WorkerMetadata,
@@ -57,6 +55,7 @@ use golem_worker_executor_base::worker::{RetryDecision, Worker};
 use golem_worker_executor_base::workerctx::{
     ExternalOperations, FileSystemReading, FuelManagement, IndexedResourceStore, InvocationHooks, InvocationManagement, StatusManagement, UpdateManagement, WorkerCtx
 };
+use golem_common::model::{InitialComponentFilePath, ComponentFileSystemNode};
 
 use crate::services::AdditionalDeps;
 
@@ -418,7 +417,7 @@ impl FileSystemReading for Context {
         self.durable_ctx.list_directory(path).await
     }
 
-    fn read_file(&self, path: &InitialComponentFilePath) -> Box<Pin<dyn Stream<Output = Result<Bytes, GolemError>>>> {
+    fn read_file(&self, path: &InitialComponentFilePath) -> Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send + 'static>> {
         self.durable_ctx.read_file(path)
     }
 }
