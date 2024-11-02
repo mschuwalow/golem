@@ -31,19 +31,15 @@ use tonic::{Request, Response, Status};
 use tracing::{debug, error, info, warn, Instrument};
 use uuid::Uuid;
 use wasmtime::Error;
-
+use futures_util::StreamExt;
+use futures_util::TryStreamExt;
 use crate::error::*;
 use golem_api_grpc::proto::golem;
 use golem_api_grpc::proto::golem::common::ResourceLimits as GrpcResourceLimits;
-use golem_api_grpc::proto::golem::worker::{Cursor, ResourceMetadata, UpdateMode};
+use golem_api_grpc::proto::golem::worker::{Cursor, FileChunk, ResourceMetadata, UpdateMode};
 use golem_api_grpc::proto::golem::workerexecutor::v1::worker_executor_server::WorkerExecutor;
 use golem_api_grpc::proto::golem::workerexecutor::v1::{
-    ConnectWorkerRequest, DeleteWorkerRequest, GetOplogRequest, GetOplogResponse,
-    GetRunningWorkersMetadataRequest, GetRunningWorkersMetadataResponse, GetWorkersMetadataRequest,
-    GetWorkersMetadataResponse, InvokeAndAwaitWorkerRequest, InvokeAndAwaitWorkerResponseTyped,
-    InvokeAndAwaitWorkerSuccess, SearchOplogRequest, SearchOplogResponse, UpdateWorkerRequest,
-    UpdateWorkerResponse, ListDirectoryRequest, ListDirectoryResponse, GetFileContentsRequest,
-    ReadFileRequest
+    ConnectWorkerRequest, DeleteWorkerRequest, GetFileContentsRequest, GetFileContentsResponse, GetOplogRequest, GetOplogResponse, GetRunningWorkersMetadataRequest, GetRunningWorkersMetadataResponse, GetWorkersMetadataRequest, GetWorkersMetadataResponse, InvokeAndAwaitWorkerRequest, InvokeAndAwaitWorkerResponseTyped, InvokeAndAwaitWorkerSuccess, ListDirectoryRequest, ListDirectoryResponse, ReadFileRequest, SearchOplogRequest, SearchOplogResponse, UpdateWorkerRequest, UpdateWorkerResponse
 };
 use golem_common::grpc::{
     proto_account_id_string, proto_component_id_string, proto_idempotency_key_string,
@@ -68,7 +64,7 @@ use crate::services::{
     HasPromiseService, HasRunningWorkerEnumerationService, HasShardManagerService, HasShardService,
     HasWorkerEnumerationService, HasWorkerService, UsesAllDeps,
 };
-use crate::worker::Worker;
+use crate::worker::{FileContentHandle, Worker};
 use crate::workerctx::WorkerCtx;
 
 pub enum GrpcError<E> {
@@ -1279,73 +1275,85 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
         }
     }
 
-    async fn read_file_internal(
+    async fn get_file_contents_internal(
         &self,
         request: ReadFileRequest,
-    ) -> Result<Vec<u8>, GolemError> {
-        todo!()
-        // let worker_id = request
-        // .worker_id
-        // .ok_or(GolemError::invalid_request("worker_id not found"))?;
-        // let worker_id: WorkerId = worker_id.try_into().map_err(GolemError::invalid_request)?;
+    ) -> Result<(<Self as WorkerExecutor>::GetFileContentsStream, FileContentHandle), GolemError> {
+        let worker_id = request
+            .worker_id
+            .ok_or(GolemError::invalid_request("worker_id not found"))?;
+        let worker_id: WorkerId = worker_id.try_into().map_err(GolemError::invalid_request)?;
 
-        // let account_id = request
-        //     .account_id
-        //     .ok_or(GolemError::invalid_request("account_id not found"))?;
+        let account_id = request
+            .account_id
+            .ok_or(GolemError::invalid_request("account_id not found"))?;
 
-        // let path = InitialComponentFilePath::from_str(&request.path)
-        //     .map_err(|e| GolemError::invalid_request(format!("Invalid path: {}", e)))?;
+        let path = InitialComponentFilePath::from_str(&request.path)
+            .map_err(|e| GolemError::invalid_request(format!("Invalid path: {}", e)))?;
 
-        // let account_id: AccountId = account_id.into();
+        let account_id: AccountId = account_id.into();
 
-        // let owned_worker_id = OwnedWorkerId::new(&account_id, &worker_id);
+        let owned_worker_id = OwnedWorkerId::new(&account_id, &worker_id);
 
-        // self.ensure_worker_belongs_to_this_executor(&worker_id)?;
+        self.ensure_worker_belongs_to_this_executor(&worker_id)?;
 
-        // let metadata = self.worker_service().get(&owned_worker_id).await;
-        // self.validate_worker_status(&owned_worker_id, &metadata)
-        //     .await?;
+        let metadata = self.worker_service().get(&owned_worker_id).await;
+        self.validate_worker_status(&owned_worker_id, &metadata)
+            .await?;
 
-        // let worker_status =
-        //     Ctx::compute_latest_worker_status(self, &owned_worker_id, &metadata).await?;
+        let worker_status =
+            Ctx::compute_latest_worker_status(self, &owned_worker_id, &metadata).await?;
 
-        // match &worker_status.status {
-        //     WorkerStatus::Suspended |
-        //     WorkerStatus::Interrupted |
-        //     WorkerStatus::Idle |
-        //     WorkerStatus::Running |
-        //     WorkerStatus::Retrying => {
-        //         info!(
-        //             "Activating {:?} worker {worker_id} due to explicit resume request",
-        //             worker_status.status
-        //         );
-        //         let worker = Worker::get_or_create_running(
-        //             &self.services,
-        //             &owned_worker_id,
-        //             None,
-        //             None,
-        //             None,
-        //             None,
-        //         )
-        //         .await?;
-        //         let result = worker.read_file(path).await?;
+        match &worker_status.status {
+            WorkerStatus::Suspended |
+            WorkerStatus::Interrupted |
+            WorkerStatus::Idle |
+            WorkerStatus::Running |
+            WorkerStatus::Retrying => {
+                info!(
+                    "Activating {:?} worker {worker_id} due to explicit resume request",
+                    worker_status.status
+                );
+                let worker = Worker::get_or_create_running(
+                    &self.services,
+                    &owned_worker_id,
+                    None,
+                    None,
+                    None,
+                    None,
+                )
+                .await?;
 
-        //         Ok(ListDirectoryResponse {
-        //             result: Some(golem::workerexecutor::v1::list_directory_response::Result::Success(
-        //                 golem::workerexecutor::v1::ListDirectorySuccessResponse {
-        //                     nodes: result
-        //                         .into_iter()
-        //                         .map(|entry| entry.into())
-        //                         .collect(),
-        //                 },
-        //             ))
-        //         })
+                let content_handle = worker.read_file(path).await?;
 
-        //     }
-        //     _ => Err(GolemError::invalid_request(format!(
-        //         "Worker {worker_id} is not suspended, interrupted, idle, running or retrying",
-        //         worker_id = worker_id
-        //     ))),
+                let content_stream = content_handle
+                    .data
+                    .map(|item| {
+                        let transformed = match item {
+                            Ok(data) => {
+                                GetFileContentsResponse {
+                                    result: Some(
+                                        golem::workerexecutor::v1::get_file_contents_response::Result::Success(data.into())
+                                    )
+                                }
+                            },
+                            Err(e) => {
+                                GetFileContentsResponse {
+                                    result: Some(
+                                        golem::workerexecutor::v1::get_file_contents_response::Result::Failure(e.into())
+                                    )
+                                }
+                            }
+                        };
+                        Ok(transformed)
+                    });
+              Ok((Box::pin(content_stream), content_handle))
+            }
+            _ => Err(GolemError::invalid_request(format!(
+                "Worker {worker_id} is not suspended, interrupted, idle, running or retrying",
+                worker_id = worker_id
+            ))),
+        }
     }
 
     fn create_proto_metadata(
@@ -2117,37 +2125,23 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
         }
     }
 
-    type GetFileContentsStream = FileChunkStream;
+    type GetFileContentsStream = Pin<Box<dyn Stream<Item = Result<GetFileContentsResponse, Status>> + Send + 'static>>;
 
     async fn get_file_contents(
         &self,
         request: Request<GetFileContentsRequest>,
     ) -> ResponseResult<Self::GetFileContentsStream> {
-        panic!("Not implemented")
-        // let request = request.into_inner();
-        // let record = recorded_grpc_api_request!(
-        //     "get_file_contents",
-        //     worker_id = proto_worker_id_string(&request.worker_id),
-        //     file_path = request.file_path,
-        // );
+        let request = request.into_inner();
+        let record = recorded_grpc_api_request!(
+            "get_file_contents",
+            worker_id = proto_worker_id_string(&request.worker_id),
+            path = request.file_path,
+        );
 
-        // let result = self
-        //     .get_file_contents_internal(request)
-        //     .instrument(record.span.clone())
-        //     .await;
-        // match result {
-        //     Ok(response) => record.succeed(Ok(Response::new(response))),
-        //     Err(err) => record.fail(
-        //         Ok(Response::new(GetFileContentsResponse {
-        //             result: Some(
-        //                 golem::workerexecutor::v1::get_file_contents_response::Result::Failure(
-        //                     err.clone().into(),
-        //                 ),
-        //             ),
-        //         })),
-        //         &err,
-        //     ),
-        // }
+        let result = self
+            .get_file_contents_internal(request)
+            .instrument(record.span.clone())
+            .await;
     }
 
 }
@@ -2329,15 +2323,5 @@ impl Stream for WorkerEventStream {
             Poll::Ready(None) => Poll::Ready(None),
             Poll::Pending => Poll::Pending,
         }
-    }
-}
-
-pub struct FileChunkStream { }
-
-impl Stream for FileChunkStream {
-    type Item = Result<golem::worker::FileChunk, Status>;
-
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        todo!()
     }
 }

@@ -22,7 +22,3 @@ message FileSystemNode {
     FileFileSystemNode file = 2;
   }
 }
-
-message FileChunk {
-  bytes content = 1;
-}

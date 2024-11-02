@@ -61,6 +61,7 @@ use tokio::sync::broadcast::Receiver;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::{Mutex, MutexGuard, OwnedSemaphorePermit};
 use tokio::task::JoinHandle;
+use tokio_util::sync::{CancellationToken, DropGuard};
 use tracing::{debug, error, info, span, warn, Instrument, Level};
 use wasmtime::component::Instance;
 use wasmtime::{AsContext, Store, UpdateDeadline};
@@ -1447,14 +1448,14 @@ impl RunningWorker {
                                     // This will delay processing of the next invocation and is quite unfortunate.
                                     // A possible improvement would be to check whether we are on a copy-on-write filesystem
                                     // if yes, we can make a cheap copy of the file here and serve the read from that copy.
-                                    let (latch, receiver) = oneshot::channel();
+                                    let latch = CancellationToken::new();
 
                                     let handle = FileContentHandle {
                                         data: store.data_mut().read_file(&path),
-                                        latch,
+                                        latch: latch.clone().drop_guard(),
                                     };
                                     sender.send(Ok(handle));
-                                    receiver.await.unwrap();
+                                    latch.cancelled().await;
                                 },
                                 QueuedWorkerInvocation::External(inner) => {
                                     match inner.invocation {
@@ -2406,11 +2407,5 @@ impl QueuedWorkerInvocation {
 /// The stream will be valid until this is dropped.
 pub struct FileContentHandle {
     pub data: Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send>>,
-    latch: oneshot::Sender<()>
-}
-
-impl Drop for FileContentHandle {
-    fn drop(&mut self) {
-        let _ = self.latch.send(());
-    }
+    latch: DropGuard
 }
