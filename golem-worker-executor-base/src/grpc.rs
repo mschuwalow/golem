@@ -40,7 +40,7 @@ use golem_api_grpc::proto::golem::workerexecutor::v1::{
     GetRunningWorkersMetadataRequest, GetRunningWorkersMetadataResponse, GetWorkersMetadataRequest,
     GetWorkersMetadataResponse, InvokeAndAwaitWorkerRequest, InvokeAndAwaitWorkerResponseTyped,
     InvokeAndAwaitWorkerSuccess, SearchOplogRequest, SearchOplogResponse, UpdateWorkerRequest,
-    UpdateWorkerResponse,
+    UpdateWorkerResponse, ListDirectoryRequest, ListDirectoryResponse, GetFileContentsRequest
 };
 use golem_common::grpc::{
     proto_account_id_string, proto_component_id_string, proto_idempotency_key_string,
@@ -1209,6 +1209,93 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
         })
     }
 
+    async fn list_directory_internal(
+        &self,
+        request: ListDirectoryRequest,
+    ) -> Result<ListDirectoryResponse, GolemError> {
+        let worker_id = request
+            .worker_id
+            .ok_or(GolemError::invalid_request("worker_id not found"))?;
+        let worker_id: WorkerId = worker_id.try_into().map_err(GolemError::invalid_request)?;
+
+        let account_id = request
+            .account_id
+            .ok_or(GolemError::invalid_request("account_id not found"))?;
+        let account_id: AccountId = account_id.into();
+
+        let owned_worker_id = OwnedWorkerId::new(&account_id, &worker_id);
+
+        self.ensure_worker_belongs_to_this_executor(&worker_id)?;
+
+        panic!("Not implemented")
+
+        // let chunk = match request.cursor {
+        //     Some(cursor) => {
+        //         search_public_oplog(
+        //             self.component_service(),
+        //             self.oplog_service(),
+        //             &owned_worker_id,
+        //             cursor.current_component_version,
+        //             OplogIndex::from_u64(cursor.next_oplog_index),
+        //             min(request.count as usize, 100), // TODO: configurable maximum,
+        //             &request.query,
+        //         )
+        //         .await
+        //         .map_err(GolemError::unknown)?
+        //     }
+        //     None => {
+        //         let start = OplogIndex::INITIAL;
+        //         let initial_component_version =
+        //             find_component_version_at(self.oplog_service(), &owned_worker_id, start)
+        //                 .await?;
+        //         search_public_oplog(
+        //             self.component_service(),
+        //             self.oplog_service(),
+        //             &owned_worker_id,
+        //             initial_component_version,
+        //             start,
+        //             min(request.count as usize, 100), // TODO: configurable maximum,
+        //             &request.query,
+        //         )
+        //         .await
+        //         .map_err(GolemError::unknown)?
+        //     }
+        // };
+
+        // let next = if chunk.entries.is_empty() {
+        //     None
+        // } else {
+        //     Some(golem::worker::OplogCursor {
+        //         next_oplog_index: chunk.next_oplog_index.into(),
+        //         current_component_version: chunk.current_component_version,
+        //     })
+        // };
+
+        // Ok(SearchOplogResponse {
+        //     result: Some(
+        //         golem::workerexecutor::v1::search_oplog_response::Result::Success(
+        //             golem::workerexecutor::v1::SearchOplogSuccessResponse {
+        //                 entries: chunk
+        //                     .entries
+        //                     .into_iter()
+        //                     .map(|(idx, entry)| {
+        //                         entry.try_into().map(|entry: golem::worker::OplogEntry| {
+        //                             golem::worker::OplogEntryWithIndex {
+        //                                 oplog_index: idx.into(),
+        //                                 entry: Some(entry),
+        //                             }
+        //                         })
+        //                     })
+        //                     .collect::<Result<Vec<_>, _>>()
+        //                     .map_err(GolemError::unknown)?,
+        //                 next,
+        //                 last_index: chunk.last_index.into(),
+        //             },
+        //         ),
+        //     ),
+        // })
+    }
+
     fn create_proto_metadata(
         metadata: WorkerMetadata,
         latest_status: WorkerStatusRecord,
@@ -1947,6 +2034,70 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
             ),
         }
     }
+
+    async fn list_directory(
+        &self,
+        request: Request<ListDirectoryRequest>,
+    ) -> ResponseResult<ListDirectoryResponse> {
+        let request = request.into_inner();
+        let record = recorded_grpc_api_request!(
+            "list_directory",
+            worker_id = proto_worker_id_string(&request.worker_id),
+            path = request.path,
+        );
+
+        let result = self
+            .list_directory_internal(request)
+            .instrument(record.span.clone())
+            .await;
+        match result {
+            Ok(response) => record.succeed(Ok(Response::new(response))),
+            Err(err) => record.fail(
+                Ok(Response::new(ListDirectoryResponse {
+                    result: Some(
+                        golem::workerexecutor::v1::list_directory_response::Result::Failure(
+                            err.clone().into(),
+                        ),
+                    ),
+                })),
+                &err,
+            ),
+        }
+    }
+
+    type GetFileContentsStream = FileChunkStream;
+
+    async fn get_file_contents(
+        &self,
+        request: Request<GetFileContentsRequest>,
+    ) -> ResponseResult<Self::GetFileContentsStream> {
+        panic!("Not implemented")
+        // let request = request.into_inner();
+        // let record = recorded_grpc_api_request!(
+        //     "get_file_contents",
+        //     worker_id = proto_worker_id_string(&request.worker_id),
+        //     file_path = request.file_path,
+        // );
+
+        // let result = self
+        //     .get_file_contents_internal(request)
+        //     .instrument(record.span.clone())
+        //     .await;
+        // match result {
+        //     Ok(response) => record.succeed(Ok(Response::new(response))),
+        //     Err(err) => record.fail(
+        //         Ok(Response::new(GetFileContentsResponse {
+        //             result: Some(
+        //                 golem::workerexecutor::v1::get_file_contents_response::Result::Failure(
+        //                     err.clone().into(),
+        //                 ),
+        //             ),
+        //         })),
+        //         &err,
+        //     ),
+        // }
+    }
+
 }
 
 trait GrpcInvokeRequest {
@@ -2126,5 +2277,15 @@ impl Stream for WorkerEventStream {
             Poll::Ready(None) => Poll::Ready(None),
             Poll::Pending => Poll::Pending,
         }
+    }
+}
+
+pub struct FileChunkStream { }
+
+impl Stream for FileChunkStream {
+    type Item = Result<golem::worker::FileChunk, Status>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        panic!("unimplemented")
     }
 }

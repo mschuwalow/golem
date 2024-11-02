@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package golem.worker;
+
+message FileSystemNode {
+  string name = 1;
+  NodeType type = 2;
+  uint64 size = 3; // Size in bytes, applicable for files
+  string permissions = 4; // String representation of file permissions
+  int64 last_modified = 5; // Unix timestamp
+}
+
+enum NodeType {
+  FILE = 0;
+  DIRECTORY = 1;
+}
+
+message FileChunk {
+  bytes content = 1;
+}
