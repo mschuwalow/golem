@@ -39,6 +39,7 @@ use crate::services::{
 use crate::workerctx::{PublicWorkerIo, WorkerCtx};
 use anyhow::anyhow;
 use bytes::Bytes;
+use drop_stream::DropStream;
 use futures::channel::oneshot;
 use futures::Stream;
 use golem_common::config::RetryConfig;
@@ -803,7 +804,7 @@ impl<Ctx: WorkerCtx> Worker<Ctx> {
     pub async fn read_file(
         &self,
         path: InitialComponentFilePath,
-    ) -> Result<FileContentHandle, GolemError> {
+    ) -> Result<Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send + 'static>>, GolemError> {
         let (sender, receiver) = oneshot::channel();
 
         let mutex = self.instance.lock().await;
@@ -1448,14 +1449,12 @@ impl RunningWorker {
                                     // This will delay processing of the next invocation and is quite unfortunate.
                                     // A possible improvement would be to check whether we are on a copy-on-write filesystem
                                     // if yes, we can make a cheap copy of the file here and serve the read from that copy.
-                                    let latch = CancellationToken::new();
+                                    let (latch, latch_receiver) = oneshot::channel();
 
-                                    let handle = FileContentHandle {
-                                        data: store.data_mut().read_file(&path),
-                                        latch: latch.clone().drop_guard(),
-                                    };
-                                    sender.send(Ok(handle));
-                                    latch.cancelled().await;
+                                    let stream = store.data_mut().read_file(&path);
+                                    let drop_stream = DropStream::new(stream, || latch.send(()).unwrap());
+                                    sender.send(Ok(Box::pin(drop_stream)));
+                                    latch_receiver.await;
                                 },
                                 QueuedWorkerInvocation::External(inner) => {
                                     match inner.invocation {
@@ -2389,9 +2388,10 @@ pub enum QueuedWorkerInvocation {
         path: InitialComponentFilePath,
         sender: oneshot::Sender<Result<Vec<ComponentFileSystemNode>, GolemError>>,
     },
+    // The worker will suspend execution until the stream is dropped, so consume in a timely manner.
     ReadFile {
         path: InitialComponentFilePath,
-        sender: oneshot::Sender<Result<FileContentHandle, GolemError>>,
+        sender: oneshot::Sender<Result<Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send + 'static>>, GolemError>>,
     },
 }
 
@@ -2402,10 +2402,4 @@ impl QueuedWorkerInvocation {
             _ => None,
         }
     }
-}
-
-/// The stream will be valid until this is dropped.
-pub struct FileContentHandle {
-    pub data: Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send>>,
-    latch: DropGuard
 }

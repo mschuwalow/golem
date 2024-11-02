@@ -1278,7 +1278,7 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
     async fn get_file_contents_internal(
         &self,
         request: ReadFileRequest,
-    ) -> Result<(<Self as WorkerExecutor>::GetFileContentsStream, FileContentHandle), GolemError> {
+    ) -> Result<<Self as WorkerExecutor>::GetFileContentsStream, GolemError> {
         let worker_id = request
             .worker_id
             .ok_or(GolemError::invalid_request("worker_id not found"))?;
@@ -1324,10 +1324,9 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
                 )
                 .await?;
 
-                let content_handle = worker.read_file(path).await?;
-
-                let content_stream = content_handle
-                    .data
+                let content_stream = worker
+                    .read_file(path)
+                    .await?
                     .map(|item| {
                         let transformed = match item {
                             Ok(data) => {
@@ -1347,7 +1346,7 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
                         };
                         Ok(transformed)
                     });
-              Ok((Box::pin(content_stream), content_handle))
+              Ok(Box::pin(content_stream))
             }
             _ => Err(GolemError::invalid_request(format!(
                 "Worker {worker_id} is not suspended, interrupted, idle, running or retrying",
@@ -2138,10 +2137,10 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
             path = request.file_path,
         );
 
-        let result = self
+       self
             .get_file_contents_internal(request)
             .instrument(record.span.clone())
-            .await;
+            .await
     }
 
 }
