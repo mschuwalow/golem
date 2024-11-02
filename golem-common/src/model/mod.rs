@@ -2693,22 +2693,49 @@ impl poem_openapi::types::ParseFromMultipartField for InitialComponentFilePathAn
 }
 
 #[derive(Clone, Debug)]
-pub struct ComponentFileSystemFileNode {
-    pub permissions: InitialComponentFilePermissions,
-    pub size: u64,
-}
-
-#[derive(Clone, Debug)]
-pub enum ComponentFileSystemNodeKind {
-    File(ComponentFileSystemFileNode),
+pub enum ComponentFileSystemNodeDetails {
+    File {
+        permissions: InitialComponentFilePermissions,
+        size: u64,
+    },
     Directory,
 }
 
 #[derive(Clone, Debug)]
 pub struct ComponentFileSystemNode {
-   pub path: InitialComponentFilePath,
+   pub name: String,
    pub last_modified: SystemTime,
-   pub kind: ComponentFileSystemNodeKind,
+   pub details: ComponentFileSystemNodeDetails,
+}
+
+impl From<ComponentFileSystemNode> for golem_api_grpc::proto::golem::worker::FileSystemNode {
+    fn from(value: ComponentFileSystemNode) -> Self {
+        let last_modified = value.last_modified.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
+
+        match value.details {
+            ComponentFileSystemNodeDetails::File { permissions, size } =>
+                golem_api_grpc::proto::golem::worker::FileSystemNode {
+                    value: Some(golem_api_grpc::proto::golem::worker::file_system_node::Value::File(
+                        golem_api_grpc::proto::golem::worker::FileFileSystemNode {
+                            name: value.name,
+                            last_modified,
+                            size,
+                            permissions:
+                                golem_api_grpc::proto::golem::component::InitialComponentFilePermissions::from(permissions).into(),
+                        }
+                    ))
+                },
+            ComponentFileSystemNodeDetails::Directory =>
+                golem_api_grpc::proto::golem::worker::FileSystemNode {
+                    value: Some(golem_api_grpc::proto::golem::worker::file_system_node::Value::Directory(
+                        golem_api_grpc::proto::golem::worker::DirectoryFileSystemNode {
+                            name: value.name,
+                            last_modified,
+                        }
+                    ))
+                }
+        }
+    }
 }
 
 #[cfg(test)]

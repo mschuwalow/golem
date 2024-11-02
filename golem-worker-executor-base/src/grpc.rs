@@ -14,6 +14,7 @@
 
 use futures_util::Stream;
 use gethostname::gethostname;
+use golem_api_grpc::proto::golem::component::InitialComponentFile;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::protobuf::Val;
 use std::cmp::min;
@@ -23,6 +24,7 @@ use std::marker::PhantomData;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
+use std::time::SystemTime;
 use tokio::sync::broadcast::error::RecvError;
 use tokio_stream::wrappers::errors::BroadcastStreamRecvError;
 use tonic::{Request, Response, Status};
@@ -40,7 +42,8 @@ use golem_api_grpc::proto::golem::workerexecutor::v1::{
     GetRunningWorkersMetadataRequest, GetRunningWorkersMetadataResponse, GetWorkersMetadataRequest,
     GetWorkersMetadataResponse, InvokeAndAwaitWorkerRequest, InvokeAndAwaitWorkerResponseTyped,
     InvokeAndAwaitWorkerSuccess, SearchOplogRequest, SearchOplogResponse, UpdateWorkerRequest,
-    UpdateWorkerResponse, ListDirectoryRequest, ListDirectoryResponse, GetFileContentsRequest
+    UpdateWorkerResponse, ListDirectoryRequest, ListDirectoryResponse, GetFileContentsRequest,
+    ReadFileRequest
 };
 use golem_common::grpc::{
     proto_account_id_string, proto_component_id_string, proto_idempotency_key_string,
@@ -49,9 +52,7 @@ use golem_common::grpc::{
 use golem_common::metrics::api::record_new_grpc_api_active_stream;
 use golem_common::model::oplog::{OplogIndex, UpdateDescription};
 use golem_common::model::{
-    AccountId, ComponentId, ComponentType, IdempotencyKey, OwnedWorkerId, ScanCursor, ShardId,
-    TargetWorkerId, TimestampedWorkerInvocation, WorkerEvent, WorkerFilter, WorkerId,
-    WorkerInvocation, WorkerMetadata, WorkerStatus, WorkerStatusRecord,
+    AccountId, ComponentFileSystemNode, ComponentFileSystemNodeDetails, ComponentId, ComponentType, IdempotencyKey, InitialComponentFilePath, OwnedWorkerId, ScanCursor, ShardId, TargetWorkerId, TimestampedWorkerInvocation, WorkerEvent, WorkerFilter, WorkerId, WorkerInvocation, WorkerMetadata, WorkerStatus, WorkerStatusRecord
 };
 use golem_common::{model as common_model, recorded_grpc_api_request};
 
@@ -1221,6 +1222,10 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
         let account_id = request
             .account_id
             .ok_or(GolemError::invalid_request("account_id not found"))?;
+
+        let path = InitialComponentFilePath::from_str(&request.path)
+            .map_err(|e| GolemError::invalid_request(format!("Invalid path: {}", e)))?;
+
         let account_id: AccountId = account_id.into();
 
         let owned_worker_id = OwnedWorkerId::new(&account_id, &worker_id);
@@ -1235,7 +1240,11 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
             Ctx::compute_latest_worker_status(self, &owned_worker_id, &metadata).await?;
 
         match &worker_status.status {
-            WorkerStatus::Suspended | WorkerStatus::Interrupted | WorkerStatus::Idle => {
+            WorkerStatus::Suspended |
+            WorkerStatus::Interrupted |
+            WorkerStatus::Idle |
+            WorkerStatus::Running |
+            WorkerStatus::Retrying => {
                 info!(
                     "Activating {:?} worker {worker_id} due to explicit resume request",
                     worker_status.status
@@ -1249,81 +1258,93 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
                     None,
                 )
                 .await?;
-                Ok(())
+                let result = worker.list_directory(path).await?;
+
+                Ok(ListDirectoryResponse {
+                    result: Some(golem::workerexecutor::v1::list_directory_response::Result::Success(
+                        golem::workerexecutor::v1::ListDirectorySuccessResponse {
+                            nodes: result
+                                .into_iter()
+                                .map(|entry| entry.into())
+                                .collect(),
+                        },
+                    ))
+                })
+
             }
             _ => Err(GolemError::invalid_request(format!(
-                "Worker {worker_id} is not suspended, interrupted or idle",
+                "Worker {worker_id} is not suspended, interrupted, idle, running or retrying",
                 worker_id = worker_id
             ))),
         }
+    }
 
-        panic!("Not implemented")
+    async fn read_file_internal(
+        &self,
+        request: ReadFileRequest,
+    ) -> Result<Vec<u8>, GolemError> {
+        let worker_id = request
+        .worker_id
+        .ok_or(GolemError::invalid_request("worker_id not found"))?;
+        let worker_id: WorkerId = worker_id.try_into().map_err(GolemError::invalid_request)?;
 
-        // let chunk = match request.cursor {
-        //     Some(cursor) => {
-        //         search_public_oplog(
-        //             self.component_service(),
-        //             self.oplog_service(),
-        //             &owned_worker_id,
-        //             cursor.current_component_version,
-        //             OplogIndex::from_u64(cursor.next_oplog_index),
-        //             min(request.count as usize, 100), // TODO: configurable maximum,
-        //             &request.query,
-        //         )
-        //         .await
-        //         .map_err(GolemError::unknown)?
-        //     }
-        //     None => {
-        //         let start = OplogIndex::INITIAL;
-        //         let initial_component_version =
-        //             find_component_version_at(self.oplog_service(), &owned_worker_id, start)
-        //                 .await?;
-        //         search_public_oplog(
-        //             self.component_service(),
-        //             self.oplog_service(),
-        //             &owned_worker_id,
-        //             initial_component_version,
-        //             start,
-        //             min(request.count as usize, 100), // TODO: configurable maximum,
-        //             &request.query,
-        //         )
-        //         .await
-        //         .map_err(GolemError::unknown)?
-        //     }
-        // };
+        let account_id = request
+            .account_id
+            .ok_or(GolemError::invalid_request("account_id not found"))?;
 
-        // let next = if chunk.entries.is_empty() {
-        //     None
-        // } else {
-        //     Some(golem::worker::OplogCursor {
-        //         next_oplog_index: chunk.next_oplog_index.into(),
-        //         current_component_version: chunk.current_component_version,
-        //     })
-        // };
+        let path = InitialComponentFilePath::from_str(&request.path)
+            .map_err(|e| GolemError::invalid_request(format!("Invalid path: {}", e)))?;
 
-        // Ok(SearchOplogResponse {
-        //     result: Some(
-        //         golem::workerexecutor::v1::search_oplog_response::Result::Success(
-        //             golem::workerexecutor::v1::SearchOplogSuccessResponse {
-        //                 entries: chunk
-        //                     .entries
-        //                     .into_iter()
-        //                     .map(|(idx, entry)| {
-        //                         entry.try_into().map(|entry: golem::worker::OplogEntry| {
-        //                             golem::worker::OplogEntryWithIndex {
-        //                                 oplog_index: idx.into(),
-        //                                 entry: Some(entry),
-        //                             }
-        //                         })
-        //                     })
-        //                     .collect::<Result<Vec<_>, _>>()
-        //                     .map_err(GolemError::unknown)?,
-        //                 next,
-        //                 last_index: chunk.last_index.into(),
-        //             },
-        //         ),
-        //     ),
-        // })
+        let account_id: AccountId = account_id.into();
+
+        let owned_worker_id = OwnedWorkerId::new(&account_id, &worker_id);
+
+        self.ensure_worker_belongs_to_this_executor(&worker_id)?;
+
+        let metadata = self.worker_service().get(&owned_worker_id).await;
+        self.validate_worker_status(&owned_worker_id, &metadata)
+            .await?;
+
+        let worker_status =
+            Ctx::compute_latest_worker_status(self, &owned_worker_id, &metadata).await?;
+
+        match &worker_status.status {
+            WorkerStatus::Suspended |
+            WorkerStatus::Interrupted |
+            WorkerStatus::Idle |
+            WorkerStatus::Running |
+            WorkerStatus::Retrying => {
+                info!(
+                    "Activating {:?} worker {worker_id} due to explicit resume request",
+                    worker_status.status
+                );
+                let worker = Worker::get_or_create_running(
+                    &self.services,
+                    &owned_worker_id,
+                    None,
+                    None,
+                    None,
+                    None,
+                )
+                .await?;
+                let result = worker.read_file(path).await?;
+
+                Ok(ListDirectoryResponse {
+                    result: Some(golem::workerexecutor::v1::list_directory_response::Result::Success(
+                        golem::workerexecutor::v1::ListDirectorySuccessResponse {
+                            nodes: result
+                                .into_iter()
+                                .map(|entry| entry.into())
+                                .collect(),
+                        },
+                    ))
+                })
+
+            }
+            _ => Err(GolemError::invalid_request(format!(
+                "Worker {worker_id} is not suspended, interrupted, idle, running or retrying",
+                worker_id = worker_id
+            ))),
     }
 
     fn create_proto_metadata(
@@ -2069,31 +2090,30 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
         &self,
         request: Request<ListDirectoryRequest>,
     ) -> ResponseResult<ListDirectoryResponse> {
-        panic!("Not implemented")
-        // let request = request.into_inner();
-        // let record = recorded_grpc_api_request!(
-        //     "list_directory",
-        //     worker_id = proto_worker_id_string(&request.worker_id),
-        //     path = request.path,
-        // );
+        let request = request.into_inner();
+        let record = recorded_grpc_api_request!(
+            "list_directory",
+            worker_id = proto_worker_id_string(&request.worker_id),
+            path = request.path,
+        );
 
-        // let result = self
-        //     .list_directory_internal(request)
-        //     .instrument(record.span.clone())
-        //     .await;
-        // match result {
-        //     Ok(response) => record.succeed(Ok(Response::new(response))),
-        //     Err(err) => record.fail(
-        //         Ok(Response::new(ListDirectoryResponse {
-        //             result: Some(
-        //                 golem::workerexecutor::v1::list_directory_response::Result::Failure(
-        //                     err.clone().into(),
-        //                 ),
-        //             ),
-        //         })),
-        //         &err,
-        //     ),
-        // }
+        let result = self
+            .list_directory_internal(request)
+            .instrument(record.span.clone())
+            .await;
+        match result {
+            Ok(response) => record.succeed(Ok(Response::new(response))),
+            Err(err) => record.fail(
+                Ok(Response::new(ListDirectoryResponse {
+                    result: Some(
+                        golem::workerexecutor::v1::list_directory_response::Result::Failure(
+                            err.clone().into(),
+                        ),
+                    ),
+                })),
+                &err,
+            ),
+        }
     }
 
     type GetFileContentsStream = FileChunkStream;

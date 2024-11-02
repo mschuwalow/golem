@@ -51,7 +51,7 @@ use golem_common::model::oplog::{
 };
 use golem_common::model::regions::{DeletedRegions, OplogRegion};
 use golem_common::model::{
-    AccountId, ComponentFileSystemFileNode, ComponentFileSystemNode, ComponentId, ComponentType, ComponentVersion, FailedUpdateRecord, IdempotencyKey, InitialComponentFile, InitialComponentFilePath, InitialComponentFilePermissions, OwnedWorkerId, ScanCursor, ScheduledAction, SuccessfulUpdateRecord, Timestamp, WorkerEvent, WorkerFilter, WorkerId, WorkerMetadata, WorkerResourceDescription, WorkerStatus, WorkerStatusRecord, ComponentFileSystemNodeKind
+    AccountId, ComponentFileSystemNode, ComponentId, ComponentType, ComponentVersion, FailedUpdateRecord, IdempotencyKey, InitialComponentFile, InitialComponentFilePath, InitialComponentFilePermissions, OwnedWorkerId, ScanCursor, ScheduledAction, SuccessfulUpdateRecord, Timestamp, WorkerEvent, WorkerFilter, WorkerId, WorkerMetadata, WorkerResourceDescription, WorkerStatus, WorkerStatusRecord, ComponentFileSystemNodeDetails
 };
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::wasmtime::ResourceStore;
@@ -1434,13 +1434,6 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWo
 
             let entry_name = entry.file_name().to_string_lossy().to_string();
 
-            let mut entry_path = path.clone();
-            entry_path
-                .extend(&entry_name)
-                .map_err(|_| GolemError::FileSystemError {
-                    details: format!("Could not handle file name for file {path}: {entry_name}"),
-                })?;
-
             let last_modified = metadata.modified().ok().unwrap_or(SystemTime::UNIX_EPOCH);
 
             if metadata.is_file() {
@@ -1452,20 +1445,18 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWo
                 };
 
                 result.push(ComponentFileSystemNode {
-                    path: entry_path,
+                    name: entry_name,
                     last_modified,
-                    kind: ComponentFileSystemNodeKind::File(
-                        ComponentFileSystemFileNode {
-                            size: metadata.len(),
-                            permissions,
-                        }
-                    ),
+                    details: ComponentFileSystemNodeDetails::File {
+                        size: metadata.len(),
+                        permissions,
+                    },
                 });
             } else {
                 result.push(ComponentFileSystemNode {
-                    path: entry_path,
+                    name: entry_name,
                     last_modified,
-                    kind: ComponentFileSystemNodeKind::Directory
+                    details: ComponentFileSystemNodeDetails::Directory
                 });
             };
         }

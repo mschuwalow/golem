@@ -313,6 +313,13 @@ message ListDirectoryRequest {
 }
 
 message ListDirectoryResponse {
+  oneof result {
+    ListDirectorySuccessResponse success = 1;
+    golem.worker.v1.WorkerExecutionError failure = 2;
+  }
+}
+
+message ListDirectorySuccessResponse {
   repeated golem.worker.FileSystemNode nodes = 1;
 }
 

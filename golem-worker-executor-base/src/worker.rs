@@ -767,8 +767,7 @@ impl<Ctx: WorkerCtx> Worker<Ctx> {
         }
     }
 
-    /// Enqueue listing of a directory
-    async fn list_directory(
+    pub async fn list_directory(
         &self,
         path: InitialComponentFilePath,
     ) -> Result<Vec<ComponentFileSystemNode>, GolemError> {
@@ -781,11 +780,14 @@ impl<Ctx: WorkerCtx> Worker<Ctx> {
             .unwrap()
             .push_back(QueuedWorkerInvocation::ListDirectory { path, sender });
 
+        // Two cases here:
+        // - Worker is running, we can send the invocation command and the worker will look at the queue immediately
+        // - Worker is starting, it will process the request when it is started
+
         match &*mutex {
             WorkerInstance::Running(running) => {
-                running.enqueue_list_directory();
+                running.sender.send(WorkerCommand::Invocation).unwrap();
             },
-            // Worker will process the request when it is started.
             _ => { }
         }
 
@@ -794,7 +796,7 @@ impl<Ctx: WorkerCtx> Worker<Ctx> {
         receiver.await.unwrap()
     }
 
-    async fn read_file(
+    pub async fn read_file(
         &self,
         path: InitialComponentFilePath,
     ) -> Result<Vec<u8>, GolemError> {
@@ -809,7 +811,7 @@ impl<Ctx: WorkerCtx> Worker<Ctx> {
 
         match &*mutex {
             WorkerInstance::Running(running) => {
-                running.enqueue_read_file();
+                running.sender.send(WorkerCommand::Invocation).unwrap();
             },
             // Worker will process the request when it is started.
             _ => { }
@@ -1231,16 +1233,6 @@ impl RunningWorker {
             .unwrap()
             .push_back(QueuedWorkerInvocation::External(timestamped_invocation));
         self.sender.send(WorkerCommand::Invocation).unwrap()
-    }
-
-    fn enqueue_list_directory(&self) {
-        let invocation = WorkerCommand::Invocation;
-        self.sender.send(invocation).unwrap();
-    }
-
-    fn enqueue_read_file(&self) {
-        let invocation = WorkerCommand::Invocation;
-        self.sender.send(invocation).unwrap();
     }
 
     fn interrupt(&self, kind: InterruptKind) {
@@ -1750,18 +1742,6 @@ impl RunningWorker {
                             }
                             break;
                         }
-                        // WorkerCommand::ListDirectory { path, sender } => {
-                        //     let mut store_mutex = store.lock().await;
-                        //     let store = store_mutex.deref_mut();
-                        //     let result = store.data_mut().list_directory(&path).await;
-                        //     sender.send(result);
-                        // }
-                        // WorkerCommand::ReadFile { path, sender } => {
-                        //     let mut store_mutex = store.lock().await;
-                        //     let store = store_mutex.deref_mut();
-                        //     let result = store.data_mut().read_file(&path).await;
-                        //     sender.send(result);
-                        // }
                     }
                     waiting_for_command.store(true, Ordering::Release);
                 }
