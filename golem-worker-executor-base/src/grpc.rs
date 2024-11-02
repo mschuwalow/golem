@@ -1283,68 +1283,69 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
         &self,
         request: ReadFileRequest,
     ) -> Result<Vec<u8>, GolemError> {
-        let worker_id = request
-        .worker_id
-        .ok_or(GolemError::invalid_request("worker_id not found"))?;
-        let worker_id: WorkerId = worker_id.try_into().map_err(GolemError::invalid_request)?;
+        todo!()
+        // let worker_id = request
+        // .worker_id
+        // .ok_or(GolemError::invalid_request("worker_id not found"))?;
+        // let worker_id: WorkerId = worker_id.try_into().map_err(GolemError::invalid_request)?;
 
-        let account_id = request
-            .account_id
-            .ok_or(GolemError::invalid_request("account_id not found"))?;
+        // let account_id = request
+        //     .account_id
+        //     .ok_or(GolemError::invalid_request("account_id not found"))?;
 
-        let path = InitialComponentFilePath::from_str(&request.path)
-            .map_err(|e| GolemError::invalid_request(format!("Invalid path: {}", e)))?;
+        // let path = InitialComponentFilePath::from_str(&request.path)
+        //     .map_err(|e| GolemError::invalid_request(format!("Invalid path: {}", e)))?;
 
-        let account_id: AccountId = account_id.into();
+        // let account_id: AccountId = account_id.into();
 
-        let owned_worker_id = OwnedWorkerId::new(&account_id, &worker_id);
+        // let owned_worker_id = OwnedWorkerId::new(&account_id, &worker_id);
 
-        self.ensure_worker_belongs_to_this_executor(&worker_id)?;
+        // self.ensure_worker_belongs_to_this_executor(&worker_id)?;
 
-        let metadata = self.worker_service().get(&owned_worker_id).await;
-        self.validate_worker_status(&owned_worker_id, &metadata)
-            .await?;
+        // let metadata = self.worker_service().get(&owned_worker_id).await;
+        // self.validate_worker_status(&owned_worker_id, &metadata)
+        //     .await?;
 
-        let worker_status =
-            Ctx::compute_latest_worker_status(self, &owned_worker_id, &metadata).await?;
+        // let worker_status =
+        //     Ctx::compute_latest_worker_status(self, &owned_worker_id, &metadata).await?;
 
-        match &worker_status.status {
-            WorkerStatus::Suspended |
-            WorkerStatus::Interrupted |
-            WorkerStatus::Idle |
-            WorkerStatus::Running |
-            WorkerStatus::Retrying => {
-                info!(
-                    "Activating {:?} worker {worker_id} due to explicit resume request",
-                    worker_status.status
-                );
-                let worker = Worker::get_or_create_running(
-                    &self.services,
-                    &owned_worker_id,
-                    None,
-                    None,
-                    None,
-                    None,
-                )
-                .await?;
-                let result = worker.read_file(path).await?;
+        // match &worker_status.status {
+        //     WorkerStatus::Suspended |
+        //     WorkerStatus::Interrupted |
+        //     WorkerStatus::Idle |
+        //     WorkerStatus::Running |
+        //     WorkerStatus::Retrying => {
+        //         info!(
+        //             "Activating {:?} worker {worker_id} due to explicit resume request",
+        //             worker_status.status
+        //         );
+        //         let worker = Worker::get_or_create_running(
+        //             &self.services,
+        //             &owned_worker_id,
+        //             None,
+        //             None,
+        //             None,
+        //             None,
+        //         )
+        //         .await?;
+        //         let result = worker.read_file(path).await?;
 
-                Ok(ListDirectoryResponse {
-                    result: Some(golem::workerexecutor::v1::list_directory_response::Result::Success(
-                        golem::workerexecutor::v1::ListDirectorySuccessResponse {
-                            nodes: result
-                                .into_iter()
-                                .map(|entry| entry.into())
-                                .collect(),
-                        },
-                    ))
-                })
+        //         Ok(ListDirectoryResponse {
+        //             result: Some(golem::workerexecutor::v1::list_directory_response::Result::Success(
+        //                 golem::workerexecutor::v1::ListDirectorySuccessResponse {
+        //                     nodes: result
+        //                         .into_iter()
+        //                         .map(|entry| entry.into())
+        //                         .collect(),
+        //                 },
+        //             ))
+        //         })
 
-            }
-            _ => Err(GolemError::invalid_request(format!(
-                "Worker {worker_id} is not suspended, interrupted, idle, running or retrying",
-                worker_id = worker_id
-            ))),
+        //     }
+        //     _ => Err(GolemError::invalid_request(format!(
+        //         "Worker {worker_id} is not suspended, interrupted, idle, running or retrying",
+        //         worker_id = worker_id
+        //     ))),
     }
 
     fn create_proto_metadata(
@@ -2337,6 +2338,6 @@ impl Stream for FileChunkStream {
     type Item = Result<golem::worker::FileChunk, Status>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        panic!("unimplemented")
+        todo!()
     }
 }

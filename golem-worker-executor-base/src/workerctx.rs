@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::pin::Pin;
 use std::sync::{Arc, RwLock, Weak};
 
 use async_trait::async_trait;
+use bytes::Bytes;
+use futures::Stream;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::wasmtime::ResourceStore;
 use golem_wasm_rpc::Value;
@@ -381,5 +384,5 @@ pub trait PublicWorkerIo {
 pub trait FileSystemReading {
     // List the contents of a directory. Will return an error if the path is not a directory.
     async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<Vec<ComponentFileSystemNode>, GolemError>;
-    async fn read_file(&self, path: &InitialComponentFilePath) -> Result<Vec<u8>, GolemError>;
+    fn read_file(&self, path: &InitialComponentFilePath) -> Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send + 'static>>;
 }

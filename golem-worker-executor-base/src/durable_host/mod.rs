@@ -23,7 +23,6 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, RwLock, Weak};
 use std::time::{Duration, Instant, SystemTime};
 use std::vec;
-
 use crate::error::GolemError;
 use crate::invocation::{invoke_worker, InvokeResult};
 use crate::model::{
@@ -43,7 +42,9 @@ use crate::workerctx::{
 };
 use anyhow::anyhow;
 use async_trait::async_trait;
+use bytes::{Bytes, BytesMut};
 use chrono::{DateTime, Utc};
+use futures::Stream;
 use golem_common::config::RetryConfig;
 use golem_common::model::oplog::{
     IndexedResourceKey, LogLevel, OplogEntry, OplogIndex, UpdateDescription, WorkerError,
@@ -53,10 +54,13 @@ use golem_common::model::regions::{DeletedRegions, OplogRegion};
 use golem_common::model::{
     AccountId, ComponentFileSystemNode, ComponentId, ComponentType, ComponentVersion, FailedUpdateRecord, IdempotencyKey, InitialComponentFile, InitialComponentFilePath, InitialComponentFilePermissions, OwnedWorkerId, ScanCursor, ScheduledAction, SuccessfulUpdateRecord, Timestamp, WorkerEvent, WorkerFilter, WorkerId, WorkerMetadata, WorkerResourceDescription, WorkerStatus, WorkerStatusRecord, ComponentFileSystemNodeDetails
 };
+use futures_util::TryStreamExt;
+use futures_util::TryFutureExt;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::wasmtime::ResourceStore;
 use golem_wasm_rpc::{Uri, Value};
 use tempfile::TempDir;
+use tokio_util::codec::{BytesCodec, FramedRead};
 use tracing::{debug, info, span, warn, Instrument, Level};
 use wasmtime::component::{Instance, Resource, ResourceAny};
 use wasmtime::{AsContext, AsContextMut};
@@ -66,8 +70,8 @@ use wasmtime_wasi_http::body::HyperOutgoingBody;
 use wasmtime_wasi_http::types::{
     default_send_request, HostFutureIncomingResponse, OutgoingRequestConfig,
 };
+use std::pin::Pin;
 use wasmtime_wasi_http::{HttpResult, WasiHttpCtx, WasiHttpView};
-
 use crate::durable_host::io::{ManagedStdErr, ManagedStdIn, ManagedStdOut};
 use crate::durable_host::wasm_rpc::UrnExtensions;
 use crate::metrics::wasm::{record_number_of_replayed_functions, record_resume_worker};
@@ -77,6 +81,16 @@ use crate::services::scheduler::SchedulerService;
 use crate::services::HasOplogService;
 use crate::wasi_host;
 use crate::worker::{calculate_last_known_status, is_worker_error_retriable};
+use crate::durable_host::http::serialized::SerializableHttpRequest;
+use crate::durable_host::replay_state::ReplayState;
+use crate::durable_host::sync_helper::{SyncHelper, SyncHelperPermit};
+use crate::function_result_interpreter::interpret_function_results;
+use crate::services::component::{ComponentMetadata, ComponentService};
+use crate::services::worker_proxy::WorkerProxy;
+use crate::worker::{RetryDecision, Worker};
+pub use durability::*;
+use golem_common::model::exports;
+use golem_common::retries::get_delay;
 
 pub mod blobstore;
 mod cli;
@@ -95,17 +109,6 @@ pub mod wasm_rpc;
 mod durability;
 mod replay_state;
 mod sync_helper;
-
-use crate::durable_host::http::serialized::SerializableHttpRequest;
-use crate::durable_host::replay_state::ReplayState;
-use crate::durable_host::sync_helper::{SyncHelper, SyncHelperPermit};
-use crate::function_result_interpreter::interpret_function_results;
-use crate::services::component::{ComponentMetadata, ComponentService};
-use crate::services::worker_proxy::WorkerProxy;
-use crate::worker::{RetryDecision, Worker};
-pub use durability::*;
-use golem_common::model::exports;
-use golem_common::retries::get_delay;
 
 /// Partial implementation of the WorkerCtx interfaces for adding durable execution to workers.
 pub struct DurableWorkerCtx<Ctx: WorkerCtx> {
@@ -1463,12 +1466,19 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWo
         Ok(result)
     }
 
-    async fn read_file(&self, path: &InitialComponentFilePath) -> Result<Vec<u8>, GolemError> {
+    fn read_file(&self, path: &InitialComponentFilePath) -> Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send + 'static>> {
         let root = self._temp_dir.path();
         let target = root.join(&PathBuf::from(path.to_rel_string()));
-        tokio::fs::read(target).await.map_err(|e| GolemError::FileSystemError {
-            details: format!("Failed to read file {path}: {e}"),
-        })
+
+        let path_clone = path.clone();
+        let stream = tokio::fs::File::open(target)
+            .map_ok(|file| FramedRead::new(file, BytesCodec::new()).map_ok(BytesMut::freeze))
+            .try_flatten_stream()
+            .map_err(move |e| GolemError::FileSystemError {
+                details: format!("Failed to open file {path_clone}: {e}"),
+            });
+
+        Box::pin(stream)
     }
 }
 

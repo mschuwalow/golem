@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::pin::Pin;
 use std::sync::{Arc, RwLock, Weak};
 
 use anyhow::Error;
@@ -35,6 +36,8 @@ use golem_worker_executor_base::error::GolemError;
 use golem_worker_executor_base::model::{
     CurrentResourceLimits, ExecutionStatus, InterruptKind, LastError, TrapType, WorkerConfig,
 };
+use futures::Stream;
+use bytes::Bytes;
 use golem_worker_executor_base::services::active_workers::ActiveWorkers;
 use golem_worker_executor_base::services::blob_store::BlobStoreService;
 use golem_worker_executor_base::services::component::{ComponentMetadata, ComponentService};
@@ -415,7 +418,7 @@ impl FileSystemReading for Context {
         self.durable_ctx.list_directory(path).await
     }
 
-    async fn read_file(&self, path: &InitialComponentFilePath) -> Result<Vec<u8>, GolemError> {
-        self.durable_ctx.read_file(path).await
+    fn read_file(&self, path: &InitialComponentFilePath) -> Box<Pin<dyn Stream<Output = Result<Bytes, GolemError>>>> {
+        self.durable_ctx.read_file(path)
     }
 }

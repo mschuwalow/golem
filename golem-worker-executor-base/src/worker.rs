@@ -16,6 +16,7 @@ use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::mem;
 use std::ops::DerefMut;
 use std::path::PathBuf;
+use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
@@ -37,7 +38,9 @@ use crate::services::{
 };
 use crate::workerctx::{PublicWorkerIo, WorkerCtx};
 use anyhow::anyhow;
+use bytes::Bytes;
 use futures::channel::oneshot;
+use futures::Stream;
 use golem_common::config::RetryConfig;
 use golem_common::model::oplog::{
     OplogEntry, OplogIndex, TimestampedUpdateDescription, UpdateDescription, WorkerError,
@@ -799,7 +802,7 @@ impl<Ctx: WorkerCtx> Worker<Ctx> {
     pub async fn read_file(
         &self,
         path: InitialComponentFilePath,
-    ) -> Result<Vec<u8>, GolemError> {
+    ) -> Result<FileContentHandle, GolemError> {
         let (sender, receiver) = oneshot::channel();
 
         let mutex = self.instance.lock().await;
@@ -1418,10 +1421,6 @@ impl RunningWorker {
             if final_decision == RetryDecision::None {
                 debug!("Invocation queue loop started");
 
-
-                // Handle any pending list_directory and read_file invocations
-                panic!("Not implemented");
-
                 // Exits when RunningWorker is dropped
                 waiting_for_command.store(true, Ordering::Release);
                 while let Some(cmd) = receiver.recv().await {
@@ -1443,8 +1442,19 @@ impl RunningWorker {
                                     sender.send(result);
                                 },
                                 QueuedWorkerInvocation::ReadFile { path, sender } => {
-                                    let result = store.data_mut().read_file(&path).await;
-                                    sender.send(result);
+                                    // Wait until the client is done with the file to avoid corruption.
+                                    //
+                                    // This will delay processing of the next invocation and is quite unfortunate.
+                                    // A possible improvement would be to check whether we are on a copy-on-write filesystem
+                                    // if yes, we can make a cheap copy of the file here and serve the read from that copy.
+                                    let (latch, receiver) = oneshot::channel();
+
+                                    let handle = FileContentHandle {
+                                        data: store.data_mut().read_file(&path),
+                                        latch,
+                                    };
+                                    sender.send(Ok(handle));
+                                    receiver.await.unwrap();
                                 },
                                 QueuedWorkerInvocation::External(inner) => {
                                     match inner.invocation {
@@ -2380,7 +2390,7 @@ pub enum QueuedWorkerInvocation {
     },
     ReadFile {
         path: InitialComponentFilePath,
-        sender: oneshot::Sender<Result<Vec<u8>, GolemError>>,
+        sender: oneshot::Sender<Result<FileContentHandle, GolemError>>,
     },
 }
 
@@ -2390,5 +2400,17 @@ impl QueuedWorkerInvocation {
             Self::External(invocation) => Some(invocation),
             _ => None,
         }
+    }
+}
+
+/// The stream will be valid until this is dropped.
+pub struct FileContentHandle {
+    pub data: Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send>>,
+    latch: oneshot::Sender<()>
+}
+
+impl Drop for FileContentHandle {
+    fn drop(&mut self) {
+        let _ = self.latch.send(());
     }
 }
