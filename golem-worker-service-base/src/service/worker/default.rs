@@ -35,8 +35,7 @@ use golem_common::config::RetryConfig;
 use golem_common::model::oplog::OplogIndex;
 use golem_common::model::public_oplog::{OplogCursor, PublicOplogEntry};
 use golem_common::model::{
-    AccountId, ComponentId, ComponentVersion, FilterComparator, IdempotencyKey, PromiseId,
-    ScanCursor, TargetWorkerId, WorkerFilter, WorkerId, WorkerStatus,
+    AccountId, ComponentFileSystemNode, ComponentId, ComponentVersion, FilterComparator, IdempotencyKey, InitialComponentFilePath, PromiseId, ScanCursor, TargetWorkerId, WorkerFilter, WorkerId, WorkerStatus
 };
 use golem_service_base::model::{Component, GolemError};
 use golem_service_base::model::{
@@ -243,6 +242,14 @@ pub trait WorkerService<AuthCtx> {
         metadata: WorkerRequestMetadata,
         auth_ctx: &AuthCtx,
     ) -> Result<GetOplogResponse, WorkerServiceError>;
+
+    async fn list_directory(
+        &self,
+        worker_id: &WorkerId,
+        path: InitialComponentFilePath,
+        metadata: WorkerRequestMetadata,
+        auth_ctx: &AuthCtx,
+    ) -> WorkerResult<Vec<ComponentFileSystemNode>>;
 }
 
 pub struct TypedResult {
@@ -984,6 +991,67 @@ where
                     result: Some(workerexecutor::v1::search_oplog_response::Result::Failure(err)),
                 } => Err(err.into()),
                 SearchOplogResponse { .. } => Err("Empty response".into()),
+            },
+            WorkerServiceError::InternalCallError,
+        )
+            .await
+    }
+
+    async fn list_directory(
+        &self,
+        worker_id: &WorkerId,
+        path: InitialComponentFilePath,
+        metadata: WorkerRequestMetadata,
+        _auth_ctx: &AuthCtx,
+    ) -> WorkerResult<Vec<ComponentFileSystemNode>> {
+        let worker_id = worker_id.clone();
+        self.call_worker_executor(
+            worker_id.clone(),
+            "list_directory",
+            move |worker_executor_client| {
+                info!("Search oplog");
+                let worker_id = worker_id.clone();
+                Box::pin(
+                    worker_executor_client.list_directory(workerexecutor::v1::ListDirectoryRequest {
+                        worker_id: Some(worker_id.into()),
+                        account_id: metadata.account_id.clone().map(|id| id.into()),
+                        path: path.to_string()
+                    }),
+                )
+            },
+            |response| match response.into_inner() {
+                workerexecutor::v1::ListDirectoryResponse {
+                    result: Some(golem_api_grpc::proto::golem::workerexecutor::v1::list_directory_response::Result::Success(success)),
+                } => {
+                    success.nodes
+                        .into_iter()
+                        .map(|v|
+                            v
+                            .try_into()
+                            .map_err(|_| "Failed to convert node".into())
+                        )
+                        .collect::<Result<Vec<_>, _>>()
+                    // let entries: Vec<PublicOplogEntryWithIndex> = entries
+                    //     .into_iter()
+                    //     .map(|e| e.try_into())
+                    //     .collect::<Result<Vec<_>, _>>()
+                    //     .map_err(|err| {
+                    //         GolemError::Unknown(GolemErrorUnknown {
+                    //             details: format!("Unexpected oplog entries in error: {err}"),
+                    //         })
+                    //     })?;
+                    // let first_index_in_chunk =  entries.first().map(|entry| entry.oplog_index).unwrap_or(OplogIndex::INITIAL).into();
+                    // Ok(GetOplogResponse {
+                    //     entries,
+                    //     next: next.map(|c| c.into()),
+                    //     first_index_in_chunk,
+                    //     last_index,
+                    // })
+                }
+                workerexecutor::v1::ListDirectoryResponse {
+                    result: Some(workerexecutor::v1::list_directory_response::Result::Failure(err)),
+                } => Err(err.into()),
+                workerexecutor::v1::ListDirectoryResponse { .. } => Err("Empty response".into()),
             },
             WorkerServiceError::InternalCallError,
         )

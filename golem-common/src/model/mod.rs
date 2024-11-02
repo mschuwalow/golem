@@ -19,7 +19,6 @@ use std::fmt::{Display, Formatter};
 use std::ops::Add;
 use std::str::FromStr;
 use std::time::{Duration, SystemTime};
-
 use crate::config::RetryConfig;
 use crate::model::oplog::{
     IndexedResourceKey, OplogEntry, OplogIndex, TimestampedUpdateDescription, WorkerResourceId,
@@ -47,6 +46,11 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 use typed_path::Utf8UnixPathBuf;
 use uuid::{uuid, Uuid};
+use anyhow;
+use crate::uri::oss::urn::WorkerUrn;
+use golem_api_grpc::proto::golem::shardmanager::{
+    Pod as GrpcPod, RoutingTable as GrpcRoutingTable, RoutingTableEntry as GrpcRoutingTableEntry,
+};
 
 pub mod component_constraint;
 pub mod component_metadata;
@@ -57,10 +61,6 @@ pub mod public_oplog;
 pub mod regions;
 pub mod trim_date;
 
-use crate::uri::oss::urn::WorkerUrn;
-use golem_api_grpc::proto::golem::shardmanager::{
-    Pod as GrpcPod, RoutingTable as GrpcRoutingTable, RoutingTableEntry as GrpcRoutingTableEntry,
-};
 
 newtype_uuid!(
     ComponentId,
@@ -2734,6 +2734,46 @@ impl From<ComponentFileSystemNode> for golem_api_grpc::proto::golem::worker::Fil
                         }
                     ))
                 }
+        }
+    }
+}
+
+impl TryFrom<golem_api_grpc::proto::golem::worker::FileSystemNode> for ComponentFileSystemNode {
+    type Error = anyhow::Error;
+
+    fn try_from(value: golem_api_grpc::proto::golem::worker::FileSystemNode) -> Result<Self, Self::Error> {
+        match value.value {
+            Some(golem_api_grpc::proto::golem::worker::file_system_node::Value::Directory(
+                golem_api_grpc::proto::golem::worker::DirectoryFileSystemNode {
+                    name,
+                    last_modified,
+                }
+            )) => {
+                Ok(ComponentFileSystemNode {
+                    name,
+                    last_modified: SystemTime::UNIX_EPOCH + Duration::from_secs(last_modified),
+                    details: ComponentFileSystemNodeDetails::Directory,
+                })
+            },
+            Some(golem_api_grpc::proto::golem::worker::file_system_node::Value::File(
+                golem_api_grpc::proto::golem::worker::FileFileSystemNode {
+                    name,
+                    last_modified,
+                    size,
+                    permissions,
+                }
+            )) => {
+                Ok(ComponentFileSystemNode {
+                    name,
+                    last_modified: SystemTime::UNIX_EPOCH + Duration::from_secs(last_modified),
+                    details: ComponentFileSystemNodeDetails::File {
+                        permissions:
+                            golem_api_grpc::proto::golem::component::InitialComponentFilePermissions::try_from(permissions)?.into(),
+                        size,
+                    },
+                })
+            },
+            None => Err(anyhow::anyhow!("Missing value")),
         }
     }
 }
