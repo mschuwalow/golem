@@ -1075,7 +1075,7 @@ where
                 |response| {
                     let connected_stream = WorkerStream::new(response.into_inner());
                     let stream = connected_stream
-                        .map_err(|error| WorkerServiceError::Internal("Stream error".to_string()))
+                        .map_err(|_| WorkerServiceError::Internal("Stream error".to_string()))
                         .map(|item| item.and_then(|response| response.result.ok_or(WorkerServiceError::Internal("Malformed chunk".to_string()))))
                         .map_ok(|chunk|
                             match chunk {

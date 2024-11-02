@@ -272,7 +272,7 @@ message ListDirectoryRequest {
 message ListDirectoryResponse {
   oneof result {
     ListDirectorySuccessResponse success = 1;
-    WorkerError failure = 2;
+    WorkerError error = 2;
   }
 }
 
@@ -288,6 +288,6 @@ message GetFileContentsRequest {
 message GetFileContentsResponse {
   oneof result {
     bytes success = 1;
-    WorkerError failure = 2;
+    WorkerError error = 2;
   }
 }

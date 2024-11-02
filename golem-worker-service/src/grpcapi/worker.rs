@@ -515,8 +515,8 @@ impl GrpcWorkerService for WorkerGrpcApi {
 
     async fn list_directory(
         &self,
-        request: Request<ListDirectoryRequest>,
-    ) -> Result<Response<ListDirectoryResponse>, Status> {
+        request: Request<golem_api_grpc::proto::golem::worker::v1::ListDirectoryRequest>,
+    ) -> Result<Response<golem_api_grpc::proto::golem::worker::v1::ListDirectoryResponse>, Status> {
         let request = request.into_inner();
         let record = recorded_grpc_api_request!(
             "get_file_contents",
@@ -530,12 +530,12 @@ impl GrpcWorkerService for WorkerGrpcApi {
         {
             Ok(response) => record.succeed(list_directory_response::Result::Success(response)),
             Err(error) => record.fail(
-                list_directory_response::Result::Failure(error.clone()),
+                list_directory_response::Result::Error(error.clone()),
                 &WorkerTraceErrorKind(&error),
             ),
         };
 
-        Ok(Response::new(ListDirectoryResponse {
+        Ok(Response::new(golem_api_grpc::proto::golem::worker::v1::ListDirectoryResponse {
             result: Some(response),
         }))
     }
@@ -544,7 +544,7 @@ impl GrpcWorkerService for WorkerGrpcApi {
 
     async fn get_file_contents(
         &self,
-        request: Request<GetFileContentsRequest>,
+        request: Request<golem_api_grpc::proto::golem::worker::v1::GetFileContentsRequest>,
     ) -> Result<Response<Self::GetFileContentsStream>, Status> {
         let request = request.into_inner();
         let record = recorded_grpc_api_request!(
@@ -562,7 +562,7 @@ impl GrpcWorkerService for WorkerGrpcApi {
             Err(error) => {
                 let res = golem_api_grpc::proto::golem::worker::v1::GetFileContentsResponse {
                     result: Some(
-                        golem_api_grpc::proto::golem::worker::v1::get_file_contents_response::Result::Failure(error.clone())
+                        golem_api_grpc::proto::golem::worker::v1::get_file_contents_response::Result::Error(error.clone())
                     )
                 };
                 let err_stream: Self::GetFileContentsStream = Box::pin(tokio_stream::iter(vec![Ok(res)]));
@@ -995,8 +995,8 @@ impl WorkerGrpcApi {
 
     async fn list_directory(
         &self,
-        request: ListDirectoryRequest,
-    ) -> Result<ListDirectorySuccessResponse, GrpcWorkerError> {
+        request: golem_api_grpc::proto::golem::worker::v1::ListDirectoryRequest,
+    ) -> Result<golem_api_grpc::proto::golem::worker::v1::ListDirectorySuccessResponse, GrpcWorkerError> {
         let worker_id = validate_protobuf_worker_id(request.worker_id)?;
         let file_path = validate_component_file_path(request.path)?;
 
@@ -1010,7 +1010,7 @@ impl WorkerGrpcApi {
             )
             .await?;
 
-        Ok(ListDirectorySuccessResponse {
+        Ok(golem_api_grpc::proto::golem::worker::v1::ListDirectorySuccessResponse {
             nodes: result
                 .into_iter()
                 .map(|e| e.into())
@@ -1020,7 +1020,7 @@ impl WorkerGrpcApi {
 
     async fn get_file_contents(
         &self,
-        request: GetFileContentsRequest,
+        request: golem_api_grpc::proto::golem::worker::v1::GetFileContentsRequest,
     ) -> Result<<Self as GrpcWorkerService>::GetFileContentsStream, GrpcWorkerError> {
         let worker_id = validate_protobuf_worker_id(request.worker_id)?;
         let file_path = validate_component_file_path(request.file_path)?;
@@ -1041,7 +1041,7 @@ impl WorkerGrpcApi {
                         }),
                     Err(error) =>
                         Ok(golem_api_grpc::proto::golem::worker::v1::GetFileContentsResponse {
-                            result: Some(golem_api_grpc::proto::golem::worker::v1::get_file_contents_response::Result::Failure(error.into())),
+                            result: Some(golem_api_grpc::proto::golem::worker::v1::get_file_contents_response::Result::Error(error.into())),
                         })
                 }
 
