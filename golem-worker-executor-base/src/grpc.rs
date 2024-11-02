@@ -36,10 +36,10 @@ use futures_util::TryStreamExt;
 use crate::error::*;
 use golem_api_grpc::proto::golem;
 use golem_api_grpc::proto::golem::common::ResourceLimits as GrpcResourceLimits;
-use golem_api_grpc::proto::golem::worker::{Cursor, FileChunk, ResourceMetadata, UpdateMode};
+use golem_api_grpc::proto::golem::worker::{Cursor, ResourceMetadata, UpdateMode};
 use golem_api_grpc::proto::golem::workerexecutor::v1::worker_executor_server::WorkerExecutor;
 use golem_api_grpc::proto::golem::workerexecutor::v1::{
-    ConnectWorkerRequest, DeleteWorkerRequest, GetFileContentsRequest, GetFileContentsResponse, GetOplogRequest, GetOplogResponse, GetRunningWorkersMetadataRequest, GetRunningWorkersMetadataResponse, GetWorkersMetadataRequest, GetWorkersMetadataResponse, InvokeAndAwaitWorkerRequest, InvokeAndAwaitWorkerResponseTyped, InvokeAndAwaitWorkerSuccess, ListDirectoryRequest, ListDirectoryResponse, ReadFileRequest, SearchOplogRequest, SearchOplogResponse, UpdateWorkerRequest, UpdateWorkerResponse
+    ConnectWorkerRequest, DeleteWorkerRequest, GetFileContentsRequest, GetFileContentsResponse, GetOplogRequest, GetOplogResponse, GetRunningWorkersMetadataRequest, GetRunningWorkersMetadataResponse, GetWorkersMetadataRequest, GetWorkersMetadataResponse, InvokeAndAwaitWorkerRequest, InvokeAndAwaitWorkerResponseTyped, InvokeAndAwaitWorkerSuccess, ListDirectoryRequest, ListDirectoryResponse, SearchOplogRequest, SearchOplogResponse, UpdateWorkerRequest, UpdateWorkerResponse
 };
 use golem_common::grpc::{
     proto_account_id_string, proto_component_id_string, proto_idempotency_key_string,
@@ -64,7 +64,7 @@ use crate::services::{
     HasPromiseService, HasRunningWorkerEnumerationService, HasShardManagerService, HasShardService,
     HasWorkerEnumerationService, HasWorkerService, UsesAllDeps,
 };
-use crate::worker::{FileContentHandle, Worker};
+use crate::worker::{Worker};
 use crate::workerctx::WorkerCtx;
 
 pub enum GrpcError<E> {
@@ -1277,7 +1277,7 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
 
     async fn get_file_contents_internal(
         &self,
-        request: ReadFileRequest,
+        request: GetFileContentsRequest,
     ) -> Result<<Self as WorkerExecutor>::GetFileContentsStream, GolemError> {
         let worker_id = request
             .worker_id
@@ -1288,7 +1288,7 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
             .account_id
             .ok_or(GolemError::invalid_request("account_id not found"))?;
 
-        let path = InitialComponentFilePath::from_str(&request.path)
+        let path = InitialComponentFilePath::from_str(&request.file_path)
             .map_err(|e| GolemError::invalid_request(format!("Invalid path: {}", e)))?;
 
         let account_id: AccountId = account_id.into();
@@ -2137,10 +2137,28 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
             path = request.file_path,
         );
 
-       self
+       let result = self
             .get_file_contents_internal(request)
             .instrument(record.span.clone())
-            .await
+            .await;
+
+        let stream: Self::GetFileContentsStream = match result {
+            Ok(stream) => record.succeed(stream),
+            Err(err) => {
+                let res = GetFileContentsResponse {
+                    result: Some(
+                        golem::workerexecutor::v1::get_file_contents_response::Result::Failure(
+                            err.clone().into(),
+                        ),
+                    ),
+                };
+
+                let err_stream: Self::GetFileContentsStream = Box::pin(tokio_stream::iter(vec![Ok(res)]));
+
+                record.fail(err_stream, &err)
+            }
+        };
+        Ok(Response::new(stream))
     }
 
 }

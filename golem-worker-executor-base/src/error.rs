@@ -319,6 +319,7 @@ impl Error for GolemError {
             GolemError::PreviousInvocationExited => "The previously invoked function exited",
             GolemError::Unknown { .. } => "Unknown error",
             GolemError::ShardingNotReady => "Sharding not ready",
+            GolemError::FileSystemError { .. } => "File system error",
         }
     }
 }
@@ -350,6 +351,7 @@ impl TraceErrorKind for GolemError {
             GolemError::PreviousInvocationExited => "PreviousInvocationExited",
             GolemError::Unknown { .. } => "Unknown",
             GolemError::ShardingNotReady => "ShardingNotReady",
+            GolemError::FileSystemError { .. } => "FileSystemError",
         }
     }
 }
@@ -617,6 +619,13 @@ impl From<GolemError> for golem::worker::v1::WorkerExecutionError {
                 error: Some(
                     golem::worker::v1::worker_execution_error::Error::ShardingNotReady(
                         golem::worker::v1::ShardingNotReady {},
+                    ),
+                ),
+            },
+            GolemError::FileSystemError { details } => golem::worker::v1::WorkerExecutionError {
+                error: Some(
+                    golem::worker::v1::worker_execution_error::Error::FileSystemError(
+                        golem::worker::v1::FileSystemError { details },
                     ),
                 ),
             },
