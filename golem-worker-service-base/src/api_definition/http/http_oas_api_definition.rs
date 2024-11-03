@@ -259,7 +259,7 @@ mod tests {
 
     use super::*;
     use crate::api_definition::http::{AllPathPatterns, MethodPattern, Route};
-    use crate::worker_binding::{GolemWorkerBinding, ResponseMapping};
+    use crate::worker_binding::{GolemWorkerBinding, ResponseMapping, WorkerBindingType};
     use golem_common::model::ComponentId;
     use openapiv3::PathItem;
     use rib::Expr;
