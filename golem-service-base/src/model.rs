@@ -18,7 +18,7 @@ use golem_common::model::component_metadata::ComponentMetadata;
 use golem_common::model::oplog::OplogIndex;
 use golem_common::model::public_oplog::{OplogCursor, PublicOplogEntry};
 use golem_common::model::{
-    ComponentFileSystemNode, ComponentFileSystemNodeDetails, ComponentId, ComponentType, ComponentVersion, InitialComponentFile, InitialComponentFileKey, ComponentFilePath, ComponentFilePermissions, PromiseId, ScanCursor, ShardId, Timestamp, WorkerFilter, WorkerId, WorkerStatus
+    ComponentFileSystemNode, ComponentFileSystemNodeDetails, ComponentId, ComponentType, ComponentVersion, InitialComponentFile, ComponentFilePermissions, PromiseId, ScanCursor, ShardId, Timestamp, WorkerFilter, WorkerId, WorkerStatus
 };
 use golem_common::SafeDisplay;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
