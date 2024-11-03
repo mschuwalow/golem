@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::Permissions;
 use std::{path::PathBuf, sync::Arc};
 use anyhow::anyhow;
 use golem_common::model::InitialComponentFileKey;
@@ -81,10 +80,6 @@ impl FileLoader {
         }
         debug!("Hardlinking {} to {}", path.display(), target.display());
         hard_link(path, target).await?;
-
-        let mut perms = tokio::fs::metadata(target).await?.permissions();
-        perms.set_readonly(true);
-        tokio::fs::set_permissions(target, perms).await?;
 
         Ok(())
     }

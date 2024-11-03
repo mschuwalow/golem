@@ -1463,8 +1463,15 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWo
             let last_modified = metadata.modified().ok().unwrap_or(SystemTime::UNIX_EPOCH);
 
             if metadata.is_file() {
-                let is_readonly = metadata.permissions().readonly();
-                let permissions = if is_readonly {
+                let is_readonly_by_host = metadata.permissions().readonly();
+                // additionally consider permissions we maintain ourselves
+                let is_readonly_by_us = self
+                    .read_only_paths
+                    .read()
+                    .expect("There should be no writers to read_only_paths")
+                    .contains(&entry.path());
+
+                let permissions = if is_readonly_by_host || is_readonly_by_us {
                     InitialComponentFilePermissions::ReadOnly
                 } else {
                     InitialComponentFilePermissions::ReadWrite
