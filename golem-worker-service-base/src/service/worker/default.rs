@@ -12,17 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use core::prelude::v1;
-use std::fmt::format;
 use std::pin::Pin;
 use std::{collections::HashMap, sync::Arc};
 use async_trait::async_trait;
 use bytes::Bytes;
-use futures::{stream, Stream, StreamExt};
+use futures::{Stream, StreamExt};
 use golem_wasm_ast::analysis::AnalysedFunctionResult;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::protobuf::Val as ProtoVal;
-use http::header;
 use tonic::transport::Channel;
 use tonic::Code;
 use tracing::{error, info};

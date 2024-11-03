@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::pin::Pin;
 use std::sync::{Arc, RwLock, Weak};
 use anyhow::Error;
 use async_trait::async_trait;
@@ -34,8 +33,6 @@ use golem_worker_executor_base::error::GolemError;
 use golem_worker_executor_base::model::{
     CurrentResourceLimits, ExecutionStatus, InterruptKind, LastError, ListDirectoryResult, ReadFileResult, TrapType, WorkerConfig
 };
-use futures::Stream;
-use bytes::Bytes;
 use golem_worker_executor_base::services::active_workers::ActiveWorkers;
 use golem_worker_executor_base::services::blob_store::BlobStoreService;
 use golem_worker_executor_base::services::component::{ComponentMetadata, ComponentService};
@@ -55,7 +52,7 @@ use golem_worker_executor_base::worker::{RetryDecision, Worker};
 use golem_worker_executor_base::workerctx::{
     ExternalOperations, FileSystemReading, FuelManagement, IndexedResourceStore, InvocationHooks, InvocationManagement, StatusManagement, UpdateManagement, WorkerCtx
 };
-use golem_common::model::{InitialComponentFilePath, ComponentFileSystemNode};
+use golem_common::model::InitialComponentFilePath;
 
 use crate::services::AdditionalDeps;
 

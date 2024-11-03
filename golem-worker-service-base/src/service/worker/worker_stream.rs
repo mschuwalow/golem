@@ -23,7 +23,6 @@ use tokio_util::sync::CancellationToken;
 use tonic::{Status, Streaming};
 use tracing::{error, Instrument};
 
-use golem_api_grpc::proto::golem::worker::LogEvent;
 use golem_common::metrics::api::{
     record_closed_grpc_api_active_stream, record_new_grpc_api_active_stream,
 };

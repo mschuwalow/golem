@@ -756,7 +756,7 @@ impl FileSystemReading for TestWorkerCtx {
     }
 
     async fn read_file(&self, path: &InitialComponentFilePath) -> Result<ReadFileResult, GolemError> {
-        self.durable_ctx.read_file(path)
+        self.durable_ctx.read_file(path).await
     }
 }
 

@@ -14,7 +14,7 @@
 
 use std::pin::Pin;
 use futures::Stream;
-use golem_api_grpc::proto::golem::worker::v1::{list_directory_response, GetFileContentsResponse, ListDirectoryRequest, ListDirectoryResponse, ListDirectorySuccessResponse};
+use golem_api_grpc::proto::golem::worker::v1::{list_directory_response, GetFileContentsResponse};
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use tap::TapFallible;
 use tonic::{Request, Response, Status};
@@ -22,7 +22,7 @@ use tracing::Instrument;
 use golem_api_grpc::proto::golem::common::{Empty, ErrorBody, ErrorsBody};
 use golem_api_grpc::proto::golem::worker::v1::worker_service_server::WorkerService as GrpcWorkerService;
 use golem_api_grpc::proto::golem::worker::v1::{
-    complete_promise_response, delete_worker_response, get_oplog_response, get_worker_metadata_response, get_workers_metadata_response, interrupt_worker_response, invoke_and_await_json_response, invoke_and_await_response, invoke_and_await_typed_response, invoke_response, launch_new_worker_response, resume_worker_response, search_oplog_response, update_worker_response, worker_error, worker_execution_error, CompletePromiseRequest, CompletePromiseResponse, ConnectWorkerRequest, DeleteWorkerRequest, DeleteWorkerResponse, GetFileContentsRequest, GetOplogRequest, GetOplogResponse, GetOplogSuccessResponse, GetWorkerMetadataRequest, GetWorkerMetadataResponse, GetWorkersMetadataRequest, GetWorkersMetadataResponse, GetWorkersMetadataSuccessResponse, InterruptWorkerRequest, InterruptWorkerResponse, InvokeAndAwaitJsonRequest, InvokeAndAwaitJsonResponse, InvokeAndAwaitRequest, InvokeAndAwaitResponse, InvokeAndAwaitTypedResponse, InvokeJsonRequest, InvokeRequest, InvokeResponse, LaunchNewWorkerRequest, LaunchNewWorkerResponse, LaunchNewWorkerSuccessResponse, ResumeWorkerRequest, ResumeWorkerResponse, SearchOplogRequest, SearchOplogResponse, SearchOplogSuccessResponse, UnknownError, UpdateWorkerRequest, UpdateWorkerResponse, WorkerError as GrpcWorkerError, WorkerExecutionError
+    complete_promise_response, delete_worker_response, get_oplog_response, get_worker_metadata_response, get_workers_metadata_response, interrupt_worker_response, invoke_and_await_json_response, invoke_and_await_response, invoke_and_await_typed_response, invoke_response, launch_new_worker_response, resume_worker_response, search_oplog_response, update_worker_response, worker_error, worker_execution_error, CompletePromiseRequest, CompletePromiseResponse, ConnectWorkerRequest, DeleteWorkerRequest, DeleteWorkerResponse, GetOplogRequest, GetOplogResponse, GetOplogSuccessResponse, GetWorkerMetadataRequest, GetWorkerMetadataResponse, GetWorkersMetadataRequest, GetWorkersMetadataResponse, GetWorkersMetadataSuccessResponse, InterruptWorkerRequest, InterruptWorkerResponse, InvokeAndAwaitJsonRequest, InvokeAndAwaitJsonResponse, InvokeAndAwaitRequest, InvokeAndAwaitResponse, InvokeAndAwaitTypedResponse, InvokeJsonRequest, InvokeRequest, InvokeResponse, LaunchNewWorkerRequest, LaunchNewWorkerResponse, LaunchNewWorkerSuccessResponse, ResumeWorkerRequest, ResumeWorkerResponse, SearchOplogRequest, SearchOplogResponse, SearchOplogSuccessResponse, UnknownError, UpdateWorkerRequest, UpdateWorkerResponse, WorkerError as GrpcWorkerError, WorkerExecutionError
 };
 use golem_api_grpc::proto::golem::worker::{InvokeResult, InvokeResultTyped, LogEvent, WorkerMetadata};
 use golem_common::grpc::{

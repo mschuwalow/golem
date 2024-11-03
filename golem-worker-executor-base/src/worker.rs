@@ -15,7 +15,6 @@
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::mem;
 use std::ops::DerefMut;
-use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
@@ -37,17 +36,15 @@ use crate::services::{
 };
 use crate::workerctx::{PublicWorkerIo, WorkerCtx};
 use anyhow::anyhow;
-use bytes::Bytes;
 use drop_stream::DropStream;
 use futures::channel::oneshot;
-use futures::Stream;
 use golem_common::config::RetryConfig;
 use golem_common::model::oplog::{
     OplogEntry, OplogIndex, TimestampedUpdateDescription, UpdateDescription, WorkerError,
     WorkerResourceId,
 };
 use golem_common::model::regions::{DeletedRegions, DeletedRegionsBuilder, OplogRegion};
-use golem_common::model::{exports, ComponentFileSystemNode, ComponentType, InitialComponentFilePath};
+use golem_common::model::{exports, ComponentType, InitialComponentFilePath};
 use golem_common::model::{
     ComponentVersion, FailedUpdateRecord, IdempotencyKey, OwnedWorkerId, SuccessfulUpdateRecord,
     Timestamp, TimestampedWorkerInvocation, WorkerId, WorkerInvocation, WorkerMetadata,

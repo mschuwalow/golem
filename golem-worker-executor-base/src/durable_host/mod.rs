@@ -41,9 +41,8 @@ use crate::workerctx::{
 };
 use anyhow::anyhow;
 use async_trait::async_trait;
-use bytes::{Bytes, BytesMut};
+use bytes::BytesMut;
 use chrono::{DateTime, Utc};
-use futures::Stream;
 use golem_common::config::RetryConfig;
 use golem_common::model::oplog::{
     IndexedResourceKey, LogLevel, OplogEntry, OplogIndex, UpdateDescription, WorkerError,
@@ -69,7 +68,6 @@ use wasmtime_wasi_http::body::HyperOutgoingBody;
 use wasmtime_wasi_http::types::{
     default_send_request, HostFutureIncomingResponse, OutgoingRequestConfig,
 };
-use std::pin::Pin;
 use wasmtime_wasi_http::{HttpResult, WasiHttpCtx, WasiHttpView};
 use crate::durable_host::io::{ManagedStdErr, ManagedStdIn, ManagedStdOut};
 use crate::durable_host::wasm_rpc::UrnExtensions;

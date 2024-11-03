@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::pin::Pin;
 use std::sync::{Arc, RwLock, Weak};
 
 use async_trait::async_trait;
-use bytes::Bytes;
-use futures::Stream;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::wasmtime::ResourceStore;
 use golem_wasm_rpc::Value;
@@ -25,7 +22,7 @@ use wasmtime::{AsContextMut, ResourceLimiterAsync};
 
 use golem_common::model::oplog::WorkerResourceId;
 use golem_common::model::{
-    AccountId, ComponentFileSystemNode, ComponentVersion, IdempotencyKey, InitialComponentFilePath, OwnedWorkerId, WorkerId, WorkerMetadata, WorkerStatus, WorkerStatusRecord
+    AccountId, ComponentVersion, IdempotencyKey, InitialComponentFilePath, OwnedWorkerId, WorkerId, WorkerMetadata, WorkerStatus, WorkerStatusRecord
 };
 
 use crate::error::GolemError;
