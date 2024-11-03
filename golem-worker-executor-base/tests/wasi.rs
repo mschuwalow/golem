@@ -241,6 +241,7 @@ async fn initial_file_read_write(
             == vec![Value::Tuple(vec![
                 Value::Option(Some(Box::new(Value::String("foo\n".to_string())))),
                 Value::Option(None),
+                Value::Option(None),
                 Value::Option(Some(Box::new(Value::String("baz\n".to_string())))),
                 Value::Option(Some(Box::new(Value::String("hello world".to_string())))),
             ])]
@@ -374,11 +375,6 @@ async fn initial_file_reading_through_api(
     let result2 = std::str::from_utf8(&result2).unwrap();
 
     drop(executor);
-
-
-    use log::warn;
-    warn!("result1: {:?}", result1);
-    warn!("result2: {:?}", result2);
 
     check!(result1 == "foo\n");
     check!(result2 == "baz\n");
