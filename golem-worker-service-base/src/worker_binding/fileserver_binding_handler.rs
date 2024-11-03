@@ -2,7 +2,7 @@ use std::{pin::Pin, str::FromStr, sync::Arc};
 
 use bytes::Bytes;
 use futures::Stream;
-use golem_common::model::{component_metadata, InitialComponentFilePath};
+use golem_common::model::{component_metadata, InitialComponentFilePath, TargetWorkerId};
 use golem_service_base::model::validate_worker_name;
 use golem_service_base::{auth::EmptyAuthCtx, service::initial_component_files::InitialComponentFilesService};
 use golem_wasm_rpc::protobuf::typed_result::ResultValue;
@@ -11,18 +11,32 @@ use mime_guess::Mime;
 use poem::web::{headers::ContentType};
 use rib::RibResult;
 use async_trait::async_trait;
-use crate::service::component::ComponentService;
-use crate::service::worker::{self, WorkerService};
+use crate::service::component::{ComponentService, ComponentServiceError};
+use crate::service::worker::{WorkerService, WorkerServiceError};
 use super::WorkerDetail;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use crate::getter::{get_response_headers, get_response_headers_or_default, get_status_code, Getter, GetterExt};
 use crate::path::Path;
 use golem_wasm_rpc::json::TypeAnnotatedValueJsonExtensions;
+use crate::empty_worker_metadata;
 
-pub struct FileServerBindingResult {
+// pub struct FileServerBindingResult {
+//     pub original_result: RibResult,
+//     pub data: Pin<Box<dyn Stream<Item = Bytes>>>
+// }
+
+pub struct FileServerBindingSuccess {
     pub original_result: RibResult,
-    pub data: Pin<Box<dyn Stream<Item = Bytes>>>
+    pub data: Pin<Box<dyn Stream<Item = Result<Bytes, WorkerServiceError>>>>
 }
+
+pub enum FileServerBindingError {
+    InternalError(String),
+    WorkerServiceError(WorkerServiceError),
+    ComponentServiceError(ComponentServiceError)
+}
+
+pub type FileServerBindingResult = Result<FileServerBindingSuccess, FileServerBindingError>;
 
 pub struct FileServerBindingDetails {
     content_type: ContentType,
@@ -69,6 +83,13 @@ impl FileServerBindingDetails {
             record @ TypeAnnotatedValue::Record(_) => {
                 let path = record.get_optional(&Path::from_key("file-path"))
                     .ok_or("Record must contain 'file-path' field")?;
+
+                let path = if let TypeAnnotatedValue::Str(path) = path {
+                    path
+                } else {
+                    return Err("file-path must be a string".to_string());
+                };
+
                 let status = get_status_code(&record)?;
                 let headers = get_response_headers_or_default(&record)?;
                 let content_type  = headers.get_content_type();
@@ -146,7 +167,7 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
             .component_service
             .get_by_version(&worker_detail.component_id.component_id, worker_detail.component_id.version, &EmptyAuthCtx())
             .await
-            .unwrap();
+            .map_err(FileServerBindingError::ComponentServiceError)?;
 
         // if we are serving a read_only file, we can just go straight to the blob storage.
         let matching_file = component_metadata
@@ -159,37 +180,39 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
                 .initial_component_files_service
                 .get(&file.key)
                 .await
-                .unwrap()
-                .ok_or("File not found")
-                .unwrap();
+                .map_err(|s| FileServerBindingError::InternalError(format!("Failed looking up file in storage: {e}")))?
+                .ok_or(FileServerBindingError::InternalError(format!("File not found in file storage: {}", file.key)))?;
 
-            return FileServerBindingResult {
+            Ok(FileServerBindingSuccess {
                 original_result,
-                data: Box::pin(futures::stream::once(async move { data })),
-            };
+                data: Box::pin(futures::stream::once(async move { Ok(data) })),
+            })
         } else {
-            // Read write files need to be fetched from a running worker. If no worker id is provided,
-            // just create an ephemeral worker. Using the same worker for all requests ensures that we
-            // are don't spawn too many workers.
+            // Read write files need to be fetched from a running worker.
+            // Ask the worker service to get the file contents. If no worker is running, one will be started.
             let worker_name_opt_validated = worker_detail
                 .worker_name
                 .map(|w| validate_worker_name(w.as_str()).map(|_| w))
-                .transpose();
+                .transpose()
+                .map_err(|e| FileServerBindingError::InternalError(format!("Invalid worker name: {}", e)))?;
 
-            let component_id = worker_request_params.component_id;
+            let component_id = worker_detail.component_id.component_id.clone();
 
             let worker_id = TargetWorkerId {
-                component_id: component_id.clone(),
+                component_id,
                 worker_name: worker_name_opt_validated.clone(),
             };
 
-            todo!()
-            // // if we are serving a read_write file, we need to get it from the worker service.
-            // let data = self
-            //     .worker_service
-            //     .get_file_contents(&worker_detail, &binding_details.file_path)
-            //     .await
-            //     .unwrap();
+            let stream = self
+                .worker_service
+                .get_file_contents(&worker_id, binding_details.file_path, empty_worker_metadata(), &EmptyAuthCtx())
+                .await
+                .map_err(FileServerBindingError::WorkerServiceError)?;
+
+            Ok(FileServerBindingSuccess {
+                original_result,
+                data: stream,
+            })
         }
     }
 }

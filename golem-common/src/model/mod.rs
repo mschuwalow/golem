@@ -2488,6 +2488,12 @@ impl FromStr for ComponentType {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, NewType)]
 pub struct InitialComponentFileKey(pub String);
 
+impl Display for InitialComponentFileKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 
 /// Path inside a component filesystem. Must be
 /// - absolute (start with '/')
