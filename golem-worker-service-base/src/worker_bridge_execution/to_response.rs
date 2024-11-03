@@ -1,9 +1,12 @@
+use crate::api::WorkerApiBaseError;
+use crate::service::worker::WorkerServiceError;
+use crate::worker_binding::fileserver_binding_handler::{FileServerBindingError, FileServerBindingResult};
 use crate::worker_binding::{RequestDetails, RibInputTypeMismatch};
 use crate::worker_service_rib_interpreter::EvaluationError;
-
 use http::StatusCode;
 use poem::Body;
 use rib::RibResult;
+use poem::IntoResponse;
 
 pub trait ToResponse<A> {
     fn to_response(&self, request_details: &RequestDetails) -> A;
@@ -44,6 +47,25 @@ impl ToResponse<poem::Response> for String {
         poem::Response::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
             .body(Body::from_string(self.to_string()))
+    }
+}
+
+impl ToResponse<poem::Response> for FileServerBindingResult {
+    fn to_response(&self, _request_details: &RequestDetails) -> poem::Response {
+        match self {
+            Ok(data) =>
+                Body::from_bytes_stream(data.data)
+                    .with_content_type(&data.binding_details.content_type.to_string())
+                    .with_status(data.binding_details.status_code)
+                    .into_response()
+            Err(FileServerBindingError::InternalError(e)) => poem::Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from_string(format!("Error {}", e).to_string())),
+            Err(FileServerBindingError::ComponentServiceError(inner)) =>
+                WorkerApiBaseError::from(*inner.clone()).into_response(),
+            Err(FileServerBindingError::WorkerServiceError(inner)) =>
+                WorkerApiBaseError::from(*inner.clone()).into_response(),
+        }
     }
 }
 

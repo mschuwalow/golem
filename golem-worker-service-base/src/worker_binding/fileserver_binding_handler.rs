@@ -19,15 +19,12 @@ use crate::getter::{get_response_headers, get_response_headers_or_default, get_s
 use crate::path::Path;
 use golem_wasm_rpc::json::TypeAnnotatedValueJsonExtensions;
 use crate::empty_worker_metadata;
-
-// pub struct FileServerBindingResult {
-//     pub original_result: RibResult,
-//     pub data: Pin<Box<dyn Stream<Item = Bytes>>>
-// }
+use futures_util::TryStreamExt;
 
 pub struct FileServerBindingSuccess {
     pub original_result: RibResult,
-    pub data: Pin<Box<dyn Stream<Item = Result<Bytes, WorkerServiceError>>>>
+    pub binding_details: FileServerBindingDetails,
+    pub data: Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send + 'static>>
 }
 
 pub enum FileServerBindingError {
@@ -38,10 +35,11 @@ pub enum FileServerBindingError {
 
 pub type FileServerBindingResult = Result<FileServerBindingSuccess, FileServerBindingError>;
 
+#[derive(Debug, Clone)]
 pub struct FileServerBindingDetails {
-    content_type: ContentType,
-    status_code: StatusCode,
-    file_path: InitialComponentFilePath,
+    pub content_type: ContentType,
+    pub status_code: StatusCode,
+    pub file_path: InitialComponentFilePath,
 }
 
 impl FileServerBindingDetails {
@@ -180,11 +178,12 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
                 .initial_component_files_service
                 .get(&file.key)
                 .await
-                .map_err(|s| FileServerBindingError::InternalError(format!("Failed looking up file in storage: {e}")))?
+                .map_err(|e| FileServerBindingError::InternalError(format!("Failed looking up file in storage: {e}")))?
                 .ok_or(FileServerBindingError::InternalError(format!("File not found in file storage: {}", file.key)))?;
 
             Ok(FileServerBindingSuccess {
                 original_result,
+                binding_details: binding_details,
                 data: Box::pin(futures::stream::once(async move { Ok(data) })),
             })
         } else {
@@ -205,13 +204,17 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
 
             let stream = self
                 .worker_service
-                .get_file_contents(&worker_id, binding_details.file_path, empty_worker_metadata(), &EmptyAuthCtx())
+                .get_file_contents(&worker_id, binding_details.file_path.clone(), empty_worker_metadata(), &EmptyAuthCtx())
                 .await
                 .map_err(FileServerBindingError::WorkerServiceError)?;
 
+            let stream = stream
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()));
+
             Ok(FileServerBindingSuccess {
                 original_result,
-                data: stream,
+                binding_details,
+                data: Box::pin(stream),
             })
         }
     }
