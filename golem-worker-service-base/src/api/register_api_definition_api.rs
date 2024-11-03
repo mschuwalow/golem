@@ -128,7 +128,7 @@ pub struct GolemWorkerBinding {
     pub worker_name: Option<String>,
     pub idempotency_key: Option<String>,
     pub response: String,
-    #[oai(default)]
+    #[oai(default, rename = "type")]
     pub worker_binding_type: WorkerBindingType,
 }
 
@@ -143,7 +143,7 @@ pub struct GolemWorkerBindingWithTypeInfo {
     pub worker_name: Option<String>,
     pub idempotency_key: Option<String>,
     pub response: String,
-    #[oai(default)]
+    #[oai(default, rename = "type")]
     pub worker_binding_type: WorkerBindingType,
     pub response_mapping_input: Option<RibInputTypeInfo>,
     pub worker_name_input: Option<RibInputTypeInfo>,
@@ -548,6 +548,7 @@ impl TryFrom<grpc_apidefinition::WorkerBinding> for crate::worker_binding::Golem
             worker_name,
             idempotency_key,
             response,
+            worker_binding_type: todo!()
         };
 
         Ok(result)

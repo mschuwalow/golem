@@ -245,19 +245,19 @@ mod tests {
     }
 
     impl ToResponse<TestResponse> for EvaluationError {
-        fn to_response(&self, _request_details: &RequestDetails) -> TestResponse {
+        fn to_response(self, _request_details: &RequestDetails) -> TestResponse {
             panic!("{}", self.to_string())
         }
     }
 
     impl ToResponse<TestResponse> for RibInputTypeMismatch {
-        fn to_response(&self, _request_details: &RequestDetails) -> TestResponse {
+        fn to_response(self, _request_details: &RequestDetails) -> TestResponse {
             panic!("{}", self.to_string())
         }
     }
 
     impl ToResponse<TestResponse> for RibResult {
-        fn to_response(&self, _request_details: &RequestDetails) -> TestResponse {
+        fn to_response(self, _request_details: &RequestDetails) -> TestResponse {
             let function_name = self
                 .get_val()
                 .map(|x| x.get(&Path::from_key("function_name")).unwrap())
