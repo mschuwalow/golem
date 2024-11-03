@@ -2696,7 +2696,7 @@ impl poem_openapi::types::ParseFromMultipartField for InitialComponentFilePathAn
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ComponentFileSystemNodeDetails {
     File {
         permissions: InitialComponentFilePermissions,
@@ -2705,7 +2705,7 @@ pub enum ComponentFileSystemNodeDetails {
     Directory,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ComponentFileSystemNode {
    pub name: String,
    pub last_modified: SystemTime,
