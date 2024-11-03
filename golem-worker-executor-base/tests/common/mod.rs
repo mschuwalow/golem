@@ -1,8 +1,6 @@
 use anyhow::Error;
 use async_trait::async_trait;
 
-use bytes::Bytes;
-use futures::Stream;
 use golem_service_base::service::initial_component_files::InitialComponentFilesService;
 use golem_service_base::storage::blob::BlobStorage;
 use golem_wasm_rpc::wasmtime::ResourceStore;
@@ -14,12 +12,11 @@ use crate::{LastUniqueId, WorkerExecutorPerTestDependencies, WorkerExecutorTestD
 use golem_api_grpc::proto::golem::workerexecutor::v1::worker_executor_client::WorkerExecutorClient;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use std::path::{Path, PathBuf};
-use std::pin::Pin;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, RwLock, Weak};
 
 use golem_common::model::{
-    AccountId, ComponentFileSystemNode, ComponentId, ComponentVersion, IdempotencyKey, InitialComponentFilePath, OwnedWorkerId, ScanCursor, WorkerFilter, WorkerId, WorkerMetadata, WorkerStatus, WorkerStatusRecord
+    AccountId, ComponentId, ComponentVersion, IdempotencyKey, InitialComponentFilePath, OwnedWorkerId, ScanCursor, WorkerFilter, WorkerId, WorkerMetadata, WorkerStatus, WorkerStatusRecord
 };
 use golem_worker_executor_base::error::GolemError;
 use golem_worker_executor_base::services::golem_config::{
