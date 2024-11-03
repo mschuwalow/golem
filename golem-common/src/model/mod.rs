@@ -2686,42 +2686,42 @@ impl TryFrom<golem_api_grpc::proto::golem::component::InitialComponentFile> for 
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Object)]
-pub struct InitialComponentFilePathAndPermissions {
+pub struct ComponentFilePathAndPermissions {
     pub path: ComponentFilePath,
     pub permissions: ComponentFilePermissions,
 }
 
-impl InitialComponentFilePathAndPermissions {
+impl ComponentFilePathAndPermissions {
     pub fn extend_path(&mut self, path: &str) -> Result<(), String> {
         self.path.extend(path)
     }
 }
 
-impl Display for InitialComponentFilePathAndPermissions {
+impl Display for ComponentFilePathAndPermissions {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", serde_json::to_string(self).unwrap())
     }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Object)]
-pub struct InitialComponentFilePathAndPermissionsList {
-    pub values: Vec<InitialComponentFilePathAndPermissions>,
+pub struct ComponentFilePathAndPermissionsList {
+    pub values: Vec<ComponentFilePathAndPermissions>,
 }
 
-impl Display for InitialComponentFilePathAndPermissionsList {
+impl Display for ComponentFilePathAndPermissionsList {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", serde_json::to_string(self).unwrap())
     }
 }
 
-impl poem_openapi::types::ParseFromMultipartField for InitialComponentFilePathAndPermissionsList {
+impl poem_openapi::types::ParseFromMultipartField for ComponentFilePathAndPermissionsList {
     fn parse_from_multipart(
             field: Option<poem::web::Field>,
         ) -> impl std::future::Future<Output = ParseResult<Self>> + Send {
         async {
             String::parse_from_multipart(field)
                 .await
-                .map_err(|err| err.propagate::<InitialComponentFilePathAndPermissionsList>())
+                .map_err(|err| err.propagate::<ComponentFilePathAndPermissionsList>())
                 .and_then(|s| serde_json::from_str(&s).map_err(|err| poem_openapi::types::ParseError::custom(err)))
         }
     }

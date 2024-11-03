@@ -9,7 +9,7 @@ use golem_service_base::config::ComponentStoreLocalConfig;
 use golem_service_base::db;
 
 use golem_common::model::component_constraint::FunctionConstraintCollection;
-use golem_common::model::{ComponentId, ComponentType, ComponentFilePath, InitialComponentFilePathAndPermissions, InitialComponentFilePathAndPermissionsList, ComponentFilePermissions};
+use golem_common::model::{ComponentId, ComponentType, ComponentFilePath, ComponentFilePathAndPermissions, ComponentFilePathAndPermissionsList, ComponentFilePermissions};
 use golem_common::SafeDisplay;
 use golem_component_service_base::model::{Component, InitialComponentFilesArchiveAndPermissions};
 use golem_component_service_base::repo::component::{ComponentRepo, DbComponentRepo};
@@ -541,8 +541,8 @@ async fn test_initial_component_file_upload(component_service: Arc<dyn Component
             data,
             Some(InitialComponentFilesArchiveAndPermissions {
                 archive: File::open(COMPONENT_ARCHIVE).await.unwrap(),
-                permissions: InitialComponentFilePathAndPermissionsList {
-                    values: vec![ InitialComponentFilePathAndPermissions {
+                permissions: ComponentFilePathAndPermissionsList {
+                    values: vec![ ComponentFilePathAndPermissions {
                         path: ComponentFilePath::from_str("/foo.txt").unwrap(),
                         permissions: ComponentFilePermissions::ReadWrite,
                     }],
@@ -576,7 +576,7 @@ async fn test_initial_component_file_data_sharing(component_service: Arc<dyn Com
             data.clone(),
             Some(InitialComponentFilesArchiveAndPermissions {
                 archive: File::open(COMPONENT_ARCHIVE).await.unwrap(),
-                permissions: InitialComponentFilePathAndPermissionsList {
+                permissions: ComponentFilePathAndPermissionsList {
                     values: vec![],
                 },
             }),
@@ -592,9 +592,9 @@ async fn test_initial_component_file_data_sharing(component_service: Arc<dyn Com
             None,
             Some(InitialComponentFilesArchiveAndPermissions {
                 archive: File::open(COMPONENT_ARCHIVE).await.unwrap(),
-                permissions: InitialComponentFilePathAndPermissionsList {
+                permissions: ComponentFilePathAndPermissionsList {
                     values: vec![
-                        InitialComponentFilePathAndPermissions {
+                        ComponentFilePathAndPermissions {
                             path: ComponentFilePath::from_str("/foo.txt").unwrap(),
                             permissions: ComponentFilePermissions::ReadWrite,
                         }
