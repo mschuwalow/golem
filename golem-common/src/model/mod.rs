@@ -2650,6 +2650,12 @@ pub struct InitialComponentFile {
     pub permissions: InitialComponentFilePermissions,
 }
 
+impl InitialComponentFile {
+    pub fn is_read_only(&self) -> bool {
+        self.permissions == InitialComponentFilePermissions::ReadOnly
+    }
+}
+
 impl From<InitialComponentFile> for golem_api_grpc::proto::golem::component::InitialComponentFile {
     fn from(value: InitialComponentFile) -> Self {
         let permissions: golem_api_grpc::proto::golem::component::InitialComponentFilePermissions = value.permissions.into();

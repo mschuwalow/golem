@@ -11,6 +11,7 @@ use poem::web::{headers::ContentType};
 use rib::RibResult;
 use async_trait::async_trait;
 use crate::service::component::ComponentService;
+use crate::service::worker::{self, WorkerService};
 use super::WorkerDetail;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use crate::getter::{get_response_headers, get_response_headers_or_default, get_status_code, Getter, GetterExt};
@@ -115,16 +116,19 @@ pub trait FileServerBindingHandler {
 pub struct DefaultFileServerBindingHandler {
     component_service: Arc<dyn ComponentService<EmptyAuthCtx> + Sync + Send>,
     initial_component_files_service: Arc<InitialComponentFilesService>,
+    worker_service: Arc<dyn WorkerService<EmptyAuthCtx> + Sync + Send>,
 }
 
 impl DefaultFileServerBindingHandler {
     pub fn new(
         component_service: Arc<dyn ComponentService<EmptyAuthCtx> + Sync + Send>,
         initial_component_files_service: Arc<InitialComponentFilesService>,
+        worker_service: Arc<dyn WorkerService<EmptyAuthCtx> + Sync + Send>,
     ) -> Self {
         DefaultFileServerBindingHandler {
             component_service,
             initial_component_files_service,
+            worker_service,
         }
     }
 }
@@ -144,30 +148,45 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
             .unwrap();
 
         // if we are serving a read_only file, we can just go straight to the blob storage.
-        if component_metadata
-            .initial_component_files
+        let matching_file = component_metadata
+            .files
             .iter()
-            .any(|file| file.file_path == binding_details.file_path)
-        {
+            .find(|file| file.path == binding_details.file_path && file.is_read_only());
+
+        if let Some(file) = matching_file {
             let data = self
                 .initial_component_files_service
-                .get(&binding_details.file_path)
+                .get(&file.key)
                 .await
                 .unwrap()
                 .ok_or("File not found")
                 .unwrap();
-
-            let data = Bytes::from(data);
 
             return FileServerBindingResult {
                 original_result,
                 data: Box::pin(futures::stream::once(async move { data })),
             };
         } else {
-            // if we are serving a read_write file, we need to get it from the worker service.
+            // Two cases here. We have an explicit worker id, or we don't.
+            // If we don't, spawn a new worker to get the file.
+
+            if let Some(worker_name) = worker_detail.worker_name.as_ref() {
+                // let worker = self.worker_service.get_worker_by_name(worker_name).await.unwrap();
+                // let data = self.worker_service.get_file_contents(&worker, &binding_details.file_path).await.unwrap();
+            } else {
+                // let worker = self.worker_service.spawn_worker(&worker_detail.component_id).await.unwrap();
+                // let data = self.worker_service.get_file_contents(&worker, &binding_details.file_path).await.unwrap();
+            }
+
+
+
+
+            // // if we are serving a read_write file, we need to get it from the worker service.
             // let data = self
-            //     .wo
-            todo!()
+            //     .worker_service
+            //     .get_file_contents(&worker_detail, &binding_details.file_path)
+            //     .await
+            //     .unwrap();
         }
     }
 }
