@@ -16,6 +16,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
+use super::fileserver_binding_handler::{FileServerBindingHandler, FileServerBindingResult};
 use super::WorkerBindingType;
 
 // Every type of request (example: InputHttpRequest (which corresponds to a Route)) can have an instance of this resolver,
@@ -89,11 +90,13 @@ impl ResolvedWorkerBindingFromRequest {
     pub async fn interpret_response_mapping<R>(
         &self,
         evaluator: &Arc<dyn WorkerServiceRibInterpreter + Sync + Send>,
+        file_server_binding_handler: &Arc<dyn FileServerBindingHandler + Sync + Send>,
     ) -> R
     where
         RibResult: ToResponse<R>,
         EvaluationError: ToResponse<R>,
         RibInputTypeMismatch: ToResponse<R>,
+        FileServerBindingResult: ToResponse<R>,
     {
         let request_rib_input = self
             .request_details
@@ -123,8 +126,10 @@ impl ResolvedWorkerBindingFromRequest {
                                 worker_response.to_response(&self.request_details)
                             }
                             WorkerBindingType::FileServer => {
-                                // The result of the response script is instead a file path + content type
-                                todo!()
+                                file_server_binding_handler
+                                    .handle_file_server_binding(&self.worker_detail, worker_response)
+                                    .await
+                                    .to_response(&self.request_details)
                             }
                         }
                     Err(err) => err.to_response(&self.request_details),
@@ -134,14 +139,6 @@ impl ResolvedWorkerBindingFromRequest {
             (_, Err(err)) => err.to_response(&self.request_details),
         }
     }
-
-    // async fn handle_fileserver_response(
-    //     &self
-    //     worker_response: RibResult,
-
-    // ) {
-    //     // TODO
-    // }
 
 }
 

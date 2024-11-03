@@ -22,7 +22,6 @@ use crate::empty_worker_metadata;
 use futures_util::TryStreamExt;
 
 pub struct FileServerBindingSuccess {
-    pub original_result: RibResult,
     pub binding_details: FileServerBindingDetails,
     pub data: Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send + 'static>>
 }
@@ -127,8 +126,7 @@ impl FileServerBindingDetails {
 pub trait FileServerBindingHandler {
     async fn handle_file_server_binding(
         &self,
-        worker_detail: WorkerDetail,
-        binding_details: FileServerBindingDetails,
+        worker_detail: &WorkerDetail,
         original_result: RibResult,
     ) -> FileServerBindingResult;
 }
@@ -157,10 +155,12 @@ impl DefaultFileServerBindingHandler {
 impl FileServerBindingHandler for DefaultFileServerBindingHandler {
     async fn handle_file_server_binding(
         &self,
-        worker_detail: WorkerDetail,
-        binding_details: FileServerBindingDetails,
+        worker_detail: &WorkerDetail,
         original_result: RibResult,
     ) -> FileServerBindingResult {
+        let binding_details = FileServerBindingDetails::from_rib(original_result)
+            .map_err(|e| FileServerBindingError::InternalError(e))?;
+
         let component_metadata = self
             .component_service
             .get_by_version(&worker_detail.component_id.component_id, worker_detail.component_id.version, &EmptyAuthCtx())
@@ -182,7 +182,6 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
                 .ok_or(FileServerBindingError::InternalError(format!("File not found in file storage: {}", file.key)))?;
 
             Ok(FileServerBindingSuccess {
-                original_result,
                 binding_details: binding_details,
                 data: Box::pin(futures::stream::once(async move { Ok(data) })),
             })
@@ -212,7 +211,6 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
                 .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()));
 
             Ok(FileServerBindingSuccess {
-                original_result,
                 binding_details,
                 data: Box::pin(stream),
             })

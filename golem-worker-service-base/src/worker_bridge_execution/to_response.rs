@@ -9,12 +9,12 @@ use rib::RibResult;
 use poem::IntoResponse;
 
 pub trait ToResponse<A> {
-    fn to_response(&self, request_details: &RequestDetails) -> A;
+    fn to_response(self, request_details: &RequestDetails) -> A;
 }
 
 impl ToResponse<poem::Response> for RibResult {
-    fn to_response(&self, request_details: &RequestDetails) -> poem::Response {
-        match internal::IntermediateHttpResponse::from(self) {
+    fn to_response(self, request_details: &RequestDetails) -> poem::Response {
+        match internal::IntermediateHttpResponse::from(&self) {
             Ok(intermediate_response) => intermediate_response.to_http_response(request_details),
             Err(e) => poem::Response::builder()
                 .status(StatusCode::BAD_REQUEST)
@@ -27,7 +27,7 @@ impl ToResponse<poem::Response> for RibResult {
 }
 
 impl ToResponse<poem::Response> for RibInputTypeMismatch {
-    fn to_response(&self, _request_details: &RequestDetails) -> poem::Response {
+    fn to_response(self, _request_details: &RequestDetails) -> poem::Response {
         poem::Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .body(Body::from_string(format!("Error {}", self.0).to_string()))
@@ -35,7 +35,7 @@ impl ToResponse<poem::Response> for RibInputTypeMismatch {
 }
 
 impl ToResponse<poem::Response> for EvaluationError {
-    fn to_response(&self, _request_details: &RequestDetails) -> poem::Response {
+    fn to_response(self, _request_details: &RequestDetails) -> poem::Response {
         poem::Response::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
             .body(Body::from_string(format!("Error {}", self).to_string()))
@@ -43,7 +43,7 @@ impl ToResponse<poem::Response> for EvaluationError {
 }
 
 impl ToResponse<poem::Response> for String {
-    fn to_response(&self, _request_details: &RequestDetails) -> poem::Response {
+    fn to_response(self, _request_details: &RequestDetails) -> poem::Response {
         poem::Response::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
             .body(Body::from_string(self.to_string()))
@@ -51,20 +51,20 @@ impl ToResponse<poem::Response> for String {
 }
 
 impl ToResponse<poem::Response> for FileServerBindingResult {
-    fn to_response(&self, _request_details: &RequestDetails) -> poem::Response {
+    fn to_response(self, _request_details: &RequestDetails) -> poem::Response {
         match self {
             Ok(data) =>
                 Body::from_bytes_stream(data.data)
                     .with_content_type(&data.binding_details.content_type.to_string())
                     .with_status(data.binding_details.status_code)
-                    .into_response()
+                    .into_response(),
             Err(FileServerBindingError::InternalError(e)) => poem::Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(Body::from_string(format!("Error {}", e).to_string())),
             Err(FileServerBindingError::ComponentServiceError(inner)) =>
-                WorkerApiBaseError::from(*inner.clone()).into_response(),
+                WorkerApiBaseError::from(inner).into_response(),
             Err(FileServerBindingError::WorkerServiceError(inner)) =>
-                WorkerApiBaseError::from(*inner.clone()).into_response(),
+                WorkerApiBaseError::from(inner).into_response(),
         }
     }
 }
