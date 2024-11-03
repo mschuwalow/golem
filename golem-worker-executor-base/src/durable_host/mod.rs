@@ -1522,6 +1522,7 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWo
         }
 
         let path_clone = path.clone();
+
         let stream = tokio::fs::File::open(target)
             .map_ok(|file| FramedRead::new(file, BytesCodec::new()).map_ok(BytesMut::freeze))
             .try_flatten_stream()

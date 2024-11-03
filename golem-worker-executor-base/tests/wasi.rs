@@ -326,6 +326,66 @@ async fn initial_file_listing_through_api(
 
 #[test]
 #[tracing::instrument]
+async fn initial_file_reading_through_api(
+    last_unique_id: &LastUniqueId,
+    deps: &WorkerExecutorTestDependencies,
+    _tracing: &Tracing,
+) {
+    let context = TestContext::new(last_unique_id);
+    let executor = start(deps, &context).await.unwrap();
+
+    let file1_key = executor.add_initial_component_file(PathBuf::from("initial-file-read-write/files/foo.txt").as_path()).await;
+    let file2_key = executor.add_initial_component_file(PathBuf::from("initial-file-read-write/files/baz.txt").as_path()).await;
+
+    let component_files: Vec<InitialComponentFile> = vec![
+        InitialComponentFile {
+            key: file1_key,
+            path: InitialComponentFilePath::from_str("/foo.txt").unwrap(),
+            permissions: InitialComponentFilePermissions::ReadOnly,
+        },
+        InitialComponentFile {
+            key: file2_key.clone(),
+            path: InitialComponentFilePath::from_str("/bar/baz.txt").unwrap(),
+            permissions: InitialComponentFilePermissions::ReadWrite,
+        }
+    ];
+
+    let component_id = executor.store_component_with_files("initial-file-read-write", ComponentType::Ephemeral, &component_files).await;
+    let mut env = HashMap::new();
+    env.insert("RUST_BACKTRACE".to_string(), "full".to_string());
+    let worker_id = executor
+        .start_worker_with(&component_id, "initial-file-read-write-3", vec![], env)
+        .await;
+
+    // run the worker so it can update the files.
+    executor
+        .invoke_and_await(&worker_id, "run", vec![])
+        .await
+        .unwrap();
+
+    let result1 = executor
+        .get_file_contents(&worker_id, "/foo.txt")
+        .await;
+    let result1 = std::str::from_utf8(&result1).unwrap();
+
+    let result2 = executor
+        .get_file_contents(&worker_id, "/bar/baz.txt")
+        .await;
+    let result2 = std::str::from_utf8(&result2).unwrap();
+
+    drop(executor);
+
+
+    use log::warn;
+    warn!("result1: {:?}", result1);
+    warn!("result2: {:?}", result2);
+
+    check!(result1 == "foo\n");
+    check!(result2 == "baz\n");
+}
+
+#[test]
+#[tracing::instrument]
 async fn directories(
     last_unique_id: &LastUniqueId,
     deps: &WorkerExecutorTestDependencies,
