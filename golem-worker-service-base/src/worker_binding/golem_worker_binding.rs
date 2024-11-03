@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::worker_binding::CompiledGolemWorkerBinding;
 use golem_service_base::model::VersionedComponentId;
 use rib::Expr;
+use poem_openapi::Enum;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Encode, Decode)]
 #[serde(rename_all = "camelCase")]
@@ -38,11 +39,18 @@ impl From<CompiledGolemWorkerBinding> for GolemWorkerBinding {
 }
 
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Encode, Decode, Enum)]
 #[serde(rename_all = "kebab-case")]
+#[oai(rename_all = "kebab-case")]
 pub enum WorkerBindingType {
     Default,
     FileServer
+}
+
+impl Default for WorkerBindingType {
+    fn default() -> Self {
+        WorkerBindingType::Default
+    }
 }
 
 impl TryFrom<String> for WorkerBindingType {

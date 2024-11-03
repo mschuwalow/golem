@@ -190,7 +190,8 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
             // Ask the worker service to get the file contents. If no worker is running, one will be started.
             let worker_name_opt_validated = worker_detail
                 .worker_name
-                .map(|w| validate_worker_name(w.as_str()).map(|_| w))
+                .as_ref()
+                .map(|w| validate_worker_name(w).map(|_| w.clone()))
                 .transpose()
                 .map_err(|e| FileServerBindingError::InternalError(format!("Invalid worker name: {}", e)))?;
 

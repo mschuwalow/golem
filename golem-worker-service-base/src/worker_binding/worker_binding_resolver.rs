@@ -253,6 +253,7 @@ impl RequestToWorkerBindingResolver<CompiledHttpApiDefinition> for InputHttpRequ
             worker_detail,
             request_details: http_request_details,
             compiled_response_mapping: binding.response_compiled.clone(),
+            worker_binding_type: binding.worker_binding_type,
         };
 
         Ok(resolved_binding)
