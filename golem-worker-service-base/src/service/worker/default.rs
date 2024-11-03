@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::fmt::format;
 use std::pin::Pin;
 use std::{collections::HashMap, sync::Arc};
 use async_trait::async_trait;
@@ -1072,24 +1073,27 @@ where
                         file_path: path.to_string()
                     }))
                 },
-                |response| {
-                    let connected_stream = WorkerStream::new(response.into_inner());
-                    let stream = connected_stream
-                        .map_err(|_| WorkerServiceError::Internal("Stream error".to_string()))
-                        .map(|item| item.and_then(|response| response.result.ok_or(WorkerServiceError::Internal("Malformed chunk".to_string()))))
-                        .map_ok(|chunk|
-                            match chunk {
-                                workerexecutor::v1::get_file_contents_response::Result::Success(bytes) => Ok(Bytes::from(bytes)),
-                                workerexecutor::v1::get_file_contents_response::Result::Failure(_) =>
-                                    // TODO: This should be done in a nicer way. FileNotFound, etc. should be propagated here and transformed
-                                    // into an error with a proper status code.
-                                    Err(WorkerServiceError::Internal("Failed to read file".to_string())),
-                            }
-                        )
-                        .map(|item| item.and_then(|inner| inner));
-
-                    Ok(Box::pin(stream))
-                },
+                |response| Ok(WorkerStream::new(response.into_inner())),
+                    // let connected_stream = WorkerStream::new(response.into_inner());
+                    // let stream = connected_stream
+                    //     .map_err(|_| WorkerServiceError::Internal("Stream error".to_string()))
+                    //     .map(|item| item.and_then(|response| response.result.ok_or(WorkerServiceError::Internal("Malformed chunk".to_string()))))
+                    //     .map_ok(|chunk|
+                    //         match chunk {
+                    //             workerexecutor::v1::get_file_contents_response::Result::Success(bytes) => Ok(Bytes::from(bytes)),
+                    //             workerexecutor::v1::get_file_contents_response::Result::Failure(err) => {
+                    //                 let converted =
+                    //                     GolemError::try_from(err)
+                    //                     .map_err(|err| WorkerServiceError::Internal(format!("Failed converting errors {err}")))?
+                    //                     .into();
+                    //                 Err(converted)
+                    //             },
+                    //             workerexecutor::v1::get_file_contents_response::Result::Header(header) => {
+                    //                 match header.
+                    //             },
+                    //         }
+                    //     )
+                    //     .map(|item| item.and_then(|inner| inner));
                 |error| match error {
                     CallWorkerExecutorError::FailedToConnectToPod(status)
                         if status.code() == Code::NotFound =>
@@ -1101,7 +1105,11 @@ where
             )
             .await?;
 
-        Ok(stream)
+        let (header, stream) = stream.into_future().await;
+
+
+        // Ok(stream)
+        todo!()
     }
 
 }
