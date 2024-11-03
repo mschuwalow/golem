@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use test_r::{inherit_test_dep, test};
-use windows_sys::Win32::Networking::WinSock::sockaddr_gen;
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -290,11 +289,12 @@ async fn initial_file_listing_through_api(
         .list_directory(&worker_id, "/")
         .await;
 
-    let result = result
+    let mut result = result
         .into_iter()
         .map(|e| ComponentFileSystemNode { last_modified: SystemTime::UNIX_EPOCH, ..e } )
-        .collect::<Vec<_>>()
-        .sort_by_key(|e| e.name.clone());
+        .collect::<Vec<_>>();
+
+    result.sort_by_key(|e| e.name.clone());
 
     drop(executor);
 
@@ -305,7 +305,7 @@ async fn initial_file_listing_through_api(
             details: ComponentFileSystemNodeDetails::Directory
         },
         ComponentFileSystemNode {
-            name: "bax.txt".to_string(),
+            name: "baz.txt".to_string(),
             last_modified: SystemTime::UNIX_EPOCH,
             details: ComponentFileSystemNodeDetails::File {
                 permissions: InitialComponentFilePermissions::ReadWrite,
