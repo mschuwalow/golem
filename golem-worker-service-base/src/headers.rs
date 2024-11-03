@@ -1,11 +1,11 @@
-use std::collections::HashMap;
 use std::str::FromStr;
-
 use golem_wasm_rpc::protobuf::TypedRecord;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::json::TypeAnnotatedValueJsonExtensions;
+use http::{HeaderMap, StatusCode};
 use poem::web::headers::ContentType;
 use rib::GetLiteralValue;
+use std::collections::HashMap;
 
 #[derive(Default, Debug, PartialEq)]
 pub struct ResolvedResponseHeaders {
@@ -33,9 +33,9 @@ impl ResolvedResponseHeaders {
                     resolved_headers.insert(name_value_pair.name.clone(), value_str);
                 }
 
-                let headers: Result<HeaderMap, String> = (&resolved_headers)
+                let headers = (&resolved_headers)
                     .try_into()
-                    .map_err(|e: hyper::http::Error| e.to_string())
+                    .map_err(|e: http::Error| e.to_string())
                     .map_err(|e| format!("Unable to resolve valid headers. Error: {e}"))?;
 
 
@@ -63,6 +63,33 @@ impl ResolvedResponseHeaders {
 
 #[cfg(test)]
 mod test {
+    use golem_wasm_rpc::protobuf::{type_annotated_value::TypeAnnotatedValue, NameTypePair, NameValuePair, Type, TypedRecord};
+
+    fn create_record(values: Vec<(String, TypeAnnotatedValue)>) -> TypeAnnotatedValue {
+        let mut name_type_pairs = vec![];
+        let mut name_value_pairs = vec![];
+
+        for (key, value) in values.iter() {
+            let typ = Type::try_from(value).unwrap();
+            name_type_pairs.push(NameTypePair {
+                name: key.to_string(),
+                typ: Some(typ),
+            });
+
+            name_value_pairs.push(NameValuePair {
+                name: key.to_string(),
+                value: Some(golem_wasm_rpc::protobuf::TypeAnnotatedValue {
+                    type_annotated_value: Some(value.clone()),
+                }),
+            });
+        }
+
+        TypeAnnotatedValue::Record(TypedRecord {
+            typ: name_type_pairs,
+            value: name_value_pairs,
+        })
+    }
+
     #[test]
     fn test_get_response_headers_from_typed_value() {
         let header_map = create_record(vec![
