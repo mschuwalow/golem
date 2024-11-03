@@ -315,7 +315,9 @@ message ListDirectoryRequest {
 message ListDirectoryResponse {
   oneof result {
     ListDirectorySuccessResponse success = 1;
-    golem.worker.v1.WorkerExecutionError failure = 2;
+    golem.common.Empty not_found = 2;
+    golem.common.Empty not_a_directory = 3;
+    golem.worker.v1.WorkerExecutionError failure = 4;
   }
 }
 
@@ -331,7 +333,17 @@ message GetFileContentsRequest {
 
 message GetFileContentsResponse {
   oneof result {
-    bytes success = 1;
-    golem.worker.v1.WorkerExecutionError failure = 2;
+    // must always be the first chunk (except if failure) and will never be sent again.
+    GetFileContentsResponseHeader header = 1;
+    bytes success = 2;
+    golem.worker.v1.WorkerExecutionError failure = 3;
+  }
+}
+
+message GetFileContentsResponseHeader {
+  oneof result {
+    golem.common.Empty success = 1;
+    golem.common.Empty not_found = 2;
+    golem.common.Empty not_a_file = 3;
   }
 }

@@ -26,8 +26,7 @@ use std::vec;
 use crate::error::GolemError;
 use crate::invocation::{invoke_worker, InvokeResult};
 use crate::model::{
-    CurrentResourceLimits, ExecutionStatus, InterruptKind, LastError, PersistenceLevel, TrapType,
-    WorkerConfig,
+    CurrentResourceLimits, ExecutionStatus, InterruptKind, LastError, ListDirectoryResult, PersistenceLevel, ReadFileResult, TrapType, WorkerConfig
 };
 use crate::services::blob_store::BlobStoreService;
 use crate::services::file_loader::FileLoader;
@@ -1423,13 +1422,37 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> ExternalOperations<Ctx> for Dur
 
 #[async_trait]
 impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWorkerCtx<Ctx> {
-    async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<Vec<ComponentFileSystemNode>, GolemError> {
+    async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<ListDirectoryResult, GolemError> {
         let root = self._temp_dir.path();
         let target = root.join(&PathBuf::from(path.to_rel_string()));
+
+        {
+            let exists = tokio::fs::try_exists(&target).await.map_err(|e| GolemError::FileSystemError {
+                path: path.to_string(),
+                reason: format!("Failed to check whether file exists: {e}"),
+            })?;
+            if !exists {
+                return Ok(ListDirectoryResult::NotFound);
+            };
+        }
+
+
+        {
+            let metadata = tokio::fs::metadata(&target).await.map_err(|e| GolemError::FileSystemError {
+                path: path.to_string(),
+                reason: format!("Failed to get metadata: {e}"),
+            })?;
+            if !metadata.is_dir() {
+                return Ok(ListDirectoryResult::NotADirectory);
+            };
+        }
+
+
         let mut entries = tokio::fs::read_dir(target).await.map_err(|e| GolemError::FileSystemError {
             path: path.to_string(),
             reason: format!("Failed to list directory: {e}"),
         })?;
+
         let mut result = Vec::new();
         while let Some(entry) = entries.next_entry().await? {
             let metadata = entry.metadata().await.map_err(|e| GolemError::FileSystemError {
@@ -1465,12 +1488,33 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWo
                 });
             };
         }
-        Ok(result)
+        Ok(ListDirectoryResult::Ok(result))
     }
 
-    fn read_file(&self, path: &InitialComponentFilePath) -> Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send + 'static>> {
+    async fn read_file(&self, path: &InitialComponentFilePath) -> Result<ReadFileResult, GolemError> {
         let root = self._temp_dir.path();
         let target = root.join(&PathBuf::from(path.to_rel_string()));
+
+        {
+            let exists = tokio::fs::try_exists(&target).await.map_err(|e| GolemError::FileSystemError {
+                path: path.to_string(),
+                reason: format!("Failed to check whether file exists: {e}"),
+            })?;
+            if !exists {
+                return Ok(ReadFileResult::NotFound);
+            };
+        }
+
+
+        {
+            let metadata = tokio::fs::metadata(&target).await.map_err(|e| GolemError::FileSystemError {
+                path: path.to_string(),
+                reason: format!("Failed to get metadata: {e}"),
+            })?;
+            if !metadata.is_file() {
+                return Ok(ReadFileResult::NotAFile);
+            };
+        }
 
         let path_clone = path.clone();
         let stream = tokio::fs::File::open(target)
@@ -1481,7 +1525,7 @@ impl<Ctx: WorkerCtx + DurableWorkerCtxView<Ctx>> FileSystemReading for DurableWo
                 reason: format!("Failed to open file: {e}"),
             });
 
-        Box::pin(stream)
+        Ok(ReadFileResult::Ok(Box::pin(stream)))
     }
 }
 

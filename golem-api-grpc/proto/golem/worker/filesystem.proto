@@ -4,6 +4,13 @@ package golem.worker;
 
 import "golem/component/initial_component_file_permissions.proto";
 
+// Expected errors for file system requests, that should be handled by the client explicitly.
+enum FileSystemRequestError {
+  not_found = 0;
+  unexpected_path = 1;
+  invalid_path = 2;
+}
+
 message FileFileSystemNode {
   string name = 1;
   uint64 last_modified = 2; // Unix timestamp

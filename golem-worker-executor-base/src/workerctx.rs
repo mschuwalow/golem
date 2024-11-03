@@ -30,7 +30,7 @@ use golem_common::model::{
 
 use crate::error::GolemError;
 use crate::model::{
-    CurrentResourceLimits, ExecutionStatus, InterruptKind, LastError, TrapType, WorkerConfig,
+    CurrentResourceLimits, ExecutionStatus, InterruptKind, LastError, ListDirectoryResult, ReadFileResult, TrapType, WorkerConfig
 };
 use crate::services::active_workers::ActiveWorkers;
 use crate::services::blob_store::BlobStoreService;
@@ -383,6 +383,6 @@ pub trait PublicWorkerIo {
 #[async_trait]
 pub trait FileSystemReading {
     // List the contents of a directory. Will return an error if the path is not a directory.
-    async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<Vec<ComponentFileSystemNode>, GolemError>;
-    fn read_file(&self, path: &InitialComponentFilePath) -> Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send + 'static>>;
+    async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<ListDirectoryResult, GolemError>;
+    async fn read_file(&self, path: &InitialComponentFilePath) -> Result<ReadFileResult, GolemError>;
 }

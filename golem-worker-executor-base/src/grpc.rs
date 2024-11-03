@@ -53,7 +53,7 @@ use golem_common::{model as common_model, recorded_grpc_api_request};
 use crate::model::public_oplog::{
     find_component_version_at, get_public_oplog_chunk, search_public_oplog,
 };
-use crate::model::{InterruptKind, LastError};
+use crate::model::{InterruptKind, LastError, ListDirectoryResult, ReadFileResult};
 use crate::services::events::Event;
 use crate::services::worker_activator::{DefaultWorkerActivator, LazyWorkerActivator};
 use crate::services::worker_event::WorkerEventReceiver;
@@ -64,6 +64,7 @@ use crate::services::{
 };
 use crate::worker::{Worker};
 use crate::workerctx::WorkerCtx;
+use tokio;
 
 pub enum GrpcError<E> {
     Transport(tonic::transport::Error),
@@ -1254,17 +1255,32 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
                 .await?;
                 let result = worker.list_directory(path).await?;
 
-                Ok(ListDirectoryResponse {
-                    result: Some(golem::workerexecutor::v1::list_directory_response::Result::Success(
-                        golem::workerexecutor::v1::ListDirectorySuccessResponse {
-                            nodes: result
-                                .into_iter()
-                                .map(|entry| entry.into())
-                                .collect(),
-                        },
-                    ))
-                })
+                let response = match result {
+                    ListDirectoryResult::Ok(entries) => {
+                        ListDirectoryResponse {
+                            result: Some(golem::workerexecutor::v1::list_directory_response::Result::Success(
+                                golem::workerexecutor::v1::ListDirectorySuccessResponse {
+                                    nodes: entries
+                                        .into_iter()
+                                        .map(|entry| entry.into())
+                                        .collect(),
+                                },
+                            ))
+                        }
+                    },
+                    ListDirectoryResult::NotFound => {
+                        ListDirectoryResponse {
+                            result: Some(golem::workerexecutor::v1::list_directory_response::Result::NotFound(golem::common::Empty {}).into())
+                        }
+                    },
+                    ListDirectoryResult::NotADirectory => {
+                        ListDirectoryResponse {
+                            result: Some(golem::workerexecutor::v1::list_directory_response::Result::NotADirectory(golem::common::Empty {}).into())
+                        }
+                    }
+                };
 
+                Ok(response)
             }
             _ => Err(GolemError::invalid_request(format!(
                 "Worker {worker_id} is not suspended, interrupted, idle, running or retrying",
@@ -1322,29 +1338,60 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
                 )
                 .await?;
 
-                let content_stream = worker
-                    .read_file(path)
-                    .await?
-                    .map(|item| {
-                        let transformed = match item {
-                            Ok(data) => {
-                                GetFileContentsResponse {
-                                    result: Some(
-                                        golem::workerexecutor::v1::get_file_contents_response::Result::Success(data.into())
-                                    )
-                                }
-                            },
-                            Err(e) => {
-                                GetFileContentsResponse {
-                                    result: Some(
-                                        golem::workerexecutor::v1::get_file_contents_response::Result::Failure(e.into())
-                                    )
-                                }
-                            }
+                let result = worker.read_file(path).await?;
+
+                let response: <Self as WorkerExecutor>::GetFileContentsStream = match result {
+                    ReadFileResult::NotFound => {
+                        let header = golem::workerexecutor::v1::GetFileContentsResponseHeader {
+                            result: Some(golem::workerexecutor::v1::get_file_contents_response_header::Result::NotFound(golem::common::Empty {}).into()),
                         };
-                        Ok(transformed)
-                    });
-              Ok(Box::pin(content_stream))
+                        let header_chunk = GetFileContentsResponse {
+                            result: Some(golem::workerexecutor::v1::get_file_contents_response::Result::Header(header))
+                        };
+                        Box::pin(tokio_stream::iter(vec![Ok(header_chunk)]))
+                    },
+                    ReadFileResult::NotAFile => {
+                        let header = golem::workerexecutor::v1::GetFileContentsResponseHeader {
+                            result: Some(golem::workerexecutor::v1::get_file_contents_response_header::Result::NotAFile(golem::common::Empty {}).into()),
+                        };
+                        let header_chunk = GetFileContentsResponse {
+                            result: Some(golem::workerexecutor::v1::get_file_contents_response::Result::Header(header))
+                        };
+                        Box::pin(tokio_stream::iter(vec![Ok(header_chunk)]))
+                    },
+                    ReadFileResult::Ok(stream) => {
+                        let header = golem::workerexecutor::v1::GetFileContentsResponseHeader {
+                            result: Some(golem::workerexecutor::v1::get_file_contents_response_header::Result::Success(golem::common::Empty {}).into()),
+                        };
+                        let header_chunk = GetFileContentsResponse {
+                            result: Some(golem::workerexecutor::v1::get_file_contents_response::Result::Header(header))
+                        };
+                        let header_stream = tokio_stream::iter(vec![Ok(header_chunk)]);
+
+                        let content_stream = stream
+                        .map(|item| {
+                            let transformed = match item {
+                                Ok(data) => {
+                                    GetFileContentsResponse {
+                                        result: Some(
+                                            golem::workerexecutor::v1::get_file_contents_response::Result::Success(data.into())
+                                        )
+                                    }
+                                },
+                                Err(e) => {
+                                    GetFileContentsResponse {
+                                        result: Some(
+                                            golem::workerexecutor::v1::get_file_contents_response::Result::Failure(e.into())
+                                        )
+                                    }
+                                }
+                            };
+                            Ok(transformed)
+                        });
+                        Box::pin(header_stream.chain(content_stream))
+                    }
+                };
+                Ok(response)
             }
             _ => Err(GolemError::invalid_request(format!(
                 "Worker {worker_id} is not suspended, interrupted, idle, running or retrying",

@@ -24,7 +24,7 @@ use crate::durable_host::recover_stderr_logs;
 use crate::error::{GolemError, WorkerOutOfMemory};
 use crate::function_result_interpreter::interpret_function_results;
 use crate::invocation::{invoke_worker, InvokeResult};
-use crate::model::{ExecutionStatus, InterruptKind, LookupResult, TrapType, WorkerConfig};
+use crate::model::{ExecutionStatus, InterruptKind, ListDirectoryResult, LookupResult, ReadFileResult, TrapType, WorkerConfig};
 use crate::services::component::ComponentMetadata;
 use crate::services::events::Event;
 use crate::services::oplog::{CommitLevel, Oplog, OplogOps};
@@ -773,7 +773,7 @@ impl<Ctx: WorkerCtx> Worker<Ctx> {
     pub async fn list_directory(
         &self,
         path: InitialComponentFilePath,
-    ) -> Result<Vec<ComponentFileSystemNode>, GolemError> {
+    ) -> Result<ListDirectoryResult, GolemError> {
         let (sender, receiver) = oneshot::channel();
 
         let mutex = self.instance.lock().await;
@@ -802,7 +802,7 @@ impl<Ctx: WorkerCtx> Worker<Ctx> {
     pub async fn read_file(
         &self,
         path: InitialComponentFilePath,
-    ) -> Result<Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send + 'static>>, GolemError> {
+    ) -> Result<ReadFileResult, GolemError> {
         let (sender, receiver) = oneshot::channel();
 
         let mutex = self.instance.lock().await;
@@ -1442,17 +1442,25 @@ impl RunningWorker {
                                     let _ = sender.send(result);
                                 },
                                 QueuedWorkerInvocation::ReadFile { path, sender } => {
-                                    // Wait until the client is done with the file to avoid corruption.
-                                    //
-                                    // This will delay processing of the next invocation and is quite unfortunate.
-                                    // A possible improvement would be to check whether we are on a copy-on-write filesystem
-                                    // if yes, we can make a cheap copy of the file here and serve the read from that copy.
-                                    let (latch, latch_receiver) = oneshot::channel();
+                                    let result = store.data_mut().read_file(&path).await;
+                                    match result {
+                                        Ok(ReadFileResult::Ok(stream)) => {
+                                            // special case. We need to wait until the stream is consumed to avoid corruption
+                                            //
+                                            // This will delay processing of the next invocation and is quite unfortunate.
+                                            // A possible improvement would be to check whether we are on a copy-on-write filesystem
+                                            // if yes, we can make a cheap copy of the file here and serve the read from that copy.
 
-                                    let stream = store.data_mut().read_file(&path);
-                                    let drop_stream = DropStream::new(stream, || latch.send(()).unwrap());
-                                    let _ = sender.send(Ok(Box::pin(drop_stream)));
-                                    latch_receiver.await.unwrap();
+                                            let (latch, latch_receiver) = oneshot::channel();
+                                            let drop_stream = DropStream::new(stream, || latch.send(()).unwrap());
+                                            let _ = sender.send(Ok(ReadFileResult::Ok(Box::pin(drop_stream))));
+                                            latch_receiver.await.unwrap();
+                                        }
+                                        other => {
+                                            let _ = sender.send(other);
+                                        }
+
+                                    };
                                 },
                                 QueuedWorkerInvocation::External(inner) => {
                                     match inner.invocation {
@@ -2384,12 +2392,12 @@ pub enum QueuedWorkerInvocation {
     External(TimestampedWorkerInvocation),
     ListDirectory {
         path: InitialComponentFilePath,
-        sender: oneshot::Sender<Result<Vec<ComponentFileSystemNode>, GolemError>>,
+        sender: oneshot::Sender<Result<ListDirectoryResult, GolemError>>,
     },
     // The worker will suspend execution until the stream is dropped, so consume in a timely manner.
     ReadFile {
         path: InitialComponentFilePath,
-        sender: oneshot::Sender<Result<Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send + 'static>>, GolemError>>,
+        sender: oneshot::Sender<Result<ReadFileResult, GolemError>>,
     },
 }
 
