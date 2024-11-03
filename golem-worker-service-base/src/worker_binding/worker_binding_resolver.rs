@@ -16,6 +16,8 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
+use super::WorkerBindingType;
+
 // Every type of request (example: InputHttpRequest (which corresponds to a Route)) can have an instance of this resolver,
 // to resolve a single worker-binding is then executed with the help of worker_service_rib_interpreter, which internally
 // calls the worker function.
@@ -47,6 +49,7 @@ pub struct ResolvedWorkerBindingFromRequest {
     pub worker_detail: WorkerDetail,
     pub request_details: RequestDetails,
     pub compiled_response_mapping: ResponseMappingCompiled,
+    pub worker_binding_type: WorkerBindingType,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -114,7 +117,16 @@ impl ResolvedWorkerBindingFromRequest {
                     .await;
 
                 match result {
-                    Ok(worker_response) => worker_response.to_response(&self.request_details),
+                    Ok(worker_response) =>
+                        match self.worker_binding_type {
+                            WorkerBindingType::Default => {
+                                worker_response.to_response(&self.request_details)
+                            }
+                            WorkerBindingType::FileServer => {
+                                // The result of the response script is instead a file path + content type
+                                todo!()
+                            }
+                        }
                     Err(err) => err.to_response(&self.request_details),
                 }
             }
@@ -122,6 +134,15 @@ impl ResolvedWorkerBindingFromRequest {
             (_, Err(err)) => err.to_response(&self.request_details),
         }
     }
+
+    // async fn handle_fileserver_response(
+    //     &self
+    //     worker_response: RibResult,
+
+    // ) {
+    //     // TODO
+    // }
+
 }
 
 #[async_trait]

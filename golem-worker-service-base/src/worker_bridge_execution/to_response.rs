@@ -163,7 +163,7 @@ mod internal {
         }
     }
 
-    fn get_content_type_from_response_headers(response_headers: &HeaderMap) -> Option<ContentType> {
+    pub fn get_content_type_from_response_headers(response_headers: &HeaderMap) -> Option<ContentType> {
         response_headers
             .get(http::header::CONTENT_TYPE.to_string())
             .and_then(|header_value| {
@@ -174,7 +174,7 @@ mod internal {
             })
     }
 
-    fn get_status_code(status_code: &TypeAnnotatedValue) -> Result<StatusCode, EvaluationError> {
+    pub fn get_status_code(status_code: &TypeAnnotatedValue) -> Result<StatusCode, EvaluationError> {
         let status_res: Result<u16, EvaluationError> =
             match status_code.get_literal() {
                 Some(LiteralValue::String(status_str)) => status_str.parse().map_err(|e| {

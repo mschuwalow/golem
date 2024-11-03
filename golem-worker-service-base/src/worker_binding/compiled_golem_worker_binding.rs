@@ -5,12 +5,15 @@ use golem_service_base::model::VersionedComponentId;
 use golem_wasm_ast::analysis::AnalysedExport;
 use rib::{Expr, RibByteCode, RibInputTypeInfo, WorkerFunctionsInRib};
 
+use super::WorkerBindingType;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct CompiledGolemWorkerBinding {
     pub component_id: VersionedComponentId,
     pub worker_name_compiled: Option<WorkerNameCompiled>,
     pub idempotency_key_compiled: Option<IdempotencyKeyCompiled>,
     pub response_compiled: ResponseMappingCompiled,
+    pub worker_binding_type: WorkerBindingType,
 }
 
 impl CompiledGolemWorkerBinding {
@@ -43,6 +46,7 @@ impl CompiledGolemWorkerBinding {
             worker_name_compiled,
             idempotency_key_compiled,
             response_compiled,
+            worker_binding_type: golem_worker_binding.worker_binding_type.clone(),
         })
     }
 }
@@ -204,6 +208,7 @@ impl TryFrom<golem_api_grpc::proto::golem::apidefinition::CompiledWorkerBinding>
             worker_name_compiled,
             idempotency_key_compiled,
             response_compiled,
+            worker_binding_type: WorkerBindingType::Default, // TODO
         })
     }
 }

@@ -15,6 +15,7 @@ mod worker_binding;
 pub mod worker_bridge_execution;
 mod worker_service_rib_compiler;
 pub mod worker_service_rib_interpreter;
+mod headers;
 
 #[cfg(test)]
 test_r::enable!();

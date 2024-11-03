@@ -12,6 +12,7 @@ pub struct GolemWorkerBinding {
     pub worker_name: Option<Expr>,
     pub idempotency_key: Option<Expr>,
     pub response: ResponseMapping,
+    pub worker_binding_type: WorkerBindingType,
 }
 
 // ResponseMapping will consist of actual logic such as invoking worker functions
@@ -31,6 +32,27 @@ impl From<CompiledGolemWorkerBinding> for GolemWorkerBinding {
                 .idempotency_key_compiled
                 .map(|compiled| compiled.idempotency_key),
             response: ResponseMapping(worker_binding.response_compiled.response_rib_expr),
+            worker_binding_type: worker_binding.worker_binding_type,
+        }
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Encode, Decode)]
+#[serde(rename_all = "kebab-case")]
+pub enum WorkerBindingType {
+    Default,
+    FileServer
+}
+
+impl TryFrom<String> for WorkerBindingType {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "default" => Ok(WorkerBindingType::Default),
+            "file-server" => Ok(WorkerBindingType::FileServer),
+            _ => Err(format!("Invalid WorkerBindingType: {}", value))
         }
     }
 }

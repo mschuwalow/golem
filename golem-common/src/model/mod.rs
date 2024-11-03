@@ -2511,6 +2511,14 @@ impl InitialComponentFilePath {
         Self::from_str(&format!("/{}", s))
     }
 
+    pub fn from_either_str(s: &str) -> Result<Self, String> {
+        if s.starts_with('/') {
+            Self::from_str(s)
+        } else {
+            Self::from_rel_str(s)
+        }
+    }
+
     pub fn as_path(&self) -> &Utf8UnixPathBuf {
         &self.0
     }
