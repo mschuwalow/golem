@@ -1083,7 +1083,7 @@ pub struct GetOplogResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, Object)]
 #[serde(rename_all = "camelCase")]
 #[oai(rename_all = "camelCase")]
-pub struct ListDirectoryResponse {
+pub struct GetFilesResponse {
     pub nodes: Vec<FlatComponentFileSystemNode>,
 }
 

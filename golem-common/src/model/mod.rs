@@ -2507,6 +2507,10 @@ impl InitialComponentFilePath {
         Ok(InitialComponentFilePath(buf.normalize()))
     }
 
+    pub fn from_rel_str(s: &str) -> Result<Self, String> {
+        Self::from_str(&format!("/{}", s))
+    }
+
     pub fn as_path(&self) -> &Utf8UnixPathBuf {
         &self.0
     }

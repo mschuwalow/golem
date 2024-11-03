@@ -1,7 +1,7 @@
 use crate::empty_worker_metadata;
 use crate::service::{component::ComponentService, worker::WorkerService};
 use golem_common::model::{
-    ComponentId, IdempotencyKey, ScanCursor, TargetWorkerId, WorkerFilter, WorkerId,
+    ComponentId, IdempotencyKey, InitialComponentFilePath, ScanCursor, TargetWorkerId, WorkerFilter, WorkerId
 };
 use golem_common::recorded_http_api_request;
 use golem_service_base::api_tags::ApiTags;
@@ -690,6 +690,38 @@ impl WorkerApi {
             }
         }
     }
+
+
+    /// List files in a worker
+    #[oai(
+        path = "/:component_id/workers/:worker_name/files/:file_name",
+        method = "get",
+        operation_id = "list_files"
+    )]
+    async fn list_files(
+        &self,
+        component_id: Path<ComponentId>,
+        worker_name: Path<String>,
+        file_name: Path<String>,
+    ) -> Result<Json<GetFilesResponse>> {
+        let worker_id = make_worker_id(component_id.0, worker_name.0)?;
+        let path = make_component_file_path(file_name.0)?;
+        let record = recorded_http_api_request!("get_files", worker_id = worker_id.to_string());
+
+        let result = self.worker_service
+            .list_directory(
+                &worker_id,
+                path,
+                empty_worker_metadata(),
+                &EmptyAuthCtx::default(),
+            )
+            .instrument(record.span.clone())
+            .await
+            .map(|s| Json(GetFilesResponse { nodes: s.into_iter().map(|n| n.into()).collect() }))
+            .map_err(|e| e.into());
+
+        record.result(result)
+    }
 }
 
 fn make_worker_id(
@@ -722,5 +754,15 @@ fn make_target_worker_id(
     Ok(TargetWorkerId {
         component_id,
         worker_name,
+    })
+}
+
+fn make_component_file_path(
+    name: String
+) -> std::result::Result<InitialComponentFilePath, WorkerApiBaseError> {
+    InitialComponentFilePath::from_rel_str(&name).map_err(|error| {
+        WorkerApiBaseError::BadRequest(Json(ErrorsBody {
+            errors: vec![format!("Invalid file name: {error}")],
+        }))
     })
 }
