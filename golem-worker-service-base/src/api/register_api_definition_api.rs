@@ -513,12 +513,14 @@ impl TryFrom<crate::worker_binding::GolemWorkerBinding> for grpc_apidefinition::
 
         let idempotency_key = value.idempotency_key.map(|key| key.into());
 
+        let r#type: grpc_apidefinition::WorkerBindingType = value.worker_binding_type.into();
+
         let result = grpc_apidefinition::WorkerBinding {
             component: Some(value.component_id.into()),
             worker_name,
             idempotency_key,
             response,
-            r#type: value.worker_binding_type.into(),
+            r#type: r#type.into(),
         };
 
         Ok(result)
@@ -544,12 +546,16 @@ impl TryFrom<grpc_apidefinition::WorkerBinding> for crate::worker_binding::Golem
             None
         };
 
+        let r#type =
+            grpc_apidefinition::WorkerBindingType::try_from(value.r#type)
+                .map_err(|e| format!("Failed to convert WorkerBindingType: {}", e))?;
+
         let result = crate::worker_binding::GolemWorkerBinding {
             component_id,
             worker_name,
             idempotency_key,
             response,
-            worker_binding_type: value.r#type.into(),
+            worker_binding_type: r#type.into(),
         };
 
         Ok(result)

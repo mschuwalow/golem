@@ -2,6 +2,7 @@ pub mod component;
 pub mod worker;
 pub mod worker_request_executor;
 
+use golem_worker_service_base::worker_binding::fileserver_binding_handler::FileServerBindingHandler;
 use worker_request_executor::UnauthorisedWorkerRequestExecutor;
 
 use golem_worker_service_base::api_definition::http::{
@@ -58,6 +59,7 @@ pub struct Services {
     pub api_definition_validator_service: Arc<
         dyn ApiDefinitionValidatorService<HttpApiDefinition, RouteValidationError> + Sync + Send,
     >,
+    pub fileserver_binding_handler: Arc<dyn FileServerBindingHandler + Sync + Send>,
 }
 
 impl Services {

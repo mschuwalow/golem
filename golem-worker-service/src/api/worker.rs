@@ -1,4 +1,4 @@
-use crate::empty_worker_metadata;
+use golem_worker_service_base::empty_worker_metadata;
 use crate::service::{component::ComponentService, worker::WorkerService};
 use golem_common::model::{
     ComponentId, IdempotencyKey, InitialComponentFilePath, ScanCursor, TargetWorkerId, WorkerFilter, WorkerId

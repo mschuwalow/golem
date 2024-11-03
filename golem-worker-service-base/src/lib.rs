@@ -12,7 +12,7 @@ mod parser;
 pub(crate) mod path;
 pub mod repo;
 pub mod service;
-mod worker_binding;
+pub mod worker_binding;
 pub mod worker_bridge_execution;
 mod worker_service_rib_compiler;
 pub mod worker_service_rib_interpreter;
@@ -33,7 +33,7 @@ impl UriBackConversion for Uri {
     }
 }
 
-fn empty_worker_metadata() -> WorkerRequestMetadata {
+pub fn empty_worker_metadata() -> WorkerRequestMetadata {
     WorkerRequestMetadata {
         account_id: Some(golem_common::model::AccountId {
             value: "-1".to_string(),

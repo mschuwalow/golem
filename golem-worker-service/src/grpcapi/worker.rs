@@ -38,7 +38,7 @@ use golem_service_base::model::validate_worker_name;
 use golem_worker_service_base::api::WorkerTraceErrorKind;
 use golem_worker_service_base::service::worker::WorkerStream;
 use futures::StreamExt;
-use crate::empty_worker_metadata;
+use golem_worker_service_base::empty_worker_metadata;
 use crate::service::component::ComponentService;
 use crate::service::worker::WorkerService;
 
@@ -520,7 +520,7 @@ impl GrpcWorkerService for WorkerGrpcApi {
         let request = request.into_inner();
         let record = recorded_grpc_api_request!(
             "get_file_contents",
-            worker_id = proto_worker_id_string(&request.worker_id),
+            worker_id = proto_target_worker_id_string(&request.worker_id),
         );
 
         let response = match self
@@ -549,7 +549,7 @@ impl GrpcWorkerService for WorkerGrpcApi {
         let request = request.into_inner();
         let record = recorded_grpc_api_request!(
             "get_file_contents",
-            worker_id = proto_worker_id_string(&request.worker_id),
+            worker_id = proto_target_worker_id_string(&request.worker_id),
         );
 
         let stream = self
@@ -997,7 +997,7 @@ impl WorkerGrpcApi {
         &self,
         request: golem_api_grpc::proto::golem::worker::v1::ListDirectoryRequest,
     ) -> Result<golem_api_grpc::proto::golem::worker::v1::ListDirectorySuccessResponse, GrpcWorkerError> {
-        let worker_id = validate_protobuf_worker_id(request.worker_id)?;
+        let worker_id = validate_protobuf_target_worker_id(request.worker_id)?;
         let file_path = validate_component_file_path(request.path)?;
 
         let result = self
@@ -1022,7 +1022,7 @@ impl WorkerGrpcApi {
         &self,
         request: golem_api_grpc::proto::golem::worker::v1::GetFileContentsRequest,
     ) -> Result<<Self as GrpcWorkerService>::GetFileContentsStream, GrpcWorkerError> {
-        let worker_id = validate_protobuf_worker_id(request.worker_id)?;
+        let worker_id = validate_protobuf_target_worker_id(request.worker_id)?;
         let file_path = validate_component_file_path(request.file_path)?;
         let stream = self
             .worker_service
