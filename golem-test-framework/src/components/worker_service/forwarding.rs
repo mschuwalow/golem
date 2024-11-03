@@ -31,7 +31,6 @@ use golem_api_grpc::proto::golem::{worker, workerexecutor};
 use golem_common::model::AccountId;
 use tonic::transport::Channel;
 use tonic::Streaming;
-use log::warn;
 
 pub struct ForwardingWorkerService {
     worker_executor: Arc<dyn WorkerExecutor + Send + Sync + 'static>,
