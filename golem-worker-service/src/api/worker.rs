@@ -1,7 +1,7 @@
 use golem_worker_service_base::empty_worker_metadata;
 use crate::service::{component::ComponentService, worker::WorkerService};
 use golem_common::model::{
-    ComponentId, IdempotencyKey, InitialComponentFilePath, ScanCursor, TargetWorkerId, WorkerFilter, WorkerId
+    ComponentId, IdempotencyKey, ComponentFilePath, ScanCursor, TargetWorkerId, WorkerFilter, WorkerId
 };
 use golem_common::recorded_http_api_request;
 use golem_service_base::api_tags::ApiTags;
@@ -796,8 +796,8 @@ fn make_target_worker_id(
 
 fn make_component_file_path(
     name: String
-) -> std::result::Result<InitialComponentFilePath, WorkerApiBaseError> {
-    InitialComponentFilePath::from_rel_str(&name).map_err(|error| {
+) -> std::result::Result<ComponentFilePath, WorkerApiBaseError> {
+    ComponentFilePath::from_rel_str(&name).map_err(|error| {
         WorkerApiBaseError::BadRequest(Json(ErrorsBody {
             errors: vec![format!("Invalid file name: {error}")],
         }))

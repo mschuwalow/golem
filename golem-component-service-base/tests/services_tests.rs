@@ -9,7 +9,7 @@ use golem_service_base::config::ComponentStoreLocalConfig;
 use golem_service_base::db;
 
 use golem_common::model::component_constraint::FunctionConstraintCollection;
-use golem_common::model::{ComponentId, ComponentType, InitialComponentFilePath, InitialComponentFilePathAndPermissions, InitialComponentFilePathAndPermissionsList, InitialComponentFilePermissions};
+use golem_common::model::{ComponentId, ComponentType, ComponentFilePath, InitialComponentFilePathAndPermissions, InitialComponentFilePathAndPermissionsList, ComponentFilePermissions};
 use golem_common::SafeDisplay;
 use golem_component_service_base::model::{Component, InitialComponentFilesArchiveAndPermissions};
 use golem_component_service_base::repo::component::{ComponentRepo, DbComponentRepo};
@@ -543,8 +543,8 @@ async fn test_initial_component_file_upload(component_service: Arc<dyn Component
                 archive: File::open(COMPONENT_ARCHIVE).await.unwrap(),
                 permissions: InitialComponentFilePathAndPermissionsList {
                     values: vec![ InitialComponentFilePathAndPermissions {
-                        path: InitialComponentFilePath::from_str("/foo.txt").unwrap(),
-                        permissions: InitialComponentFilePermissions::ReadWrite,
+                        path: ComponentFilePath::from_str("/foo.txt").unwrap(),
+                        permissions: ComponentFilePermissions::ReadWrite,
                     }],
                 },
             }),
@@ -559,8 +559,8 @@ async fn test_initial_component_file_upload(component_service: Arc<dyn Component
 
     let result = result.unwrap().files.into_iter().map(|f| (f.path, f.permissions)).collect::<Vec<_>>();
     assert_eq!(result.len(), 2);
-    assert!(result.contains(&(InitialComponentFilePath::from_str("/foo.txt").unwrap(), InitialComponentFilePermissions::ReadWrite)));
-    assert!(result.contains(&(InitialComponentFilePath::from_str("/bar/baz.txt").unwrap(), InitialComponentFilePermissions::ReadOnly)));
+    assert!(result.contains(&(ComponentFilePath::from_str("/foo.txt").unwrap(), ComponentFilePermissions::ReadWrite)));
+    assert!(result.contains(&(ComponentFilePath::from_str("/bar/baz.txt").unwrap(), ComponentFilePermissions::ReadOnly)));
 }
 
 async fn test_initial_component_file_data_sharing(component_service: Arc<dyn ComponentService<DefaultNamespace> + Sync + Send>) {
@@ -595,8 +595,8 @@ async fn test_initial_component_file_data_sharing(component_service: Arc<dyn Com
                 permissions: InitialComponentFilePathAndPermissionsList {
                     values: vec![
                         InitialComponentFilePathAndPermissions {
-                            path: InitialComponentFilePath::from_str("/foo.txt").unwrap(),
-                            permissions: InitialComponentFilePermissions::ReadWrite,
+                            path: ComponentFilePath::from_str("/foo.txt").unwrap(),
+                            permissions: ComponentFilePermissions::ReadWrite,
                         }
                     ],
                 },

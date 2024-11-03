@@ -36,7 +36,7 @@ use golem_common::config::RetryConfig;
 use golem_common::model::oplog::OplogIndex;
 use golem_common::model::public_oplog::{OplogCursor, PublicOplogEntry};
 use golem_common::model::{
-    AccountId, ComponentFileSystemNode, ComponentId, ComponentVersion, FilterComparator, IdempotencyKey, InitialComponentFilePath, PromiseId, ScanCursor, TargetWorkerId, WorkerFilter, WorkerId, WorkerStatus
+    AccountId, ComponentFileSystemNode, ComponentId, ComponentVersion, FilterComparator, IdempotencyKey, ComponentFilePath, PromiseId, ScanCursor, TargetWorkerId, WorkerFilter, WorkerId, WorkerStatus
 };
 use golem_service_base::model::{Component, GolemError};
 use golem_service_base::model::{
@@ -247,7 +247,7 @@ pub trait WorkerService<AuthCtx> {
     async fn list_directory(
         &self,
         worker_id: &TargetWorkerId,
-        path: InitialComponentFilePath,
+        path: ComponentFilePath,
         metadata: WorkerRequestMetadata,
         auth_ctx: &AuthCtx,
     ) -> WorkerResult<Vec<ComponentFileSystemNode>>;
@@ -255,7 +255,7 @@ pub trait WorkerService<AuthCtx> {
     async fn get_file_contents(
         &self,
         worker_id: &TargetWorkerId,
-        path: InitialComponentFilePath,
+        path: ComponentFilePath,
         metadata: WorkerRequestMetadata,
         auth_ctx: &AuthCtx,
     ) -> WorkerResult<Pin<Box<dyn Stream<Item = WorkerResult<Bytes>> + Send + 'static>>>;
@@ -1009,7 +1009,7 @@ where
     async fn list_directory(
         &self,
         worker_id: &TargetWorkerId,
-        path: InitialComponentFilePath,
+        path: ComponentFilePath,
         metadata: WorkerRequestMetadata,
         _auth_ctx: &AuthCtx,
     ) -> WorkerResult<Vec<ComponentFileSystemNode>> {
@@ -1064,7 +1064,7 @@ where
     async fn get_file_contents(
         &self,
         worker_id: &TargetWorkerId,
-        path: InitialComponentFilePath,
+        path: ComponentFilePath,
         metadata: WorkerRequestMetadata,
         _auth_ctx: &AuthCtx,
     ) -> WorkerResult<Pin<Box<dyn Stream<Item = WorkerResult<Bytes>> + Send + 'static>>> {

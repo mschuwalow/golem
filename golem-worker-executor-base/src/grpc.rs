@@ -46,7 +46,7 @@ use golem_common::grpc::{
 use golem_common::metrics::api::record_new_grpc_api_active_stream;
 use golem_common::model::oplog::{OplogIndex, UpdateDescription};
 use golem_common::model::{
-    AccountId, ComponentId, ComponentType, IdempotencyKey, InitialComponentFilePath, OwnedWorkerId, ScanCursor, ShardId, TargetWorkerId, TimestampedWorkerInvocation, WorkerEvent, WorkerFilter, WorkerId, WorkerInvocation, WorkerMetadata, WorkerStatus, WorkerStatusRecord
+    AccountId, ComponentId, ComponentType, IdempotencyKey, ComponentFilePath, OwnedWorkerId, ScanCursor, ShardId, TargetWorkerId, TimestampedWorkerInvocation, WorkerEvent, WorkerFilter, WorkerId, WorkerInvocation, WorkerMetadata, WorkerStatus, WorkerStatusRecord
 };
 use golem_common::{model as common_model, recorded_grpc_api_request};
 
@@ -1209,7 +1209,7 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
         &self,
         request: ListDirectoryRequest,
     ) -> Result<ListDirectoryResponse, GolemError> {
-        let path = InitialComponentFilePath::from_str(&request.path)
+        let path = ComponentFilePath::from_str(&request.path)
             .map_err(|e| GolemError::invalid_request(format!("Invalid path: {}", e)))?;
 
         let worker = self.get_or_create(&request).await?;
@@ -1248,7 +1248,7 @@ impl<Ctx: WorkerCtx, Svcs: HasAll<Ctx> + UsesAllDeps<Ctx = Ctx> + Send + Sync + 
         &self,
         request: GetFileContentsRequest,
     ) -> Result<<Self as WorkerExecutor>::GetFileContentsStream, GolemError> {
-        let path = InitialComponentFilePath::from_str(&request.file_path)
+        let path = ComponentFilePath::from_str(&request.file_path)
             .map_err(|e| GolemError::invalid_request(format!("Invalid path: {}", e)))?;
 
         let worker = self.get_or_create(&request).await?;

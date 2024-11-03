@@ -31,7 +31,7 @@ use golem_common::grpc::{
     proto_worker_id_string,
 };
 use golem_common::model::oplog::OplogIndex;
-use golem_common::model::{ComponentVersion, InitialComponentFilePath, ScanCursor, TargetWorkerId, WorkerFilter, WorkerId};
+use golem_common::model::{ComponentVersion, ComponentFilePath, ScanCursor, TargetWorkerId, WorkerFilter, WorkerId};
 use golem_common::recorded_grpc_api_request;
 use golem_service_base::auth::EmptyAuthCtx;
 use golem_service_base::model::validate_worker_name;
@@ -1100,8 +1100,8 @@ fn validate_protobuf_target_worker_id(
 
 fn validate_component_file_path(
     file_path: String,
-) -> Result<InitialComponentFilePath, GrpcWorkerError> {
-    InitialComponentFilePath::from_str(&file_path)
+) -> Result<ComponentFilePath, GrpcWorkerError> {
+    ComponentFilePath::from_str(&file_path)
         .map_err(|_| bad_request_error("Invalid file path"))
 }
 

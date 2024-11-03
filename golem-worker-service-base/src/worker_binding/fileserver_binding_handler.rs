@@ -2,7 +2,7 @@ use std::{pin::Pin, str::FromStr, sync::Arc};
 
 use bytes::Bytes;
 use futures::Stream;
-use golem_common::model::{InitialComponentFilePath, TargetWorkerId};
+use golem_common::model::{ComponentFilePath, TargetWorkerId};
 use golem_service_base::model::validate_worker_name;
 use golem_service_base::{auth::EmptyAuthCtx, service::initial_component_files::InitialComponentFilesService};
 use golem_wasm_rpc::protobuf::typed_result::ResultValue;
@@ -37,7 +37,7 @@ pub type FileServerBindingResult = Result<FileServerBindingSuccess, FileServerBi
 pub struct FileServerBindingDetails {
     pub content_type: ContentType,
     pub status_code: StatusCode,
-    pub file_path: InitialComponentFilePath,
+    pub file_path: ComponentFilePath,
 }
 
 impl FileServerBindingDetails {
@@ -101,7 +101,7 @@ impl FileServerBindingDetails {
         content_type: Option<ContentType>,
         status_code: Option<StatusCode>,
     ) -> Result<FileServerBindingDetails, String> {
-        let file_path = InitialComponentFilePath::from_either_str(&path)?;
+        let file_path = ComponentFilePath::from_either_str(&path)?;
 
         let content_type = match content_type {
             Some(content_type) => content_type,
