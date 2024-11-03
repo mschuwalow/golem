@@ -9,7 +9,7 @@ use std::collections::HashMap;
 
 #[derive(Default, Debug, PartialEq)]
 pub struct ResolvedResponseHeaders {
-    headers: HeaderMap,
+    pub headers: HeaderMap,
 }
 
 impl ResolvedResponseHeaders {

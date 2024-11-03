@@ -65,6 +65,8 @@ mod internal {
     use poem::{Body, IntoResponse, ResponseParts};
     use rib::{GetLiteralValue, LiteralValue, RibResult};
     use std::collections::HashMap;
+    use crate::headers::ResolvedResponseHeaders;
+    use crate::getter::{get_response_headers, get_status_code};
 
     pub(crate) struct IntermediateHttpResponse {
         body: Option<TypeAnnotatedValue>,
@@ -78,15 +80,11 @@ mod internal {
         ) -> Result<IntermediateHttpResponse, EvaluationError> {
             match evaluation_result {
                 RibResult::Val(typed_value) => {
-                    let status = match typed_value.get_optional(&Path::from_key("status")) {
-                        Some(typed_value) => get_status_code(&typed_value),
-                        None => Ok(StatusCode::OK),
-                    }?;
+                    let status = get_status_code(typed_value)
+                        .map_err(|e| EvaluationError(e))?;
 
-                    let headers = match typed_value.get_optional(&Path::from_key("headers")) {
-                        None => Ok(ResolvedResponseHeaders::default()),
-                        Some(header) => ResolvedResponseHeaders::from_typed_value(&header),
-                    }?;
+                    let headers = get_response_headers(typed_value)
+                        .map_err(|e| EvaluationError(e))?;
 
                     let body = typed_value
                         .get_optional(&Path::from_key("body"))
@@ -107,137 +105,44 @@ mod internal {
         }
 
         pub(crate) fn to_http_response(&self, request_details: &RequestDetails) -> poem::Response {
-            let headers: Result<HeaderMap, String> = (&self.headers.headers)
-                .try_into()
-                .map_err(|e: hyper::http::Error| e.to_string());
+            let response_content_type = self.headers.get_content_type();
+            let response_headers = self.headers.headers;
 
             let status = &self.status;
             let evaluation_result = &self.body;
 
-            match headers {
-                Ok(response_headers) => {
-                    let response_content_type =
-                        get_content_type_from_response_headers(&response_headers);
-
-                    let accepted_content_types = match request_details {
-                        RequestDetails::Http(http) => http.get_accept_content_type_header(),
-                    };
-
-                    let content_type =
-                        ContentTypeHeaders::from(response_content_type, accepted_content_types);
-
-                    match evaluation_result {
-                        Some(type_annotated_value) => {
-                            match type_annotated_value.to_http_resp_with_content_type(content_type)
-                            {
-                                Ok(body_with_header) => {
-                                    let mut response = body_with_header.into_response();
-                                    response.set_status(*status);
-                                    response.headers_mut().extend(response_headers);
-                                    response
-                                }
-                                Err(content_map_error) => poem::Response::builder()
-                                    .status(StatusCode::BAD_REQUEST)
-                                    .body(Body::from_string(content_map_error.to_string())),
-                            }
-                        }
-                        None => {
-                            let parts = ResponseParts {
-                                status: *status,
-                                version: Default::default(),
-                                headers: response_headers,
-                                extensions: Default::default(),
-                            };
-
-                            poem::Response::from_parts(parts, Body::empty())
-                        }
-                    }
-                }
-                Err(err) => poem::Response::builder()
-                    .status(StatusCode::BAD_REQUEST)
-                    .body(Body::from_string(format!(
-                        "Unable to resolve valid headers. Error: {}",
-                        err
-                    ))),
-            }
-        }
-    }
-
-    pub fn get_content_type_from_response_headers(response_headers: &HeaderMap) -> Option<ContentType> {
-        response_headers
-            .get(http::header::CONTENT_TYPE.to_string())
-            .and_then(|header_value| {
-                header_value
-                    .to_str()
-                    .ok()
-                    .and_then(|header_str| ContentType::from_str(header_str).ok())
-            })
-    }
-
-    pub fn get_status_code(status_code: &TypeAnnotatedValue) -> Result<StatusCode, EvaluationError> {
-        let status_res: Result<u16, EvaluationError> =
-            match status_code.get_literal() {
-                Some(LiteralValue::String(status_str)) => status_str.parse().map_err(|e| {
-                    EvaluationError(format!(
-                        "Invalid Status Code Expression. It is resolved to a string but not a number {}. Error: {}",
-                        status_str, e
-                    ))
-                }),
-                Some(LiteralValue::Num(number)) => number.to_string().parse().map_err(|e| {
-                    EvaluationError(format!(
-                        "Invalid Status Code Expression. It is resolved to a number but not a u16 {}. Error: {}",
-                        number, e
-                    ))
-                }),
-                _ => Err(EvaluationError(format!(
-                    "Status Code Expression is evaluated to a complex value. It is resolved to {:?}",
-                    status_code.to_json_value()
-                )))
+            let accepted_content_types = match request_details {
+                RequestDetails::Http(http) => http.get_accept_content_type_header(),
             };
 
-        let status_u16 = status_res?;
+            let content_type =
+                ContentTypeHeaders::from(response_content_type, accepted_content_types);
 
-        StatusCode::from_u16(status_u16).map_err(|e| EvaluationError(format!(
-            "Invalid Status Code. A valid status code cannot be formed from the evaluated status code expression {}. Error: {}",
-            status_u16, e
-        )))
-    }
-
-    #[derive(Default, Debug, PartialEq)]
-    pub(crate) struct ResolvedResponseHeaders {
-        pub(crate) headers: HashMap<String, String>,
-    }
-
-    impl ResolvedResponseHeaders {
-        pub fn from_typed_value(
-            header_map: &TypeAnnotatedValue,
-        ) -> Result<ResolvedResponseHeaders, String> {
-            match header_map {
-                TypeAnnotatedValue::Record(TypedRecord { value, .. }) => {
-                    let mut resolved_headers: HashMap<String, String> = HashMap::new();
-
-                    for name_value_pair in value {
-                        let value_str = name_value_pair
-                            .value
-                            .as_ref()
-                            .and_then(|v| v.type_annotated_value.clone())
-                            .ok_or("Unable to resolve header value".to_string())?
-                            .get_literal()
-                            .map(|primitive| primitive.to_string())
-                            .unwrap_or_else(|| "Unable to resolve header".to_string());
-
-                        resolved_headers.insert(name_value_pair.name.clone(), value_str);
+            match evaluation_result {
+                Some(type_annotated_value) => {
+                    match type_annotated_value.to_http_resp_with_content_type(content_type)
+                    {
+                        Ok(body_with_header) => {
+                            let mut response = body_with_header.into_response();
+                            response.set_status(*status);
+                            response.headers_mut().extend(response_headers);
+                            response
+                        }
+                        Err(content_map_error) => poem::Response::builder()
+                            .status(StatusCode::BAD_REQUEST)
+                            .body(Body::from_string(content_map_error.to_string())),
                     }
-
-                    Ok(ResolvedResponseHeaders {
-                        headers: resolved_headers,
-                    })
                 }
+                None => {
+                    let parts = ResponseParts {
+                        status: *status,
+                        version: Default::default(),
+                        headers: response_headers,
+                        extensions: Default::default(),
+                    };
 
-                _ => Err(format!(
-                    "Header expression is not a record. It is resolved to {}",
-                    header_map.to_json_value()
-                )),
+                    poem::Response::from_parts(parts, Body::empty())
+                }
             }
         }
     }
@@ -246,8 +151,6 @@ mod internal {
 #[cfg(test)]
 mod test {
     use test_r::test;
-
-    use crate::worker_bridge_execution::to_response::internal::ResolvedResponseHeaders;
     use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
     use golem_wasm_rpc::protobuf::Type;
     use golem_wasm_rpc::protobuf::{NameTypePair, NameValuePair, TypedRecord};
@@ -349,27 +252,5 @@ mod test {
         assert_eq!(body, expected_body);
         assert_eq!(headers.clone(), expected_headers);
         assert_eq!(status, expected_status);
-    }
-
-    #[test]
-    fn test_get_response_headers_from_typed_value() {
-        let header_map = create_record(vec![
-            (
-                "header1".to_string(),
-                TypeAnnotatedValue::Str("value1".to_string()),
-            ),
-            ("header2".to_string(), TypeAnnotatedValue::F32(1.0)),
-        ]);
-
-        let resolved_headers = ResolvedResponseHeaders::from_typed_value(&header_map).unwrap();
-
-        let mut map = HashMap::new();
-
-        map.insert("header1".to_string(), "value1".to_string());
-        map.insert("header2".to_string(), "1".to_string());
-
-        let expected = ResolvedResponseHeaders { headers: map };
-
-        assert_eq!(resolved_headers, expected)
     }
 }
