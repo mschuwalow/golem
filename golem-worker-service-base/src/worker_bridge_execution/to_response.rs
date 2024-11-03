@@ -1,5 +1,4 @@
 use crate::api::WorkerApiBaseError;
-use crate::service::worker::WorkerServiceError;
 use crate::worker_binding::fileserver_binding_handler::{FileServerBindingError, FileServerBindingResult};
 use crate::worker_binding::{RequestDetails, RibInputTypeMismatch};
 use crate::worker_service_rib_interpreter::EvaluationError;
@@ -75,20 +74,20 @@ mod internal {
         ContentTypeHeaders, HttpContentTypeResponseMapper,
     };
     use crate::worker_service_rib_interpreter::EvaluationError;
-    use http::{HeaderMap, StatusCode};
-    use std::str::FromStr;
+    use http::StatusCode;
+    
 
     use crate::getter::{get_response_headers_or_default, get_status_code_or_ok, GetterExt};
     use crate::path::Path;
-    use golem_wasm_rpc::json::TypeAnnotatedValueJsonExtensions;
+    
     use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
-    use golem_wasm_rpc::protobuf::TypedRecord;
-    use poem::web::headers::ContentType;
+    
+    
     use poem::{Body, IntoResponse, ResponseParts};
-    use rib::{GetLiteralValue, LiteralValue, RibResult};
-    use std::collections::HashMap;
+    use rib::RibResult;
+    
     use crate::headers::ResolvedResponseHeaders;
-    use crate::getter::{get_response_headers, get_status_code};
+    
 
     pub(crate) struct IntermediateHttpResponse {
         body: Option<TypeAnnotatedValue>,
@@ -182,7 +181,7 @@ mod test {
     use http::header::CONTENT_TYPE;
     use http::StatusCode;
     use rib::RibResult;
-    use std::collections::HashMap;
+    
 
     fn create_record(values: Vec<(String, TypeAnnotatedValue)>) -> TypeAnnotatedValue {
         let mut name_type_pairs = vec![];

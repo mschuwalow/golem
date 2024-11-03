@@ -1,10 +1,8 @@
-use std::str::FromStr;
 
 use golem_wasm_rpc::json::TypeAnnotatedValueJsonExtensions;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::protobuf::{TypedList, TypedRecord, TypedTuple};
-use http::{HeaderMap, StatusCode};
-use poem::web::headers::ContentType;
+use http::StatusCode;
 use rib::LiteralValue;
 use rib::GetLiteralValue;
 use crate::headers::ResolvedResponseHeaders;

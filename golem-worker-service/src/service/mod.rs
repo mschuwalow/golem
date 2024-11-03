@@ -6,7 +6,6 @@ use golem_service_base::config::BlobStorageConfig;
 use golem_service_base::service::initial_component_files::InitialComponentFilesService;
 use golem_service_base::storage::blob::BlobStorage;
 use golem_service_base::storage::sqlite::SqlitePool;
-use golem_worker_service_base::worker_binding::fileserver_binding_handler;
 use golem_worker_service_base::worker_binding::fileserver_binding_handler::DefaultFileServerBindingHandler;
 use golem_worker_service_base::worker_binding::fileserver_binding_handler::FileServerBindingHandler;
 use worker_request_executor::UnauthorisedWorkerRequestExecutor;

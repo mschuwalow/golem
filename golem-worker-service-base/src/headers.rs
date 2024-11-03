@@ -2,7 +2,7 @@ use std::str::FromStr;
 use golem_wasm_rpc::protobuf::TypedRecord;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::json::TypeAnnotatedValueJsonExtensions;
-use http::{HeaderMap, StatusCode};
+use http::HeaderMap;
 use poem::web::headers::ContentType;
 use rib::GetLiteralValue;
 use std::collections::HashMap;

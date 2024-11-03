@@ -112,7 +112,7 @@ mod tests {
     use crate::http::http_request::{ApiInputPath, InputHttpRequest};
     use crate::path::Path;
     use crate::worker_binding::{
-        fileserver_binding_handler, RequestDetails, RequestToWorkerBindingResolver, RibInputTypeMismatch
+        RequestDetails, RequestToWorkerBindingResolver, RibInputTypeMismatch
     };
     use crate::worker_bridge_execution::to_response::ToResponse;
     use crate::worker_bridge_execution::{
@@ -137,7 +137,7 @@ mod tests {
     use serde_json::Value;
     use std::collections::HashMap;
     use std::sync::Arc;
-    use crate::worker_binding::fileserver_binding_handler::{FileServerBindingHandler, FileServerBindingResult, FileServerBindingSuccess, FileServerBindingDetails};
+    use crate::worker_binding::fileserver_binding_handler::{FileServerBindingHandler, FileServerBindingResult};
     use crate::worker_binding::WorkerDetail;
 
     struct TestWorkerRequestExecutor {}
