@@ -706,7 +706,7 @@ impl WorkerApi {
         worker_name: Path<String>,
         file_name: Path<String>,
     ) -> Result<Json<GetFilesResponse>> {
-        let worker_id = make_worker_id(component_id.0, worker_name.0)?;
+        let worker_id = make_target_worker_id(component_id.0, Some(worker_name.0))?;
         let path = make_component_file_path(file_name.0)?;
         let record = recorded_http_api_request!("get_file", worker_id = worker_id.to_string());
 
@@ -737,7 +737,7 @@ impl WorkerApi {
         worker_name: Path<String>,
         file_name: Path<String>,
     ) -> Result<Binary<Body>> {
-        let worker_id = make_worker_id(component_id.0, worker_name.0)?;
+        let worker_id = make_target_worker_id(component_id.0, Some(worker_name.0))?;
         let path = make_component_file_path(file_name.0)?;
         let record = recorded_http_api_request!("get_files", worker_id = worker_id.to_string());
 
