@@ -113,18 +113,27 @@ impl<T: Getter<T>> GetterExt<T> for T {
     }
 }
 
-pub fn get_response_headers(typed_value: &TypeAnnotatedValue) -> Result<ResolvedResponseHeaders, String> {
+pub fn get_response_headers(typed_value: &TypeAnnotatedValue) -> Result<Option<ResolvedResponseHeaders>, String> {
     match typed_value.get_optional(&Path::from_key("headers")) {
-        None => Ok(ResolvedResponseHeaders::default()),
-        Some(header) => ResolvedResponseHeaders::from_typed_value(&header),
+        None => Ok(None),
+        Some(header) => Ok(Some(ResolvedResponseHeaders::from_typed_value(&header)?)),
     }
 }
 
-pub fn get_status_code(typed_value: &TypeAnnotatedValue) -> Result<StatusCode, String> {
+pub fn get_response_headers_or_default(typed_value: &TypeAnnotatedValue) -> Result<ResolvedResponseHeaders, String> {
+    get_response_headers(typed_value).map(|headers| headers.unwrap_or_default())
+}
+
+
+pub fn get_status_code(typed_value: &TypeAnnotatedValue) -> Result<Option<StatusCode>, String> {
     match typed_value.get_optional(&Path::from_key("status")) {
-        Some(typed_value) => get_status_code_inner(&typed_value),
-        None => Ok(StatusCode::OK),
+        None => Ok(None),
+        Some(typed_value) => Ok(Some(get_status_code_inner(&typed_value)?)),
     }
+}
+
+pub fn get_status_code_or_ok(typed_value: &TypeAnnotatedValue) -> Result<StatusCode, String> {
+    get_status_code(typed_value).map(|status| status.unwrap_or(StatusCode::OK))
 }
 
 fn get_status_code_inner(status_code: &TypeAnnotatedValue) -> Result<StatusCode, String> {

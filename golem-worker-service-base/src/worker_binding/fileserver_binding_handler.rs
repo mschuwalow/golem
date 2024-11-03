@@ -4,15 +4,18 @@ use bytes::Bytes;
 use futures::Stream;
 use golem_common::model::{component_metadata, InitialComponentFilePath};
 use golem_service_base::{auth::EmptyAuthCtx, service::initial_component_files::InitialComponentFilesService};
+use golem_wasm_rpc::protobuf::typed_result::ResultValue;
+use http::StatusCode;
 use mime_guess::Mime;
-use poem::web::{headers::ContentType, Path};
+use poem::web::{headers::ContentType};
 use rib::RibResult;
 use async_trait::async_trait;
-use testcontainers_modules::postgres;
 use crate::service::component::ComponentService;
 use super::WorkerDetail;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
-use crate::getter::{Getter, GetterExt};
+use crate::getter::{get_response_headers, get_response_headers_or_default, get_status_code, Getter, GetterExt};
+use crate::path::Path;
+use golem_wasm_rpc::json::TypeAnnotatedValueJsonExtensions;
 
 pub struct FileServerBindingResult {
     pub original_result: RibResult,
@@ -20,8 +23,8 @@ pub struct FileServerBindingResult {
 }
 
 pub struct FileServerBindingDetails {
-    mime_type: Mime,
-    status_code: u16,
+    content_type: ContentType,
+    status_code: StatusCode,
     file_path: InitialComponentFilePath,
 }
 
@@ -31,85 +34,69 @@ impl FileServerBindingDetails {
         // 1. A string path. Mime type is guessed from the path. Status code is 200.
         // 2. A record with a 'file-path' field. Mime type and status are optionally taken from the record, otherwise guessed.
         // 3. A result of either of the above, with the same rules applied.
-        // match result {
-
-        // }
-
-        todo!()
-
-
-        // let (path_value, response_details) = match value {
-        //     // Allow evaluating to a single string as a shortcut...
-        //     path @ TypeAnnotatedValue::Str(_) => (path, None),
-        //     // ...Or a Result<String, String>
-        //     TypeAnnotatedValue::Result(res) =>
-        //         match res.result_value.ok_or("result not set")? {
-        //             ResultValue::OkValue(ok) => (ok.type_annotated_value.ok_or("ok unset")?, None),
-        //             ResultValue::ErrorValue(err) => {
-        //                 let err = err.type_annotated_value.ok_or("err unset")?;
-        //                 let TypeAnnotatedValue::Str(err) = err else { Err("'file-server' result error must be a string")? };
-        //                 return Err(err);
-        //             }
-        //         },
-        //     // Otherwise use 'file-path'
-        //     rec @ TypeAnnotatedValue::Record(_) => {
-        //         let Some(path) = rec.get_optional(&Path::from_key("file-path")) else {
-        //             // If there is no 'file-path', assume this is a standard error response
-        //             return Ok(FileServerResult::Err(rec));
-        //         };
-
-        //         (path, Some(rec))
-        //     }
-        //     _ => Err("Response value expected")?,
-        // };
-
-        // let TypeAnnotatedValue::Str(content) = path_value else {
-        //     return Err(format!("'file-server' must provide a string path, but evaluated to '{}'", path_value.to_json_value()));
-        // };
-
-        // let mime_hint = mime_guess::from_path(&content);
+        match result {
+            RibResult::Val(value) => {
+                match value {
+                    TypeAnnotatedValue::Result(inner) => {
+                        let value = inner.result_value.ok_or("Expected a result value".to_string())?;
+                        match value {
+                            ResultValue::OkValue(ok) => {
+                                Self::from_rib_happy(ok.type_annotated_value.ok_or("ok unset".to_string())?)
+                            }
+                            ResultValue::ErrorValue(err) => {
+                                let value = err.type_annotated_value.ok_or("err unset".to_string())?;
+                                Err(format!("Error result: {}", value.to_json_value().to_string()))
+                            }
+                        }
+                    },
+                    other => Self::from_rib_happy(other)
+                }
+            }
+            RibResult::Unit => {
+                Err("Expected a value".to_string())
+            }
+        }
     }
 
     /// Like the above, just without the result case.
-    fn from_rib_happy(result: TypeAnnotatedValue) -> Result<FileServerBindingDetails, String> {
+    fn from_rib_happy(value: TypeAnnotatedValue) -> Result<FileServerBindingDetails, String> {
         match value {
             TypeAnnotatedValue::Str(raw_path) => {
                 Self::make_from(raw_path, None, None)
             }
             record @ TypeAnnotatedValue::Record(_) => {
-                let status = match record.get_optional(&Path::from_key("status")) {
-                    Some(typed_value) => get_status_code(&typed_value),
-                    None => Ok(StatusCode::OK),
-                }?;
+                let path = record.get_optional(&Path::from_key("file-path"))
+                    .ok_or("Record must contain 'file-path' field")?;
+                let status = get_status_code(&record)?;
+                let headers = get_response_headers_or_default(&record)?;
+                let content_type  = headers.get_content_type();
 
-                let headers = match record.get_optional(&Path::from_key("headers")) {
-                    None => Ok(ResolvedResponseHeaders::default()),
-                    Some(header) => ResolvedResponseHeaders::from_typed_value(&header),
-                }?;
-                todo!();
+                Self::make_from(path, content_type, status)
             }
+            _ => Err("Response value expected".to_string()),
         }
     }
 
-
     fn make_from(
         path: String,
-        mime_type: Option<String>,
-        status_code: Option<u16>,
+        content_type: Option<ContentType>,
+        status_code: Option<StatusCode>,
     ) -> Result<FileServerBindingDetails, String> {
         let file_path = InitialComponentFilePath::from_either_str(&path)?;
 
-        let mime_type = mime_type
-            .map(|s| Mime::from_str(&s).map_err(|e| format!("Invalid mime type: {}", e)))
-            .transpose()?;
+        let content_type = match content_type {
+            Some(content_type) => content_type,
+            None => {
+                let mime_type = mime_guess::from_path(&path).first().ok_or("Could not determine mime type")?;
+                ContentType::from_str(mime_type.as_ref()).map_err(|e| format!("Invalid mime type: {}", e))?
+            }
+        };
 
-        let mime_type = mime_type.ok_or(|| mime_guess::from_path(&path).first().ok_or("Could not determine mime type".to_string()))?;
-
-        let status_code = status_code.unwrap_or(200);
+        let status_code = status_code.unwrap_or(StatusCode::OK);
 
         Ok(FileServerBindingDetails {
             status_code,
-            mime_type,
+            content_type,
             file_path,
         })
     }
@@ -120,6 +107,7 @@ pub trait FileServerBindingHandler {
     async fn handle_file_server_binding(
         &self,
         worker_detail: WorkerDetail,
+        binding_details: FileServerBindingDetails,
         original_result: RibResult,
     ) -> FileServerBindingResult;
 }
@@ -146,6 +134,7 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
     async fn handle_file_server_binding(
         &self,
         worker_detail: WorkerDetail,
+        binding_details: FileServerBindingDetails,
         original_result: RibResult,
     ) -> FileServerBindingResult {
         let component_metadata = self
@@ -155,44 +144,30 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
             .unwrap();
 
         // if we are serving a read_only file, we can just go straight to the blob storage.
-    }
-}
+        if component_metadata
+            .initial_component_files
+            .iter()
+            .any(|file| file.file_path == binding_details.file_path)
+        {
+            let data = self
+                .initial_component_files_service
+                .get(&binding_details.file_path)
+                .await
+                .unwrap()
+                .ok_or("File not found")
+                .unwrap();
 
-fn get_file_server_result_internal(worker_response: RibResult) -> Result<FileServerResult<String>, String> {
-    let RibResult::Val(value) = worker_response else {
-        return Err(format!("Response value expected"));
-    };
+            let data = Bytes::from(data);
 
-    let (path_value, response_details) = match value {
-        // Allow evaluating to a single string as a shortcut...
-        path @ TypeAnnotatedValue::Str(_) => (path, None),
-        // ...Or a Result<String, String>
-        TypeAnnotatedValue::Result(res) =>
-            match res.result_value.ok_or("result not set")? {
-                ResultValue::OkValue(ok) => (ok.type_annotated_value.ok_or("ok unset")?, None),
-                ResultValue::ErrorValue(err) => {
-                    let err = err.type_annotated_value.ok_or("err unset")?;
-                    let TypeAnnotatedValue::Str(err) = err else { Err("'file-server' result error must be a string")? };
-                    return Err(err);
-                }
-            },
-        // Otherwise use 'file-path'
-        rec @ TypeAnnotatedValue::Record(_) => {
-            let Some(path) = rec.get_optional(&Path::from_key("file-path")) else {
-                // If there is no 'file-path', assume this is a standard error response
-                return Ok(FileServerResult::Err(rec));
+            return FileServerBindingResult {
+                original_result,
+                data: Box::pin(futures::stream::once(async move { data })),
             };
-
-            (path, Some(rec))
+        } else {
+            // if we are serving a read_write file, we need to get it from the worker service.
+            // let data = self
+            //     .wo
+            todo!()
         }
-        _ => Err("Response value expected")?,
-    };
-
-    let TypeAnnotatedValue::Str(content) = path_value else {
-        return Err(format!("'file-server' must provide a string path, but evaluated to '{}'", path_value.to_json_value()));
-    };
-
-    let mime_hint = mime_guess::from_path(&content);
-
-    Ok(FileServerResult::Ok { content, response_details, mime_hint })
+    }
 }

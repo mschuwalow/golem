@@ -56,7 +56,7 @@ mod internal {
     use http::{HeaderMap, StatusCode};
     use std::str::FromStr;
 
-    use crate::getter::GetterExt;
+    use crate::getter::{get_response_headers_or_default, get_status_code_or_ok, GetterExt};
     use crate::path::Path;
     use golem_wasm_rpc::json::TypeAnnotatedValueJsonExtensions;
     use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
@@ -80,10 +80,10 @@ mod internal {
         ) -> Result<IntermediateHttpResponse, EvaluationError> {
             match evaluation_result {
                 RibResult::Val(typed_value) => {
-                    let status = get_status_code(typed_value)
+                    let status = get_status_code_or_ok(typed_value)
                         .map_err(|e| EvaluationError(e))?;
 
-                    let headers = get_response_headers(typed_value)
+                    let headers = get_response_headers_or_default(typed_value)
                         .map_err(|e| EvaluationError(e))?;
 
                     let body = typed_value
@@ -106,7 +106,7 @@ mod internal {
 
         pub(crate) fn to_http_response(&self, request_details: &RequestDetails) -> poem::Response {
             let response_content_type = self.headers.get_content_type();
-            let response_headers = self.headers.headers;
+            let response_headers = self.headers.headers.clone();
 
             let status = &self.status;
             let evaluation_result = &self.body;
