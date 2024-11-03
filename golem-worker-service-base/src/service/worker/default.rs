@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use core::prelude::v1;
 use std::fmt::format;
 use std::pin::Pin;
 use std::{collections::HashMap, sync::Arc};
 use async_trait::async_trait;
 use bytes::Bytes;
-use futures::{Stream, StreamExt};
+use futures::{stream, Stream, StreamExt};
 use golem_wasm_ast::analysis::AnalysedFunctionResult;
 use golem_wasm_rpc::protobuf::type_annotated_value::TypeAnnotatedValue;
 use golem_wasm_rpc::protobuf::Val as ProtoVal;
+use http::header;
 use tonic::transport::Channel;
 use tonic::Code;
 use tracing::{error, info};
@@ -1015,6 +1017,7 @@ where
         _auth_ctx: &AuthCtx,
     ) -> WorkerResult<Vec<ComponentFileSystemNode>> {
         let worker_id = worker_id.clone();
+        let path_clone = path.clone();
         self.call_worker_executor(
             worker_id.clone(),
             "list_directory",
@@ -1025,7 +1028,7 @@ where
                     worker_executor_client.list_directory(workerexecutor::v1::ListDirectoryRequest {
                         worker_id: Some(worker_id.into()),
                         account_id: metadata.account_id.clone().map(|id| id.into()),
-                        path: path.to_string()
+                        path: path_clone.to_string()
                     }),
                 )
             },
@@ -1045,7 +1048,15 @@ where
                 workerexecutor::v1::ListDirectoryResponse {
                     result: Some(workerexecutor::v1::list_directory_response::Result::Failure(err)),
                 } => Err(err.into()),
-                workerexecutor::v1::ListDirectoryResponse { .. } => Err("Empty response".into()),
+                workerexecutor::v1::ListDirectoryResponse {
+                    result: Some(workerexecutor::v1::list_directory_response::Result::NotFound(_)),
+                } => Err(WorkerServiceError::FileNotFound(path.clone()).into()),
+                workerexecutor::v1::ListDirectoryResponse {
+                    result: Some(workerexecutor::v1::list_directory_response::Result::NotADirectory(_)),
+                } => Err(WorkerServiceError::BadFileType(path.clone()).into()),
+                workerexecutor::v1::ListDirectoryResponse {
+                    result: None
+                } => Err("Empty response".into()),
             },
             WorkerServiceError::InternalCallError,
         )
@@ -1061,6 +1072,7 @@ where
     ) -> WorkerResult<Pin<Box<dyn Stream<Item = WorkerResult<Bytes>> + Send + 'static>>> {
         let worker_id = worker_id.clone();
         let worker_id_err: WorkerId = worker_id.clone();
+        let path_clone = path.clone();
         let stream = self
             .call_worker_executor(
                 worker_id.clone(),
@@ -1070,30 +1082,10 @@ where
                     Box::pin(worker_executor_client.get_file_contents(workerexecutor::v1::GetFileContentsRequest {
                         worker_id: Some(worker_id.clone().into()),
                         account_id: metadata.account_id.clone().map(|id| id.into()),
-                        file_path: path.to_string()
+                        file_path: path_clone.to_string()
                     }))
                 },
                 |response| Ok(WorkerStream::new(response.into_inner())),
-                    // let connected_stream = WorkerStream::new(response.into_inner());
-                    // let stream = connected_stream
-                    //     .map_err(|_| WorkerServiceError::Internal("Stream error".to_string()))
-                    //     .map(|item| item.and_then(|response| response.result.ok_or(WorkerServiceError::Internal("Malformed chunk".to_string()))))
-                    //     .map_ok(|chunk|
-                    //         match chunk {
-                    //             workerexecutor::v1::get_file_contents_response::Result::Success(bytes) => Ok(Bytes::from(bytes)),
-                    //             workerexecutor::v1::get_file_contents_response::Result::Failure(err) => {
-                    //                 let converted =
-                    //                     GolemError::try_from(err)
-                    //                     .map_err(|err| WorkerServiceError::Internal(format!("Failed converting errors {err}")))?
-                    //                     .into();
-                    //                 Err(converted)
-                    //             },
-                    //             workerexecutor::v1::get_file_contents_response::Result::Header(header) => {
-                    //                 match header.
-                    //             },
-                    //         }
-                    //     )
-                    //     .map(|item| item.and_then(|inner| inner));
                 |error| match error {
                     CallWorkerExecutorError::FailedToConnectToPod(status)
                         if status.code() == Code::NotFound =>
@@ -1107,11 +1099,57 @@ where
 
         let (header, stream) = stream.into_future().await;
 
+        let header = header.ok_or(WorkerServiceError::Internal("Empty stream".to_string()))?;
 
-        // Ok(stream)
-        todo!()
+        match header.map_err(|_| WorkerServiceError::Internal("Stream error".to_string()))?.result {
+            Some(workerexecutor::v1::get_file_contents_response::Result::Success(_)) =>
+                Err(WorkerServiceError::Internal("Protocal violation".to_string())),
+            Some(workerexecutor::v1::get_file_contents_response::Result::Failure(err)) => {
+                let converted =
+                    GolemError::try_from(err)
+                    .map_err(|err| WorkerServiceError::Internal(format!("Failed converting errors {err}")))?;
+                Err(converted.into())
+            }
+            Some(workerexecutor::v1::get_file_contents_response::Result::Header(header)) => {
+                match header.result {
+                    Some(workerexecutor::v1::get_file_contents_response_header::Result::Success(_)) => {
+                        Ok(())
+                    },
+                    Some(workerexecutor::v1::get_file_contents_response_header::Result::NotAFile(_)) => {
+                        Err(WorkerServiceError::BadFileType(path).into())
+                    },
+                    Some(workerexecutor::v1::get_file_contents_response_header::Result::NotFound(_)) => {
+                        Err(WorkerServiceError::FileNotFound(path).into())
+                    },
+                    None =>
+                        Err(WorkerServiceError::Internal("Empty response".to_string())),
+                }
+            }
+            None => Err(WorkerServiceError::Internal("Empty response".to_string())),
+        }?;
+
+        let stream = stream
+            .map_err(|_| WorkerServiceError::Internal("Stream error".to_string()))
+            .map(|item| item.and_then(|response| response.result.ok_or(WorkerServiceError::Internal("Malformed chunk".to_string()))))
+            .map_ok(|chunk|
+                match chunk {
+                    workerexecutor::v1::get_file_contents_response::Result::Success(bytes) => Ok(Bytes::from(bytes)),
+                    workerexecutor::v1::get_file_contents_response::Result::Failure(err) => {
+                        let converted =
+                            GolemError::try_from(err)
+                            .map_err(|err| WorkerServiceError::Internal(format!("Failed converting errors {err}")))?
+                            .into();
+                        Err(converted)
+                    },
+                    workerexecutor::v1::get_file_contents_response::Result::Header(_) => {
+                        Err(WorkerServiceError::Internal("Unexpected header".to_string()))
+                    },
+                }
+            )
+            .map(|item| item.and_then(|inner| inner));
+
+        Ok(Box::pin(stream))
     }
-
 }
 
 impl<AuthCtx> WorkerServiceDefault<AuthCtx>

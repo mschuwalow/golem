@@ -32,7 +32,7 @@ use golem_worker_executor_base::durable_host::{
 };
 use golem_worker_executor_base::error::GolemError;
 use golem_worker_executor_base::model::{
-    CurrentResourceLimits, ExecutionStatus, InterruptKind, LastError, TrapType, WorkerConfig,
+    CurrentResourceLimits, ExecutionStatus, InterruptKind, LastError, ListDirectoryResult, ReadFileResult, TrapType, WorkerConfig
 };
 use futures::Stream;
 use bytes::Bytes;
@@ -413,11 +413,11 @@ impl ResourceStore for Context {
 
 #[async_trait]
 impl FileSystemReading for Context {
-    async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<Vec<ComponentFileSystemNode>, GolemError> {
+    async fn list_directory(&self, path: &InitialComponentFilePath) -> Result<ListDirectoryResult, GolemError> {
         self.durable_ctx.list_directory(path).await
     }
 
-    fn read_file(&self, path: &InitialComponentFilePath) -> Pin<Box<dyn Stream<Item = Result<Bytes, GolemError>> + Send + 'static>> {
+    async fn read_file(&self, path: &InitialComponentFilePath) -> Result<ReadFileResult, GolemError> {
         self.durable_ctx.read_file(path)
     }
 }
