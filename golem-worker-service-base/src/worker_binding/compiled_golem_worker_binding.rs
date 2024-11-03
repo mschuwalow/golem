@@ -246,6 +246,9 @@ impl TryFrom<CompiledGolemWorkerBinding>
         let response_rib_input = Some(value.response_compiled.rib_input.into());
         let worker_functions_in_response = value.response_compiled.worker_calls.map(|x| x.into());
 
+        let r#type: golem_api_grpc::proto::golem::apidefinition::WorkerBindingType =
+            value.worker_binding_type.into();
+
         Ok(
             golem_api_grpc::proto::golem::apidefinition::CompiledWorkerBinding {
                 component,
@@ -259,6 +262,7 @@ impl TryFrom<CompiledGolemWorkerBinding>
                 compiled_response_expr,
                 response_rib_input,
                 worker_functions_in_response,
+                r#type: r#type.into(),
             },
         )
     }

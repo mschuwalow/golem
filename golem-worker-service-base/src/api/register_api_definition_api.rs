@@ -518,6 +518,7 @@ impl TryFrom<crate::worker_binding::GolemWorkerBinding> for grpc_apidefinition::
             worker_name,
             idempotency_key,
             response,
+            r#type: value.worker_binding_type.into(),
         };
 
         Ok(result)
@@ -548,7 +549,7 @@ impl TryFrom<grpc_apidefinition::WorkerBinding> for crate::worker_binding::Golem
             worker_name,
             idempotency_key,
             response,
-            worker_binding_type: todo!()
+            worker_binding_type: value.r#type.into(),
         };
 
         Ok(result)

@@ -64,3 +64,21 @@ impl TryFrom<String> for WorkerBindingType {
         }
     }
 }
+
+impl From<golem_api_grpc::proto::golem::apidefinition::WorkerBindingType> for WorkerBindingType {
+    fn from(value: golem_api_grpc::proto::golem::apidefinition::WorkerBindingType) -> Self {
+        match value {
+            golem_api_grpc::proto::golem::apidefinition::WorkerBindingType::Default => WorkerBindingType::Default,
+            golem_api_grpc::proto::golem::apidefinition::WorkerBindingType::FileServer => WorkerBindingType::FileServer
+        }
+    }
+}
+
+impl From<WorkerBindingType> for golem_api_grpc::proto::golem::apidefinition::WorkerBindingType {
+    fn from(value: WorkerBindingType) -> Self {
+        match value {
+            WorkerBindingType::Default => golem_api_grpc::proto::golem::apidefinition::WorkerBindingType::Default,
+            WorkerBindingType::FileServer => golem_api_grpc::proto::golem::apidefinition::WorkerBindingType::FileServer
+        }
+    }
+}
