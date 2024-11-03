@@ -3,6 +3,7 @@ use std::{pin::Pin, str::FromStr, sync::Arc};
 use bytes::Bytes;
 use futures::Stream;
 use golem_common::model::{component_metadata, InitialComponentFilePath};
+use golem_service_base::model::validate_worker_name;
 use golem_service_base::{auth::EmptyAuthCtx, service::initial_component_files::InitialComponentFilesService};
 use golem_wasm_rpc::protobuf::typed_result::ResultValue;
 use http::StatusCode;
@@ -167,20 +168,22 @@ impl FileServerBindingHandler for DefaultFileServerBindingHandler {
                 data: Box::pin(futures::stream::once(async move { data })),
             };
         } else {
-            // Two cases here. We have an explicit worker id, or we don't.
-            // If we don't, spawn a new worker to get the file.
+            // Read write files need to be fetched from a running worker. If no worker id is provided,
+            // just create an ephemeral worker. Using the same worker for all requests ensures that we
+            // are don't spawn too many workers.
+            let worker_name_opt_validated = worker_detail
+                .worker_name
+                .map(|w| validate_worker_name(w.as_str()).map(|_| w))
+                .transpose();
 
-            if let Some(worker_name) = worker_detail.worker_name.as_ref() {
-                // let worker = self.worker_service.get_worker_by_name(worker_name).await.unwrap();
-                // let data = self.worker_service.get_file_contents(&worker, &binding_details.file_path).await.unwrap();
-            } else {
-                // let worker = self.worker_service.spawn_worker(&worker_detail.component_id).await.unwrap();
-                // let data = self.worker_service.get_file_contents(&worker, &binding_details.file_path).await.unwrap();
-            }
+            let component_id = worker_request_params.component_id;
 
+            let worker_id = TargetWorkerId {
+                component_id: component_id.clone(),
+                worker_name: worker_name_opt_validated.clone(),
+            };
 
-
-
+            todo!()
             // // if we are serving a read_write file, we need to get it from the worker service.
             // let data = self
             //     .worker_service
