@@ -20,7 +20,7 @@ use crate::model::text::component::{ComponentAddView, ComponentGetView, Componen
 use crate::model::{ComponentName, Format, GolemError, GolemResult, PathBufOrStdin};
 use async_trait::async_trait;
 use async_zip::base::write::ZipFileWriter;
-use golem_client::model::{ComponentType, InitialComponentFilePathAndPermissionsList};
+use golem_client::model::{ComponentType, ComponentFilePathAndPermissionsList};
 use golem_common::model::{ComponentId, ComponentFilePathAndPermissions};
 use golem_common::uri::oss::uri::ComponentUri;
 use golem_common::uri::oss::url::ComponentUrl;
@@ -178,7 +178,7 @@ impl <ProjectContext> ComponentServiceLive<ProjectContext> {
             return Err(GolemError("Conflicting paths in component files".to_string()));
         };
 
-        let properties = InitialComponentFilePathAndPermissionsList {
+        let properties = ComponentFilePathAndPermissionsList {
             values: properties_files,
         };
 
@@ -456,6 +456,6 @@ struct LoadedFile {
 #[derive(Debug)]
 struct ComponentFilesArchiveAndProperties {
     pub archive_path: PathBuf,
-    pub properties: InitialComponentFilePathAndPermissionsList,
+    pub properties: ComponentFilePathAndPermissionsList,
     _temp_dir: TempDir // archive_path is only valid as long as this is alive
 }

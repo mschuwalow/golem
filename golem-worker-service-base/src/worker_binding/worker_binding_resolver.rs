@@ -17,7 +17,7 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use super::fileserver_binding_handler::{FileServerBindingHandler, FileServerBindingResult};
-use super::WorkerBindingType;
+use golem_common::model::WorkerBindingType;
 
 // Every type of request (example: InputHttpRequest (which corresponds to a Route)) can have an instance of this resolver,
 // to resolve a single worker-binding is then executed with the help of worker_service_rib_interpreter, which internally

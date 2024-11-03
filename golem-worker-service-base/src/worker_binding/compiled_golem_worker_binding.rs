@@ -4,8 +4,7 @@ use bincode::{Decode, Encode};
 use golem_service_base::model::VersionedComponentId;
 use golem_wasm_ast::analysis::AnalysedExport;
 use rib::{Expr, RibByteCode, RibInputTypeInfo, WorkerFunctionsInRib};
-
-use super::WorkerBindingType;
+use golem_common::model::WorkerBindingType;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CompiledGolemWorkerBinding {
@@ -203,12 +202,15 @@ impl TryFrom<golem_api_grpc::proto::golem::apidefinition::CompiledWorkerBinding>
             worker_calls,
         };
 
+        let worker_binding_type: golem_api_grpc::proto::golem::apidefinition::WorkerBindingType =
+            value.r#type.try_into().map_err(|_| "Invalid worker binding type".to_string())?;
+
         Ok(CompiledGolemWorkerBinding {
             component_id,
             worker_name_compiled,
             idempotency_key_compiled,
             response_compiled,
-            worker_binding_type: WorkerBindingType::Default, // TODO
+            worker_binding_type: worker_binding_type.into(),
         })
     }
 }

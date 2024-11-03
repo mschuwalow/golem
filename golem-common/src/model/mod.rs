@@ -2813,6 +2813,50 @@ impl TryFrom<golem_api_grpc::proto::golem::worker::FileSystemNode> for Component
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Encode, Decode, Enum)]
+#[serde(rename_all = "kebab-case")]
+#[oai(rename_all = "kebab-case")]
+pub enum WorkerBindingType {
+    Default,
+    FileServer
+}
+
+impl Default for WorkerBindingType {
+    fn default() -> Self {
+        WorkerBindingType::Default
+    }
+}
+
+impl TryFrom<String> for WorkerBindingType {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "default" => Ok(WorkerBindingType::Default),
+            "file-server" => Ok(WorkerBindingType::FileServer),
+            _ => Err(format!("Invalid WorkerBindingType: {}", value))
+        }
+    }
+}
+
+impl From<golem_api_grpc::proto::golem::apidefinition::WorkerBindingType> for WorkerBindingType {
+    fn from(value: golem_api_grpc::proto::golem::apidefinition::WorkerBindingType) -> Self {
+        match value {
+            golem_api_grpc::proto::golem::apidefinition::WorkerBindingType::Default => WorkerBindingType::Default,
+            golem_api_grpc::proto::golem::apidefinition::WorkerBindingType::FileServer => WorkerBindingType::FileServer
+        }
+    }
+}
+
+impl From<WorkerBindingType> for golem_api_grpc::proto::golem::apidefinition::WorkerBindingType {
+    fn from(value: WorkerBindingType) -> Self {
+        match value {
+            WorkerBindingType::Default => golem_api_grpc::proto::golem::apidefinition::WorkerBindingType::Default,
+            WorkerBindingType::FileServer => golem_api_grpc::proto::golem::apidefinition::WorkerBindingType::FileServer
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use test_r::test;
